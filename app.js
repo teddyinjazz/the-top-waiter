@@ -489,6 +489,13 @@
         idx++;
       }
     });
+    // Wine buttons are in #winesList, outside .menu-items-area; index them after all static items
+    // so they sort to the end in their DOM-generated order within the Wines section.
+    document.querySelectorAll('#winesList .item-btn').forEach(btn => {
+      const onclick = btn.getAttribute('onclick') || '';
+      const addMatch = onclick.match(/addItem\(this,'([^']+)'/);
+      if (addMatch) orderIndex[addMatch[1]] = idx++;
+    });
     return orderIndex;
   }
 
