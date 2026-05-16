@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>The TOP — Официант</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+  const firebaseConfig = { databaseURL: "https://the-top-8f32e-default-rtdb.europe-west1.firebasedatabase.app/" };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { font-family: 'DM Mono', monospace; background: #0f1a19; color: #e8f4f2; height: 100%; overflow: hidden; display: flex; flex-direction: column; }
+.topbar { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #162320; border-bottom: 1px solid rgba(42,157,143,0.2); flex-shrink: 0; }
+.topbar-logo { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: #3dbfaf; letter-spacing: 2px; white-space: nowrap; flex-shrink: 0; }
+.topbar-logo span { color: #e9c46a; }
+.table-scroll-wrap { flex: 1; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.table-scroll-wrap::-webkit-scrollbar { display: none; }
+.table-row { display: flex; gap: 5px; align-items: center; padding: 0 4px; height: 100%; white-space: nowrap; }
+.table-label { font-size: 10px; color: #7ab3ac; letter-spacing: 1px; flex-shrink: 0; }
+.table-btn { background: #253b37; border: 1px solid rgba(42,157,143,0.2); color: #7ab3ac; padding: 4px 8px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; white-space: nowrap; }
+.table-btn.active { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+.table-btn.bar { background: #1a1a2e; border-color: #4a4a8a; color: #a0a0d0; }
+.table-btn.bar.active { background: #3a3a8a; color: #fff; border-color: #6a6aba; }
+.main { display: flex; flex: 1; overflow: hidden; }
+.menu-panel { width: 40%; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; border-right: 1px solid rgba(42,157,143,0.2); scrollbar-width: thin; scrollbar-color: #1a7a6e transparent; -webkit-overflow-scrolling: touch; }
+.acc-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #162320; border-bottom: 1px solid rgba(42,157,143,0.15); cursor: pointer; user-select: none; -webkit-user-select: none; }
+.acc-header:active { background: #1e302d; }
+.acc-title { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600; letter-spacing: 1px; color: #3dbfaf; text-transform: uppercase; }
+.acc-title.bar-title { color: #a0a0d0; }
+.acc-arrow { font-size: 10px; color: #7ab3ac; transition: transform 0.2s; flex-shrink: 0; }
+.acc-header.open .acc-arrow { transform: rotate(180deg); }
+.acc-body { display: none; padding: 4px 6px 6px; }
+.acc-body.open { display: block; }
+.menu-items-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.section { margin-bottom: 0; }
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #3dbfaf; border-bottom: 1px solid rgba(42,157,143,0.2); padding-bottom: 3px; margin-bottom: 4px; padding: 0 6px 3px; }
+.item-btn { width: 100%; background: #162320; border: 1px solid rgba(42,157,143,0.2); border-radius: 5px; padding: 6px 7px; cursor: pointer; transition: all 0.15s; text-align: left; position: relative; overflow: hidden; margin-bottom: 3px; display: block; pointer-events: auto !important; opacity: 1; }
+.item-btn.stopped { pointer-events: none !important; opacity: 0.3; }
+.item-btn:active { transform: scale(0.97); background: #253b37; }
+.item-btn.has-count { border-color: #2a9d8f; background: #1e302d; }
+.item-btn.has-count::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; background: #2a9d8f; }
+.item-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: #e8f4f2; line-height: 1.2; margin-bottom: 1px; }
+.item-desc { font-size: 10px; color: #7ab3ac; line-height: 1.2; margin-bottom: 3px; }
+.item-footer { display: flex; justify-content: space-between; align-items: center; }
+.item-price { font-size: 11px; font-weight: 500; color: #e9c46a; }
+.item-count { background: #2a9d8f; color: #fff; font-size: 10px; font-weight: 500; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.5); transition: all 0.2s; flex-shrink: 0; }
+.item-btn.has-count .item-count { opacity: 1; transform: scale(1); }
+.order-panel { flex: 1; background: #162320; display: flex; flex-direction: column; overflow: hidden; }
+.order-header { padding: 8px 10px; border-bottom: 1px solid rgba(42,157,143,0.2); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.order-title { font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 600; letter-spacing: 2px; color: #3dbfaf; }
+.order-table-badge { font-size: 10px; color: #e9c46a; letter-spacing: 1px; }
+.order-count-badge { background: #2a9d8f; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+.order-list { flex: 1; overflow-y: auto; padding: 8px; scrollbar-width: thin; scrollbar-color: #1a7a6e transparent; -webkit-overflow-scrolling: touch; }
+.order-item { display: flex; align-items: center; gap: 5px; padding: 5px 0; border-bottom: 1px solid rgba(42,157,143,0.2); animation: slideIn 0.2s ease; }
+.order-pair { border: 1px solid rgba(42,157,143,0.25); border-radius: 6px; margin-bottom: 6px; overflow: hidden; animation: slideIn 0.2s ease; }
+.order-pair-main { display: flex; align-items: center; gap: 5px; padding: 5px 6px; background: #1e302d; }
+.order-pair-side { display: flex; align-items: center; gap: 5px; padding: 4px 6px 4px 14px; background: #162320; border-top: 1px solid rgba(42,157,143,0.15); }
+.order-pair-side .oi-name { font-size: 10px; color: #7ab3ac; }
+.order-pair-side .oi-price { font-size: 10px; color: #7ab3ac; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+.oi-name { flex: 1; font-family: 'Cormorant Garamond', serif; font-size: 12px; line-height: 1.3; color: #e8f4f2; }
+.oi-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.oi-ctrl-btn { width: 22px; height: 22px; border: 1px solid rgba(42,157,143,0.2); background: #1e302d; color: #7ab3ac; border-radius: 3px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.1s; flex-shrink: 0; }
+.oi-ctrl-btn:active { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+.oi-qty { font-size: 13px; font-weight: 500; min-width: 14px; text-align: center; color: #e8f4f2; }
+.oi-price { font-size: 11px; color: #e9c46a; min-width: 38px; text-align: right; flex-shrink: 0; }
+.order-footer { border-top: 1px solid rgba(42,157,143,0.2); flex-shrink: 0; display: flex; flex-direction: column; }
+.order-footer-bottom { padding: 8px 10px; flex-shrink: 0; }
+.order-total-row { display: flex; justify-content: space-between; margin-bottom: 8px; align-items: baseline; }
+.order-total-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #7ab3ac; }
+.order-total-val { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #e9c46a; }
+.btn-row { display: flex; gap: 6px; }
+.btn-action { flex: 1; padding: 10px 6px; border-radius: 5px; border: none; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+.btn-clear { background: #253b37; color: #7ab3ac; border: 1px solid rgba(42,157,143,0.2); }
+.btn-clear:active { background: #e76f51; color: #fff; }
+.btn-send { background: #2a9d8f; color: #fff; }
+.btn-send:active { background: #3dbfaf; }
+.btn-send:disabled { background: #253b37; color: #7ab3ac; }
+.empty-order { text-align: center; padding: 30px 10px; color: #7ab3ac; font-size: 10px; letter-spacing: 1px; }
+.empty-order-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.3; }
+.sent-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,18,0.92); z-index: 9999; align-items: center; pointer-events: none; justify-content: center; }
+.sent-overlay.show { display: flex; pointer-events: auto; }
+.sent-box { background: #162320; border: 1px solid #2a9d8f; border-radius: 12px; padding: 24px 20px; text-align: center; width: 88%; max-width: 340px; }
+.sent-icon { font-size: 40px; margin-bottom: 8px; }
+.sent-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #3dbfaf; letter-spacing: 2px; margin-bottom: 8px; }
+.sent-table { font-size: 12px; color: #e9c46a; margin-bottom: 10px; letter-spacing: 1px; }
+.sent-items { font-size: 11px; color: #7ab3ac; line-height: 1.8; margin-bottom: 12px; max-height: 200px; overflow-y: auto; text-align: left; }
+.sent-total { font-size: 18px; color: #e9c46a; font-family: 'Cormorant Garamond', serif; font-weight: 700; border-top: 1px solid rgba(42,157,143,0.2); padding-top: 10px; margin-bottom: 14px; }
+.sent-close { background: #2a9d8f; color: #fff; border: none; padding: 10px 28px; border-radius: 5px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; cursor: pointer; }
+::-webkit-scrollbar { width: 3px; }
+.var-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9998; align-items: flex-end; justify-content: center; }
+.var-overlay.show { display: flex; }
+.var-box { background: #162320; border-radius: 14px 14px 0 0; width: 100%; max-width: 480px; padding: 0 0 12px; max-height: 80vh; overflow-y: auto; }
+.var-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: #3dbfaf; letter-spacing: 1px; padding: 16px 18px 8px; border-bottom: 1px solid rgba(42,157,143,0.2); }
+.var-subtitle { font-size: 10px; color: #7ab3ac; padding: 6px 18px 10px; letter-spacing: 1px; }
+.var-options { display: flex; flex-direction: column; gap: 0; }
+.var-btn { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; background: transparent; border: none; border-bottom: 1px solid rgba(42,157,143,0.1); cursor: pointer; width: 100%; text-align: left; transition: background 0.1s; }
+.var-btn:active { background: #1e302d; }
+.var-btn.stopped { opacity: 0.3; pointer-events: none; }
+.var-btn-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: #e8f4f2; font-weight: 600; }
+.var-btn-price { font-size: 15px; color: #e9c46a; font-weight: 500; }
+.var-btn-count { background: #2a9d8f; color: #fff; font-size: 11px; font-weight: 500; min-width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; padding: 0 6px; margin-left: 8px; }
+.var-cancel { margin: 10px 12px 0; padding: 13px; background: #253b37; border: 1px solid rgba(42,157,143,0.3); border-radius: 8px; color: #7ab3ac; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; width: calc(100% - 24px); text-align: center; }
+.var-cancel:active { background: #1e302d; }
+.item-btn.is-group .item-count { background: #e9c46a; color: #162320; }
+.notes-area { flex-shrink: 0; border-top: 1px solid rgba(42,157,143,0.15); position: relative; height: 50%; min-height: 120px; max-height: 240px; display: flex; flex-direction: column; }
+.notes-label { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #7ab3ac; padding: 5px 10px 3px; display: block; flex-shrink: 0; }
+.notes-label.active { color: #e76f51; }
+.notes-field { flex: 1; width: 100%; background: #1e302d; border: none; border-left: none; border-right: none; border-bottom: none; border-top: 1px solid rgba(42,157,143,0.1); color: #e8f4f2; font-family: 'DM Mono', monospace; font-size: 11px; padding: 7px 10px; resize: none; line-height: 1.4; transition: background 0.15s, color 0.15s; box-sizing: border-box; }
+.notes-field:focus { outline: none; background: #1a2a27; }
+.notes-field.has-notes { background: #f5ede8; color: #c0392b; }
+.notes-field::placeholder { color: rgba(122,179,172,0.45); font-size: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a7a6e; border-radius: 2px; }
+.section[data-cat] { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">the <span>TOP</span></div>
+  <button id="langBtn" onclick="toggleLang()" style="background:#1e302d;border:1px solid rgba(42,157,143,0.4);color:#3dbfaf;padding:3px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;flex-shrink:0;letter-spacing:1px">EN</button>
+  <div class="table-scroll-wrap">
+    <div class="table-row">
+      <span class="table-label" data-ru="СТОЛ:" data-en="TABLE:">СТОЛ:</span>
+      <button class="table-btn active" onclick="setTable(this)">1</button>
+      <button class="table-btn" onclick="setTable(this)">2</button>
+      <button class="table-btn" onclick="setTable(this)">3</button>
+      <button class="table-btn" onclick="setTable(this)">4</button>
+      <button class="table-btn" onclick="setTable(this)">5</button>
+      <button class="table-btn" onclick="setTable(this)">6</button>
+      <button class="table-btn" onclick="setTable(this)">7</button>
+      <button class="table-btn" onclick="setTable(this)">8</button>
+      <button class="table-btn" onclick="setTable(this)">9</button>
+      <button class="table-btn" onclick="setTable(this)">10</button>
+      <button class="table-btn" onclick="setTable(this)">11</button>
+      <button class="table-btn" onclick="setTable(this)">12</button>
+      <button onclick="setTable(this)" id="table13btn" style="background:#4a0a0a;border:2px solid #8a2020;color:#ffaaaa;padding:4px 10px;border-radius:4px;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1" title="Стоп-лист">🛑</button>
+      <button class="table-btn" onclick="setTable(this)">14</button>
+      <button class="table-btn" onclick="setTable(this)">15</button>
+      <button class="table-btn" onclick="setTable(this)">16</button>
+      <button class="table-btn" onclick="setTable(this)">17</button>
+      <button class="table-btn" onclick="setTable(this)">18</button>
+      <button class="table-btn bar" onclick="setTable(this)">B1</button>
+      <button class="table-btn bar" onclick="setTable(this)">B2</button>
+      <button class="table-btn bar" onclick="setTable(this)">B3</button>
+      <button class="table-btn bar" onclick="setTable(this)">B4</button>
+      <button class="table-btn bar" onclick="setTable(this)">B5</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="menu-panel">
+    <div class="menu-items-area" id="menuItemsArea">
+
+  <div class="section" data-cat="starters">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Закуски" data-en="Starters">Закуски</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Закуски" data-en="Starters">Закуски</div>
+    <button class="item-btn" onclick="addItem(this,'Брускетта с креветками',7)"><div class="item-name" data-ru="Брускетта" data-en="Bruschetta">Брускетта</div><div class="item-desc" data-ru="cream cheese & креветки" data-en="cream cheese & shrimps">cream cheese & креветки</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Брускетта томаты',6)"><div class="item-name" data-ru="Брускетта 🌿" data-en="Bruschetta 🌿">Брускетта 🌿</div><div class="item-desc" data-ru="вяленые томаты" data-en="sun dried tomatoes">вяленые томаты</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Блин с лососем',7)"><div class="item-name" data-ru="Блин лосось" data-en="Crepe salmon">Блин лосось</div><div class="item-desc" data-ru="лосось, cream cheese" data-en="salmon, cream cheese">лосось, cream cheese</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Блин с говядиной',7)"><div class="item-name" data-ru="Блин говядина" data-en="Crepe beef">Блин говядина</div><div class="item-desc" data-ru="говядина, грибы" data-en="beef & mushrooms">говядина, грибы</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Икра красная" onclick="openVarPopup('Икра красная',this)"><div class="item-name" data-ru="Икра красная" data-en="Red caviar">Икра красная</div><div class="item-footer"><span class="item-price">50 / 100 г</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Камамбер запечённый',14)"><div class="item-name" data-ru="Камамбер 🌿" data-en="Baked camembert 🌿">Камамбер 🌿</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Сырная тарелка',14)"><div class="item-name" data-ru="Сырная тарелка 🌿" data-en="Cheese plate 🌿">Сырная тарелка 🌿</div><div class="item-desc" data-ru="бри, пармезан, горгонзола" data-en="brie, parmesan, gorgonzola">бри, пармезан, горгонзола</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Морепродукты плато',32)"><div class="item-name" data-ru="Плато море" data-en="Seafood platter">Плато море</div><div class="item-desc" data-ru="креветки, осьминог, кальмар" data-en="shrimps, octopus, calamari">креветки, осьминог, кальмар</div><div class="item-footer"><span class="item-price">€32</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Креветки в песто',13)"><div class="item-name" data-ru="Креветки песто" data-en="Shrimps pesto">Креветки песто</div><div class="item-desc" data-ru="вино, соус песто" data-en="wine, pesto sauce">вино, соус песто</div><div class="item-footer"><span class="item-price">€13</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Мидии',13)"><div class="item-name" data-ru="Мидии" data-en="Mussels">Мидии</div><div class="item-footer"><span class="item-price">€13</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Хлебная корзина',5)"><div class="item-name" data-ru="Хлебная корзина" data-en="Bread bowl">Хлебная корзина</div><div class="item-desc" data-ru="боло, ржаной, чиабатта" data-en="bolo do caco, rye, ciabatta">боло, ржаной, чиабатта</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Чесночный хлеб',5)"><div class="item-name" data-ru="Чесночный хлеб" data-en="Garlic bread">Чесночный хлеб</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="soups">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Супы" data-en="Soups">Супы</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Супы" data-en="Soups">Супы</div>
+    <button class="item-btn is-group" data-group="Куриный суп" onclick="openVarPopup('Куриный суп',this)"><div class="item-name" data-ru="Куриный суп" data-en="Chicken soup">Куриный суп</div><div class="item-footer"><span class="item-price" data-ru="чашка / тарелка" data-en="cup / bowl">чашка / тарелка</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Грибной крем" onclick="openVarPopup('Грибной крем',this)"><div class="item-name" data-ru="Грибной крем 🌿" data-en="Mushroom cream 🌿">Грибной крем 🌿</div><div class="item-desc" data-ru="трюфель" data-en="truffle">трюфель</div><div class="item-footer"><span class="item-price" data-ru="чашка / тарелка" data-en="cup / bowl">чашка / тарелка</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Борщ',11)"><div class="item-name" data-ru="Борщ" data-en="Borscht">Борщ</div><div class="item-desc" data-ru="говядина, свёкла, ржаной" data-en="beef, beetroot, rye bread">говядина, свёкла, ржаной</div><div class="item-footer"><span class="item-price">€11</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="salads">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Салаты" data-en="Salads">Салаты</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Салаты" data-en="Salads">Салаты</div>
+    <button class="item-btn" onclick="addItem(this,'Цезарь',10)"><div class="item-name" data-ru="Цезарь 🌿" data-en="Caesar 🌿">Цезарь 🌿</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Цезарь с курицей',12)"><div class="item-name" data-ru="Цезарь + курица" data-en="Caesar + chicken">Цезарь + курица</div><div class="item-footer"><span class="item-price">€12</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Цезарь с креветками',14)"><div class="item-name" data-ru="Цезарь + креветки" data-en="Caesar + shrimps">Цезарь + креветки</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Салат с тунцом',16)"><div class="item-name" data-ru="Тунец кунжут" data-en="Sesame tuna">Тунец кунжут</div><div class="item-desc" data-ru="томаты, кисло-сладкий" data-en="tomatoes, sweet & sour">томаты, кисло-сладкий</div><div class="item-footer"><span class="item-price">€16</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'The TOP салат',16)"><div class="item-name" data-ru="The TOP" data-en="The TOP">The TOP</div><div class="item-desc" data-ru="креветки, манго, бри" data-en="shrimps, mango, brie">креветки, манго, бри</div><div class="item-footer"><span class="item-price">€16</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Ростбиф с горчицей',17)"><div class="item-name" data-ru="Ростбиф" data-en="Roast beef salad">Ростбиф</div><div class="item-desc" data-ru="горчичный дрессинг" data-en="honey mustard dressing">горчичный дрессинг</div><div class="item-footer"><span class="item-price">€17</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="burgers">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Бургеры" data-en="Burgers">Бургеры</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Бургеры" data-en="Burgers">Бургеры</div>
+    <button class="item-btn" onclick="addItem(this,'Классический бургер',14)"><div class="item-name" data-ru="Классический" data-en="Classic">Классический</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Двойной бургер',18)"><div class="item-name" data-ru="Двойной" data-en="Double">Двойной</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Чизбургер',15)"><div class="item-name" data-ru="Чизбургер" data-en="Cheeseburger">Чизбургер</div><div class="item-footer"><span class="item-price">€15</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Двойной чизбургер',19)"><div class="item-name" data-ru="Двойной чиз" data-en="Double cheese">Двойной чиз</div><div class="item-footer"><span class="item-price">€19</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Блю-чиз бургер',16)"><div class="item-name" data-ru="Блю-чиз" data-en="Blue cheese">Блю-чиз</div><div class="item-footer"><span class="item-price">€16</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Двойной блю-чиз',20)"><div class="item-name" data-ru="Двойной блю-чиз" data-en="Double blue cheese">Двойной блю-чиз</div><div class="item-footer"><span class="item-price">€20</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Куриный бургер',13)"><div class="item-name" data-ru="Куриный" data-en="Chicken burger">Куриный</div><div class="item-footer"><span class="item-price">€13</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Вегги-бургер',14)"><div class="item-name" data-ru="Вегги 🌿" data-en="Veggie 🌿">Вегги 🌿</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="pasta">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Паста" data-en="Pasta">Паста</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Паста & Ризотто" data-en="Pasta & Risotto">Паста & Ризотто</div>
+    <button class="item-btn" onclick="addItem(this,'Паста с морепродуктами',18)"><div class="item-name" data-ru="Морепродукты" data-en="Seafood pasta">Морепродукты</div><div class="item-desc" data-ru="креветки, кальмар, мидии" data-en="shrimps, calamari, mussels">креветки, кальмар, мидии</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Карбонара',18)"><div class="item-name" data-ru="Карбонара" data-en="Carbonara">Карбонара</div><div class="item-desc" data-ru="панчетта, бекон" data-en="pancetta, bacon">панчетта, бекон</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Ризотто с грибами',15)"><div class="item-name" data-ru="Ризотто грибы 🌿" data-en="Mushroom risotto 🌿">Ризотто грибы 🌿</div><div class="item-footer"><span class="item-price">€15</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Ризотто с креветками',18)"><div class="item-name" data-ru="Ризотто креветки" data-en="Shrimp risotto">Ризотто креветки</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="mains">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Основное" data-en="Mains">Основное</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Основное" data-en="Mains">Основное</div>
+    <button class="item-btn" onclick="addItem(this,'Бефстроганов',18)"><div class="item-name" data-ru="Бефстроганов" data-en="Beef Stroganoff">Бефстроганов</div><div class="item-desc" data-ru="Black Angus, грибы" data-en="Black Angus, mushrooms">Black Angus, грибы</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Эспада',18)"><div class="item-name" data-ru="Эспада" data-en="Espada">Эспада</div><div class="item-desc" data-ru="маракуйя, банан" data-en="maracuja sauce & banana">маракуйя, банан</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Лосось в сливках',25)"><div class="item-name" data-ru="Лосось" data-en="Salmon">Лосось</div><div class="item-desc" data-ru="белое вино, сливки" data-en="white wine cream sauce">белое вино, сливки</div><div class="item-footer"><span class="item-price">€25</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Стейк тунца',0)"><div class="item-name" data-ru="Тунец стейк" data-en="Tuna steak">Тунец стейк</div><div class="item-desc" data-ru="кунжут, терияки" data-en="sesame, teriyaki">кунжут, терияки</div><div class="item-footer"><span class="item-price" data-ru="цена дня" data-en="day price">цена дня</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Утиная грудка',25)"><div class="item-name" data-ru="Утка" data-en="Duck breast">Утка</div><div class="item-desc" data-ru="портвейно-ягодный соус" data-en="porto berries sauce">портвейно-ягодный соус</div><div class="item-footer"><span class="item-price">€25</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Осьминог малиновый',26)"><div class="item-name" data-ru="Осьминог" data-en="Octopus">Осьминог</div><div class="item-desc" data-ru="малиново-бальзамический" data-en="raspberry balsamic glaze">малиново-бальзамический</div><div class="item-footer"><span class="item-price">€26</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Котлета по-киевски',24)"><div class="item-name" data-ru="Котлета Киев" data-en="Chicken Kyiv">Котлета Киев</div><div class="item-desc" data-ru="зелень, чесночное масло" data-en="herbs, garlic butter">зелень, чесночное масло</div><div class="item-footer"><span class="item-price">€24</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Рибай 350г',28)"><div class="item-name" data-ru="Рибай 350г" data-en="Ribeye 350g">Рибай 350г</div><div class="item-desc" data-ru="перечный соус" data-en="pepper cream sauce">перечный соус</div><div class="item-footer"><span class="item-price">€28</span><span class="item-count">0</span></div></button>
+    <div class="section-title" style="margin-top:6px" data-ru="Гарниры" data-en="Side Dishes">Гарниры</div>
+    <button class="item-btn" onclick="addItem(this,'Рис',3)"><div class="item-name" data-ru="Рис" data-en="Rice">Рис</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Овощи',3)"><div class="item-name" data-ru="Овощи" data-en="Vegetables">Овощи</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Спагетти',3)"><div class="item-name" data-ru="Спагетти" data-en="Spaghetti">Спагетти</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Салат гарнир',3)"><div class="item-name" data-ru="Салат" data-en="Salad">Салат</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Спаржа',4)"><div class="item-name" data-ru="Спаржа" data-en="Asparagus">Спаржа</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Пюре',4)"><div class="item-name" data-ru="Пюре" data-en="Mashed potato">Пюре</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Жареный картофель',4)"><div class="item-name" data-ru="Жар. картофель" data-en="Roast potato">Жар. картофель</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Картофель фри',3)"><div class="item-name" data-ru="Картофель фри" data-en="French fries">Картофель фри</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="desserts">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Десерты" data-en="Desserts">Десерты</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Десерты" data-en="Desserts">Десерты</div>
+    <button class="item-btn" onclick="addItem(this,'The TOP десерт',8)"><div class="item-name" data-ru="The TOP" data-en="The TOP">The TOP</div><div class="item-desc" data-ru="меренговый рулет" data-en="raspberry & pistachio meringue roll">меренговый рулет</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Наполеон',10)"><div class="item-name" data-ru="Наполеон" data-en="Napoleon">Наполеон</div><div class="item-desc" data-ru="слоёный, ванильный крем" data-en="layered pastry, vanilla custard cream">слоёный, ванильный крем</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Медовик',8)"><div class="item-name" data-ru="Медовик" data-en="Honey Cake (Medovik)">Медовик</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Блины с мороженым',6)"><div class="item-name" data-ru="Блины + мороженое" data-en="Crepes + ice cream">Блины + мороженое</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Яблочный штрудель',7)"><div class="item-name" data-ru="Штрудель" data-en="Apple strudel">Штрудель</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Сырники" onclick="openVarPopup('Сырники',this)"><div class="item-name" data-ru="Сырники" data-en="Syrniki">Сырники</div><div class="item-desc" data-ru="творожные" data-en="cottage cheese">творожные</div><div class="item-footer"><span class="item-price">2 / 4 шт</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Мороженое',5)"><div class="item-name" data-ru="Мороженое" data-en="Ice cream">Мороженое</div><div class="item-desc" data-ru="ваниль, шоколад, клубника" data-en="vanilla, chocolate, strawberry">ваниль, шоколад, клубника</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="drinks">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Напитки" data-en="Drinks">Напитки</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Пиво" data-en="Beer">Пиво</div>
+    <button class="item-btn is-group" data-group="Coral Light" onclick="openVarPopup('Coral Light',this)"><div class="item-name">Coral Light</div><div class="item-footer"><span class="item-price">200 / 300 / 500 мл</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Coral Dark" onclick="openVarPopup('Coral Dark',this)"><div class="item-name">Coral Dark</div><div class="item-footer"><span class="item-price">200 / 300 / 500 мл</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Shandy',3)"><div class="item-name" data-ru="Shandy" data-en="Shandy">Shandy</div><div class="item-desc" data-ru="пиво + лимонад" data-en="beer + lemonade">пиво + лимонад</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Coral Non Alco',2.5)"><div class="item-name">Coral Non Alco</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Coral Puro Malta',2.5)"><div class="item-name">Coral Puro Malta</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Coral Sidra',3)"><div class="item-name">Coral Sidra</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+    <div class="section-title" style="margin-top:6px" data-ru="Вино бокал" data-en="Wine by the Glass">Вино бокал</div>
+    <button class="item-btn" onclick="addItem(this,'Белое вино',4)"><div class="item-name" data-ru="Белое" data-en="White">Белое</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Розовое вино',4)"><div class="item-name" data-ru="Розовое" data-en="Rosé">Розовое</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Зелёное вино',4)"><div class="item-name" data-ru="Зелёное" data-en="Green">Зелёное</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Красное вино',4)"><div class="item-name" data-ru="Красное" data-en="Red">Красное</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Platino Brut',5)"><div class="item-name">Platino Brut</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Prosecco',7)"><div class="item-name">Prosecco</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <div class="section-title" style="margin-top:6px" data-ru="Безалкогольные" data-en="Soft Drinks">Безалкогольные</div>
+    <button class="item-btn" onclick="addItem(this,'Апельсиновый сок свежий',6)"><div class="item-name" data-ru="Апельс. сок" data-en="Fresh orange juice">Апельс. сок</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Смузи киви-банан',6)"><div class="item-name" data-ru="Смузи киви-банан" data-en="Smoothie kiwi-banana">Смузи киви-банан</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Смузи манго-банан',6)"><div class="item-name" data-ru="Смузи манго-банан" data-en="Smoothie mango-banana">Смузи манго-банан</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Смузи мультифрукт',6)"><div class="item-name" data-ru="Смузи мультифрукт" data-en="Smoothie mix fruits">Смузи мультифрукт</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Милкшейк ваниль',5)"><div class="item-name" data-ru="Милкшейк ваниль" data-en="Milkshake vanilla">Милкшейк ваниль</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Милкшейк клубника',5)"><div class="item-name" data-ru="Милкшейк клубника" data-en="Milkshake strawberry">Милкшейк клубника</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Милкшейк шоколад',5)"><div class="item-name" data-ru="Милкшейк шоколад" data-en="Milkshake chocolate">Милкшейк шоколад</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Лимонад классик',6)"><div class="item-name" data-ru="Лимонад классик" data-en="Lemonade classic">Лимонад классик</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Лимонад маракуйя',6)"><div class="item-name" data-ru="Лимонад маракуйя" data-en="Lemonade maracuja">Лимонад маракуйя</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Pepsi / Black',2.5)"><div class="item-name">Pepsi / Black</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'7UP',2.5)"><div class="item-name">7UP</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Lipton Ice Tea',2.5)"><div class="item-name" data-ru="Lipton Ice Tea" data-en="Lipton Ice Tea">Lipton Ice Tea</div><div class="item-desc" data-ru="манго / лимон / персик" data-en="mango / lemon / peach">манго / лимон / персик</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Сок Compal',2.5)"><div class="item-name" data-ru="Сок Compal" data-en="Compal juice">Сок Compal</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Вода" onclick="openVarPopup('Вода',this)"><div class="item-name" data-ru="Вода" data-en="Water">Вода</div><div class="item-footer"><span class="item-price" data-ru="с газом / без газа" data-en="still / sparkling">с газом / без газа</span><span class="item-count">0</span></div></button>
+
+<div class="section-title" style="margin-top:6px" data-ru="Кофе" data-en="Coffee">Кофе</div>
+<button class="item-btn" onclick="addItem(this,'Эспрессо',1.4)"><div class="item-name" data-ru="Эспрессо" data-en="Espresso">Эспрессо</div><div class="item-footer"><span class="item-price">€1.4</span><span class="item-count">0</span></div></button>
+<button class="item-btn" onclick="addItem(this,'Макиато',1.4)"><div class="item-name" data-ru="Макиато" data-en="Macchiato">Макиато</div><div class="item-footer"><span class="item-price">€1.4</span><span class="item-count">0</span></div></button>
+<button class="item-btn" onclick="addItem(this,'Двойной эспрессо',2.5)"><div class="item-name" data-ru="Двойной эспрессо" data-en="Double espresso">Двойной эспрессо</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
+<button class="item-btn" onclick="addItem(this,'Американо',2)"><div class="item-name" data-ru="Американо" data-en="Americano">Американо</div><div class="item-footer"><span class="item-price">€2</span><span class="item-count">0</span></div></button>
+<button class="item-btn" onclick="addItem(this,'Капучино',4)"><div class="item-name" data-ru="Капучино" data-en="Cappuccino">Капучино</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+<button class="item-btn" onclick="addItem(this,'Латте',4)"><div class="item-name" data-ru="Латте" data-en="Latte">Латте</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+</div>
+
+  </div>
+
+  <div class="section" data-cat="kombucha">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Комбуча" data-en="Kombucha">Комбуча</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" style="margin-top:6px" data-ru="Комбуча" data-en="Kombucha">Комбуча</div>
+    <button class="item-btn is-group" data-group="Комбуча черный чай" onclick="openVarPopup('Комбуча черный чай',this)"><div class="item-name" data-ru="Комбуча чёрный чай" data-en="Kombucha Black Tea">Комбуча чёрный чай</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Комбуча черный кофе" onclick="openVarPopup('Комбуча черный кофе',this)"><div class="item-name" data-ru="Комбуча чёрный кофе" data-en="Kombucha Black Coffee">Комбуча чёрный кофе</div><div class="item-footer"><span class="item-price">75 / 250 / 500 мл</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Комбуча Beetroot Ginger Mint" onclick="openVarPopup('Комбуча Beetroot Ginger Mint',this)"><div class="item-name" data-ru="Комбуча Beetroot·Ginger·Mint" data-en="Kombucha Beetroot·Ginger·Mint">Комбуча Beetroot·Ginger·Mint</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Комбуча Green Tea Grapefruit" onclick="openVarPopup('Комбуча Green Tea Grapefruit',this)"><div class="item-name" data-ru="Комбуча Green Tea·Grapefruit" data-en="Kombucha Green Tea·Grapefruit">Комбуча Green Tea·Grapefruit</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
+    <button class="item-btn is-group" data-group="Комбуча Red Fruits Hibiscus" onclick="openVarPopup('Комбуча Red Fruits Hibiscus',this)"><div class="item-name" data-ru="Комбуча Red Fruits·Hibiscus" data-en="Kombucha Red Fruits·Hibiscus">Комбуча Red Fruits·Hibiscus</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="spirits">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Алкоголь" data-en="Spirits">Алкоголь</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Крепкий алкоголь" data-en="Spirits">Крепкий алкоголь</div>
+    <button class="item-btn" onclick="addItem(this,'Eristoff',5)"><div class="item-name" data-ru="Eristoff" data-en="Eristoff">Eristoff</div><div class="item-desc" data-ru="водка" data-en="vodka">водка</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Absolut',6)"><div class="item-name" data-ru="Absolut" data-en="Absolut">Absolut</div><div class="item-desc" data-ru="водка" data-en="vodka">водка</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Tanqueray',6)"><div class="item-name" data-ru="Tanqueray" data-en="Tanqueray">Tanqueray</div><div class="item-desc" data-ru="джин" data-en="gin">джин</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Bacardi',6)"><div class="item-name" data-ru="Bacardi" data-en="Bacardi">Bacardi</div><div class="item-desc" data-ru="ром" data-en="rum">ром</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Jose Cuervo',6)"><div class="item-name" data-ru="Jose Cuervo" data-en="Jose Cuervo">Jose Cuervo</div><div class="item-desc" data-ru="текила" data-en="tequila">текила</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Jameson',7)"><div class="item-name" data-ru="Jameson" data-en="Jameson">Jameson</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Jack Daniels',7)"><div class="item-name" data-ru="Jack Daniels" data-en="Jack Daniels">Jack Daniels</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Dewars',6)"><div class="item-name" data-ru="Dewars" data-en="Dewars">Dewars</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Chivas Royal Salute',30)"><div class="item-name" data-ru="Chivas Royal" data-en="Chivas Royal">Chivas Royal</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€30</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Blue Label',60)"><div class="item-name" data-ru="Blue Label" data-en="Blue Label">Blue Label</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€60</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Hennessy',10)"><div class="item-name" data-ru="Hennessy" data-en="Hennessy">Hennessy</div><div class="item-desc" data-ru="коньяк" data-en="cognac">коньяк</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <div class="section-title" style="margin-top:6px" data-ru="Ликёры" data-en="Liqueurs">Ликёры</div>
+    <button class="item-btn" onclick="addItem(this,'Jagermeister',5)"><div class="item-name">Jagermeister</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Fernet',4)"><div class="item-name">Fernet</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Campari',4)"><div class="item-name">Campari</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Baileys',4)"><div class="item-name">Baileys</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Kahlua',4)"><div class="item-name">Kahlua</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Aperol',4)"><div class="item-name">Aperol</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Disaronno',4)"><div class="item-name">Disaronno</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="cocktails">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title bar-title" data-ru="Коктейли" data-en="Cocktails">Коктейли</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div class="section-title" data-ru="Коктейли" data-en="Cocktails">Коктейли</div>
+    <button class="item-btn" onclick="addItem(this,'Aperol Spritz',8)"><div class="item-name">Aperol Spritz</div><div class="item-desc">Aperol, Sparkling Wine, Soda</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Hugo Spritz',8)"><div class="item-name">Hugo Spritz</div><div class="item-desc">St.Germain, Prosecco, Soda Water</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'French 75',8)"><div class="item-name">French 75</div><div class="item-desc">Gin, Lemon, Simple Syrup, Prosecco</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Old Fashioned',8)"><div class="item-name">Old Fashioned</div><div class="item-desc">Jack Daniels, Angostura, Simple Syrup</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Caipirinha',8)"><div class="item-name">Caipirinha</div><div class="item-desc">Cachaca, Brown Sugar, Lime</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Penicillin',9)"><div class="item-name">Penicillin</div><div class="item-desc">Scotch Whiskey, Honey, Ginger, Lemon</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Passion Long',9)"><div class="item-name">Passion Long</div><div class="item-desc">Vodka, Passion Syrup, Passion Puree, Peach Juice</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Amaretto Sour',9)"><div class="item-name">Amaretto Sour</div><div class="item-desc">Jack Daniels, Amaretto, Lemon, Egg White</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Espresso Martini',9)"><div class="item-name">Espresso Martini</div><div class="item-desc">Vanilla Vodka, Kahlua, Double Espresso</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Basil Smash',9)"><div class="item-name">Basil Smash</div><div class="item-desc">Gin, Lemon, Brown Sugar, St.Germain, Soda</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Ginger Mule',9)"><div class="item-name">Ginger Mule</div><div class="item-desc">Vodka, Ginger Syrup, Ginger Ale, Lemon</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Melon Fizz',9)"><div class="item-name">Melon Fizz</div><div class="item-desc">Rum, Midori, Lemon Juice, Pineapple Juice</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Lynchburg Lemonade',9)"><div class="item-name">Lynchburg Lemonade</div><div class="item-desc">Jack Daniels, Triple Sec, Peach Liqueur, Soda</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Cream Gin Fizz',9)"><div class="item-name">Cream Gin Fizz</div><div class="item-desc">Gin, Cream, Vanilla Syrup, Lemon</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Strawberry Margarita',10)"><div class="item-name">Strawberry Margarita</div><div class="item-desc">Tequila, Triple Sec, Strawberry, Lime</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Singapur Sling',10)"><div class="item-name">Singapur Sling</div><div class="item-desc">Gin, Triple Sec, Lemon, Pineapple, Cherry Brandy</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Mango Caipirinha',10)"><div class="item-name">Mango Caipirinha</div><div class="item-desc">Fresh Mango, Cachaca, Brown Sugar, Lime</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <button class="item-btn" onclick="addItem(this,'Porn Star',10)"><div class="item-name">Porn Star</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
+    <div class="section-title" style="margin-top:6px" data-ru="Сангрия" data-en="Sangria">Сангрия</div>
+    <button class="item-btn is-group" data-group="Сангрия" onclick="openVarPopup('Сангрия',this)"><div class="item-name" data-ru="Сангрия" data-en="Sangria">Сангрия</div><div class="item-footer"><span class="item-price">0.5 / 1 л</span><span class="item-count">0</span></div></button>
+    </div>
+  </div>
+
+  <div class="section" data-cat="wines" id="winesSection">
+    <div class="acc-header" onclick="toggleAcc(this)">
+      <span class="acc-title" data-ru="Вина 🍷" data-en="Wines 🍷">Вина 🍷</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+    <div id="winesList" style="font-size:10px;color:#7ab3ac;padding:10px 5px;text-align:center;letter-spacing:1px">Загрузка...</div>
+    </div>
+  </div>
+
+</div>
+
+  </div>
+
+  <div class="order-panel">
+    <div class="order-header">
+      <span class="order-title" data-ru="ЗАКАЗ" data-en="ORDER">ЗАКАЗ</span>
+      <span class="order-table-badge" id="orderTableBadge">Стол 1</span>
+      <span class="order-count-badge" id="orderCountBadge">0 поз.</span>
+    </div>
+    <div class="order-list" id="orderList">
+      <div class="empty-order"><div class="empty-order-icon">🍽</div><span data-ru="Нажмите на позицию из меню слева" data-en="Tap an item from the menu">Нажмите на позицию<br>из меню слева</span></div>
+    </div>
+    <div class="order-footer">
+      <div class="notes-area" id="notesArea">
+        <span class="notes-label" id="notesLabel">NOTES</span>
+        <textarea class="notes-field" id="notesField" placeholder="Notes for kitchen: steak doneness, allergies, sauce, timing..." oninput="onNotesInput()"></textarea>
+      </div>
+      <div class="order-footer-bottom">
+      <div class="order-total-row">
+        <span class="order-total-label" data-ru="ИТОГО" data-en="TOTAL">ИТОГО</span>
+        <span class="order-total-val">€<span id="totalNum">0.00</span></span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-action btn-clear" onclick="clearOrder()" id="clearBtn">Расчёт</button>
+        <button class="btn-action btn-send" id="sendBtn" onclick="sendOrder()" disabled>В KEEPER</button>
+      </div>
+      <button id="clearStopBtn" onclick="clearStopList()" style="display:none;margin-top:6px;width:100%;padding:8px;background:#4a0a0a;border:1px solid #8a2020;color:#ffaaaa;border-radius:5px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;cursor:pointer">🗑 ОЧИСТИТЬ ВЕСЬ СТОП-ЛИСТ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="sideOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#162320;border:2px solid #2a9d8f;border-radius:12px;padding:20px 16px;width:88%;max-width:340px;text-align:left">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#3dbfaf;letter-spacing:2px;margin-bottom:4px" data-ru="ГАРНИР" data-en="SIDE DISH">ГАРНИР</div>
+    <div id="sideMainName" style="font-size:12px;color:#e9c46a;margin-bottom:8px;letter-spacing:1px"></div>
+    <div id="sideFreeNote" style="font-size:11px;color:#e8f4f2;background:#253b37;padding:6px 10px;border-radius:4px;margin-bottom:12px"></div>
+    <div id="sideList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:50vh;overflow-y:auto"></div>
+    <button onclick="closeSidePicker()" style="background:#253b37;color:#7ab3ac;border:1px solid #2a9d8f;border-radius:5px;padding:10px;width:100%;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer" data-ru="БЕЗ ГАРНИРА" data-en="NO SIDE DISH">БЕЗ ГАРНИРА</button>
+  </div>
+</div>
+
+<div class="var-overlay" id="varOverlay" onclick="varOverlayClick(event)">
+  <div class="var-box" id="varBox">
+    <div class="var-title" id="varTitle"></div>
+    <div class="var-subtitle" id="varSubtitle"></div>
+    <div class="var-options" id="varOptions"></div>
+    <button class="var-cancel" onclick="closeVarPopup()" data-ru="Отмена" data-en="Cancel">Отмена</button>
+  </div>
+</div>
+
+<div class="sent-overlay" id="sentOverlay">
+  <div class="sent-box">
+    <div class="sent-icon">✅</div>
+    <div class="sent-title" data-ru="В KEEPER" data-en="TO KEEPER">В KEEPER</div>
+    <div class="sent-table" id="sentTable"></div>
+    <div class="sent-items" id="sentItemsList"></div>
+    <div class="sent-total" id="sentTotal"></div>
+    <button class="sent-close" onclick="closeSent()" data-ru="Закрыть" data-en="Close">Закрыть</button>
+  </div>
+</div>
+
+<script>
+
+  // =============================================
+  // LANGUAGE TOGGLE
+  // =============================================
+  let lang = localStorage.getItem('lang') || 'ru';
+
+  function updateCurrentTableBadge() {
+    document.getElementById('orderTableBadge').textContent =
+      currentTable === '🛑'
+        ? (lang === 'ru' ? '🛑 СТОП-ЛИСТ' : '🛑 STOP LIST')
+        : (lang === 'ru' ? 'Стол ' : 'Table ') + currentTable;
+  }
+
+  function applyLang() {
+    const isEn = lang === 'en';
+    document.getElementById('langBtn').textContent = isEn ? 'RU' : 'EN';
+
+    // data-ru / data-en elements
+    document.querySelectorAll('[data-ru]').forEach(el => {
+      el.textContent = isEn ? el.dataset.en : el.dataset.ru;
+    });
+    // stop badges
+    document.querySelectorAll('.stop-badge').forEach(b => {
+      b.textContent = isEn ? 'STOP' : 'СТОП';
+    });
+    updateCurrentTableBadge();
+
+    // Кнопки действий
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.textContent = isEn ? 'TO KEEPER' : 'В KEEPER';
+
+    const clearBtn = document.getElementById('clearBtn');
+    if (clearBtn) clearBtn.textContent = isEn ? 'CHECKOUT' : 'Расчёт';
+    const clearStopBtn = document.getElementById('clearStopBtn');
+    if (clearStopBtn) clearStopBtn.textContent = isEn ? '🗑 CLEAR STOP LIST' : '🗑 ОЧИСТИТЬ ВЕСЬ СТОП-ЛИСТ';
+
+    // table label
+    document.querySelector('.table-label').textContent = isEn ? 'TABLE:' : 'СТОЛ:';
+  }
+
+  function toggleLang() {
+    lang = lang === 'ru' ? 'en' : 'ru';
+    localStorage.setItem('lang', lang);
+    applyLang();
+    renderOrder();
+    loadWines();
+  }
+
+
+  // =============================================
+  // ITEM NAME TRANSLATION MAP
+  // =============================================
+  const ITEM_EN = {
+    'Брускетта с креветками': 'Bruschetta (shrimps)',
+    'Брускетта томаты': 'Bruschetta (tomatoes)',
+    'Блин с лососем': 'Crepe (salmon)',
+    'Блин с говядиной': 'Crepe (beef)',
+    'Икра красная 50г': 'Red caviar 50g',
+    'Икра красная 100г': 'Red caviar 100g',
+    'Камамбер запечённый': 'Baked camembert',
+    'Сырная тарелка': 'Cheese plate',
+    'Морепродукты плато': 'Seafood platter',
+    'Креветки в песто': 'Shrimps pesto',
+    'Мидии': 'Mussels',
+    'Хлебная корзина': 'Bread bowl',
+    'Чесночный хлеб': 'Garlic bread',
+    'Куриный суп чашка': 'Chicken soup (cup)',
+    'Куриный суп тарелка': 'Chicken soup (bowl)',
+    'Грибной крем чашка': 'Mushroom cream (cup)',
+    'Грибной крем тарелка': 'Mushroom cream (bowl)',
+    'Борщ': 'Borscht',
+    'Цезарь': 'Caesar',
+    'Цезарь с курицей': 'Caesar + chicken',
+    'Цезарь с креветками': 'Caesar + shrimps',
+    'Салат с тунцом': 'Sesame tuna salad',
+    'The TOP салат': 'The TOP salad',
+    'Ростбиф с горчицей': 'Roast beef salad',
+    'Классический бургер': 'Classic burger',
+    'Двойной бургер': 'Double burger',
+    'Чизбургер': 'Cheeseburger',
+    'Двойной чизбургер': 'Double cheeseburger',
+    'Блю-чиз бургер': 'Blue cheese burger',
+    'Двойной блю-чиз': 'Double blue cheese',
+    'Куриный бургер': 'Chicken burger',
+    'Вегги-бургер': 'Veggie burger',
+    'Паста с морепродуктами': 'Seafood pasta',
+    'Карбонара': 'Carbonara',
+    'Ризотто с грибами': 'Mushroom risotto',
+    'Ризотто с креветками': 'Shrimp risotto',
+    'Бефстроганов': 'Beef Stroganoff',
+    'Эспада': 'Espada',
+    'Лосось в сливках': 'Salmon in cream sauce',
+    'Стейк тунца': 'Tuna steak',
+    'Утиная грудка': 'Duck breast',
+    'Осьминог малиновый': 'Octopus (raspberry balsamic)',
+    'Котлета по-киевски': 'Chicken Kyiv',
+    'Рибай 350г': 'Ribeye 350g',
+    'Рис': 'Rice',
+    'Овощи': 'Vegetables',
+    'Спагетти': 'Spaghetti',
+    'Салат гарнир': 'Salad',
+    'Спаржа': 'Asparagus',
+    'Пюре': 'Mashed potato',
+    'Жареный картофель': 'Roast potato',
+    'Картофель фри': 'French fries',
+    'Рис (вкл.)': 'Rice (incl.)',
+    'Овощи (вкл.)': 'Vegetables (incl.)',
+    'Спагетти (вкл.)': 'Spaghetti (incl.)',
+    'Салат (вкл.)': 'Salad (incl.)',
+    'Спаржа (вкл.)': 'Asparagus (incl.)',
+    'Пюре (вкл.)': 'Mashed potato (incl.)',
+    'Жареный картофель (вкл.)': 'Roast potato (incl.)',
+    'Картофель фри (вкл.)': 'French fries (incl.)',
+    'Рис (гарнир)': 'Rice (extra)',
+    'Овощи (гарнир)': 'Vegetables (extra)',
+    'Спагетти (гарнир)': 'Spaghetti (extra)',
+    'Салат (гарнир)': 'Salad (extra)',
+    'Спаржа (гарнир)': 'Asparagus (extra)',
+    'Пюре (гарнир)': 'Mashed potato (extra)',
+    'Жареный картофель (гарнир)': 'Roast potato (extra)',
+    'Картофель фри (гарнир)': 'French fries (extra)',
+    'The TOP десерт': 'The TOP dessert',
+    'Наполеон': 'Napoleon',
+    'Медовик': 'Honey Cake (Medovik)',
+    'Блины с мороженым': 'Crepes + ice cream',
+    'Яблочный штрудель': 'Apple strudel',
+    'Сырники 4шт': 'Syrniki × 4',
+    'Сырники 2шт': 'Syrniki × 2',
+    'Мороженое': 'Ice cream',
+    'Coral Light 200мл': 'Coral Light 200ml',
+    'Coral Light 300мл': 'Coral Light 300ml',
+    'Coral Light 500мл': 'Coral Light 500ml',
+    'Coral Dark 200мл': 'Coral Dark 200ml',
+    'Coral Dark 300мл': 'Coral Dark 300ml',
+    'Coral Dark 500мл': 'Coral Dark 500ml',
+    'Shandy': 'Shandy',
+    'Coral Non Alco': 'Coral Non Alco',
+    'Coral Puro Malta': 'Coral Puro Malta',
+    'Coral Sidra': 'Coral Sidra',
+    'Белое вино': 'White wine',
+    'Розовое вино': 'Rosé wine',
+    'Зелёное вино': 'Green wine',
+    'Красное вино': 'Red wine',
+    'Platino Brut': 'Platino Brut',
+    'Prosecco': 'Prosecco',
+    'Апельсиновый сок свежий': 'Fresh orange juice',
+    'Смузи киви-банан': 'Smoothie kiwi-banana',
+    'Смузи манго-банан': 'Smoothie mango-banana',
+    'Смузи мультифрукт': 'Smoothie mix fruits',
+    'Милкшейк ваниль': 'Milkshake vanilla',
+    'Милкшейк клубника': 'Milkshake strawberry',
+    'Милкшейк шоколад': 'Milkshake chocolate',
+    'Лимонад классик': 'Lemonade classic',
+    'Лимонад маракуйя': 'Lemonade maracuja',
+    'Pepsi / Black': 'Pepsi / Black',
+    '7UP': '7UP',
+    'Lipton Ice Tea': 'Lipton Ice Tea',
+    'Сок Compal': 'Compal juice',
+    'Вода 500мл': 'Water 500ml',
+    'Вода 750мл': 'Water 750ml',
+    'Вода без газа 500мл': 'Still water 500ml',
+    'Вода без газа 750мл': 'Still water 750ml',
+    'Вода с газом 500мл': 'Sparkling water 500ml',
+    'Вода с газом 750мл': 'Sparkling water 750ml',
+    'Комбуча черный чай 150мл': 'Kombucha Black Tea (glass 150ml)',
+    'Комбуча черный чай 500мл': 'Kombucha Black Tea (bottle 500ml)',
+    'Комбуча черный чай 1000мл': 'Kombucha Black Tea (bottle 1000ml)',
+    'Комбуча черный кофе 75мл': 'Kombucha Black Coffee (glass 75ml)',
+    'Комбуча черный кофе 250мл': 'Kombucha Black Coffee (bottle 250ml)',
+    'Комбуча черный кофе 500мл': 'Kombucha Black Coffee (bottle 500ml)',
+    'Комбуча Beetroot Ginger Mint 150мл': 'Kombucha Beetroot·Ginger·Mint (glass 150ml)',
+    'Комбуча Beetroot Ginger Mint 500мл': 'Kombucha Beetroot·Ginger·Mint (bottle 500ml)',
+    'Комбуча Beetroot Ginger Mint 1000мл': 'Kombucha Beetroot·Ginger·Mint (bottle 1000ml)',
+    'Комбуча Green Tea Grapefruit 150мл': 'Kombucha Green Tea·Grapefruit (glass 150ml)',
+    'Комбуча Green Tea Grapefruit 500мл': 'Kombucha Green Tea·Grapefruit (bottle 500ml)',
+    'Комбуча Green Tea Grapefruit 1000мл': 'Kombucha Green Tea·Grapefruit (bottle 1000ml)',
+    'Комбуча Red Fruits Hibiscus 150мл': 'Kombucha Red Fruits·Hibiscus (glass 150ml)',
+    'Комбуча Red Fruits Hibiscus 500мл': 'Kombucha Red Fruits·Hibiscus (bottle 500ml)',
+    'Комбуча Red Fruits Hibiscus 1000мл': 'Kombucha Red Fruits·Hibiscus (bottle 1000ml)',
+    'Эспрессо': 'Espresso',
+    'Макиато': 'Macchiato',
+    'Двойной эспрессо': 'Double espresso',
+    'Американо': 'Americano',
+    'Капучино': 'Cappuccino',
+    'Латте': 'Latte',
+    'Eristoff': 'Eristoff (vodka)',
+    'Absolut': 'Absolut (vodka)',
+    'Tanqueray': 'Tanqueray (gin)',
+    'Bacardi': 'Bacardi (rum)',
+    'Jose Cuervo': 'Jose Cuervo (tequila)',
+    'Jameson': 'Jameson (whiskey)',
+    'Jack Daniels': 'Jack Daniels (whiskey)',
+    'Dewars': 'Dewars (whiskey)',
+    'Chivas Royal Salute': 'Chivas Royal Salute (whiskey)',
+    'Blue Label': 'Blue Label (whiskey)',
+    'Hennessy': 'Hennessy (cognac)',
+    'Jagermeister': 'Jagermeister',
+    'Fernet': 'Fernet',
+    'Campari': 'Campari',
+    'Baileys': 'Baileys',
+    'Kahlua': 'Kahlua',
+    'Aperol': 'Aperol',
+    'Disaronno': 'Disaronno',
+    'Aperol Spritz': 'Aperol Spritz',
+    'Hugo Spritz': 'Hugo Spritz',
+    'French 75': 'French 75',
+    'Old Fashioned': 'Old Fashioned',
+    'Caipirinha': 'Caipirinha',
+    'Penicillin': 'Penicillin',
+    'Passion Long': 'Passion Long',
+    'Amaretto Sour': 'Amaretto Sour',
+    'Espresso Martini': 'Espresso Martini',
+    'Basil Smash': 'Basil Smash',
+    'Ginger Mule': 'Ginger Mule',
+    'Melon Fizz': 'Melon Fizz',
+    'Lynchburg Lemonade': 'Lynchburg Lemonade',
+    'Cream Gin Fizz': 'Cream Gin Fizz',
+    'Strawberry Margarita': 'Strawberry Margarita',
+    'Singapur Sling': 'Singapore Sling',
+    'Mango Caipirinha': 'Mango Caipirinha',
+    'Porn Star': 'Porn Star',
+    'Сангрия 0.5л': 'Sangria 0.5l',
+    'Сангрия 1л': 'Sangria 1l',
+  };
+
+  function displayName(name) {
+    if (lang === 'ru') return name;
+    return ITEM_EN[name] || name;
+  }
+
+  // =============================================
+  // STATE
+  // =============================================
+  let orders = {};
+  let notes = {};
+  let sentQty = {};
+  let currentTable = '1';
+  let pendingSide = null;
+
+  const STOPLIST_KEY = 'stoplist';
+
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyU15zGkh9pnZcCaRSrMfW8IQC1YIvyO0pBtAAJsJSwfE2pW24J0-avO7o9891qAShwwQ/exec';
+
+  const SIDES = [
+    { name: 'Рис', price: 3 }, { name: 'Овощи', price: 3 },
+    { name: 'Спагетти', price: 3 }, { name: 'Салат', price: 3 },
+    { name: 'Спаржа', price: 4 }, { name: 'Пюре', price: 4 },
+    { name: 'Жареный картофель', price: 4 }, { name: 'Картофель фри', price: 3 },
+  ];
+
+  const MAIN_COURSE_ITEMS = [
+    'Бефстроганов','Эспада','Лосось в сливках','Стейк тунца',
+    'Утиная грудка','Осьминог малиновый','Котлета по-киевски','Рибай 350г'
+  ];
+
+  // =============================================
+  // FIREBASE
+  // =============================================
+  function getFirebaseKey(tableId) {
+    if (tableId === '🛑') return STOPLIST_KEY;
+    return tableId.replace(/\s/g, '_');
+  }
+
+  function saveOrderToFirebase(tableId) {
+    const data = orders[tableId] || {};
+    const key = getFirebaseKey(tableId);
+    if (Object.keys(data).length) {
+      db.ref('orders/' + key).set({ json: JSON.stringify(data) });
+    } else {
+      db.ref('orders/' + key).remove();
+    }
+  }
+
+  function saveNotesToFirebase(tableId) {
+    const key = getFirebaseKey(tableId);
+    const val = notes[tableId] || '';
+    if (val) {
+      db.ref('notes/' + key).set(val);
+    } else {
+      db.ref('notes/' + key).remove();
+    }
+  }
+
+  function saveSentQtyToFirebase(tableId) {
+    const data = sentQty[tableId] || {};
+    const key = getFirebaseKey(tableId);
+    if (Object.keys(data).length) {
+      db.ref('sent/' + key).set({ json: JSON.stringify(data) });
+    } else {
+      db.ref('sent/' + key).remove();
+    }
+  }
+
+  // =============================================
+  // СТОП-ЛИСТ
+  // Источник данных — orders['🛑'], хранится как обычный стол
+  // Мьют при qty <= 1 (последняя порция уже в стопе)
+  // =============================================
+  function isInStoplist(name) {
+    return !!(orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty <= 1);
+  }
+
+  // =============================================
+  // VISUAL
+  // =============================================
+  function restoreMenuVisual() {
+    const tableOrder = orders[currentTable] || {};
+    const nameCounts = {};
+    Object.values(tableOrder).forEach(item => {
+      const name = item.displayName || item.itemName;
+      if (name) nameCounts[name] = (nameCounts[name] || 0) + item.qty;
+    });
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      const match = (btn.getAttribute('onclick') || '').match(/addItem\(this,'([^']+)'/);
+      const itemName = match ? match[1] : null;
+      const total = itemName ? (nameCounts[itemName] || 0) : 0;
+      const c = btn.querySelector('.item-count');
+      if (total > 0) { btn.classList.add('has-count'); if (c) c.textContent = total; }
+      else { btn.classList.remove('has-count'); if (c) c.textContent = '0'; }
+    });
+    restoreGroupBtns();
+  }
+
+  function applyStopList() {
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      const match = (btn.getAttribute('onclick') || '').match(/addItem\(this,'([^']+)'/);
+      if (!match) return;
+      const name = match[1];
+      const isStopped = isInStoplist(name);
+      btn.classList.toggle('stopped', isStopped);
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+      const badge = btn.querySelector('.stop-badge');
+      if (isStopped && !badge) {
+        const b = document.createElement('div');
+        b.className = 'stop-badge';
+        b.style.cssText = 'font-size:9px;color:#ff6b6b;letter-spacing:1px;margin-top:1px';
+        b.textContent = lang === 'ru' ? 'СТОП' : 'STOP';
+        btn.appendChild(b);
+      } else if (!isStopped && badge) {
+        badge.remove();
+      }
+    });
+  }
+
+  function syncTable13Visual() {
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      btn.classList.remove('stopped');
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+      const badge = btn.querySelector('.stop-badge');
+      if (badge) badge.remove();
+    });
+  }
+
+  function clearMenuVisual() {
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      btn.classList.remove('has-count');
+      const c = btn.querySelector('.item-count');
+      if (c) c.textContent = '0';
+    });
+  }
+
+  // =============================================
+  // VARIANT GROUPS — popup выбора варианта
+  // =============================================
+  const VARIANT_GROUPS = {
+    'Coral Light': {
+      ru: 'Coral Light', en: 'Coral Light',
+      variants: [
+        { ru: '200 мл', en: '200 ml', name: 'Coral Light 200мл', price: 2 },
+        { ru: '300 мл', en: '300 ml', name: 'Coral Light 300мл', price: 3 },
+        { ru: '500 мл', en: '500 ml', name: 'Coral Light 500мл', price: 4 },
+      ]
+    },
+    'Coral Dark': {
+      ru: 'Coral Dark', en: 'Coral Dark',
+      variants: [
+        { ru: '200 мл', en: '200 ml', name: 'Coral Dark 200мл', price: 2.5 },
+        { ru: '300 мл', en: '300 ml', name: 'Coral Dark 300мл', price: 3.5 },
+        { ru: '500 мл', en: '500 ml', name: 'Coral Dark 500мл', price: 4.5 },
+      ]
+    },
+    'Вода': {
+      ru: 'Вода', en: 'Water',
+      variants: [
+        { ru: 'Без газа 500 мл', en: 'Still 500ml', name: 'Вода без газа 500мл', price: 2 },
+        { ru: 'Без газа 750 мл', en: 'Still 750ml', name: 'Вода без газа 750мл', price: 3.5 },
+        { ru: 'С газом 500 мл',  en: 'Sparkling 500ml', name: 'Вода с газом 500мл', price: 2 },
+        { ru: 'С газом 750 мл',  en: 'Sparkling 750ml', name: 'Вода с газом 750мл', price: 3.5 },
+      ]
+    },
+    'Комбуча черный чай': {
+      ru: 'Комбуча чёрный чай', en: 'Kombucha Black Tea',
+      variants: [
+        { ru: 'Бокал 150 мл', en: 'Glass 150ml', name: 'Комбуча черный чай 150мл', price: 3 },
+        { ru: 'Бутылка 500 мл', en: 'Bottle 500ml', name: 'Комбуча черный чай 500мл', price: 9 },
+        { ru: 'Бутылка 1000 мл', en: 'Bottle 1000ml', name: 'Комбуча черный чай 1000мл', price: 16 },
+      ]
+    },
+    'Комбуча черный кофе': {
+      ru: 'Комбуча чёрный кофе', en: 'Kombucha Black Coffee',
+      variants: [
+        { ru: 'Бокал 75 мл', en: 'Glass 75ml', name: 'Комбуча черный кофе 75мл', price: 3 },
+        { ru: 'Бутылка 250 мл', en: 'Bottle 250ml', name: 'Комбуча черный кофе 250мл', price: 9 },
+        { ru: 'Бутылка 500 мл', en: 'Bottle 500ml', name: 'Комбуча черный кофе 500мл', price: 16 },
+      ]
+    },
+    'Сырники': {
+      ru: 'Сырники', en: 'Syrniki',
+      variants: [
+        { ru: '2 шт', en: '2 pcs', name: 'Сырники 2шт', price: 5 },
+        { ru: '4 шт', en: '4 pcs', name: 'Сырники 4шт', price: 8 },
+      ]
+    },
+    'Сангрия': {
+      ru: 'Сангрия', en: 'Sangria',
+      variants: [
+        { ru: '0.5 л', en: '0.5l', name: 'Сангрия 0.5л', price: 8 },
+        { ru: '1 л', en: '1l', name: 'Сангрия 1л', price: 15 },
+      ]
+    },
+    'Икра красная': {
+      ru: 'Икра красная', en: 'Red caviar',
+      variants: [
+        { ru: '50 г', en: '50g', name: 'Икра красная 50г', price: 18 },
+        { ru: '100 г', en: '100g', name: 'Икра красная 100г', price: 25 },
+      ]
+    },
+    'Комбуча Beetroot Ginger Mint': {
+      ru: 'Комбуча Beetroot · Ginger · Mint', en: 'Kombucha Beetroot · Ginger · Mint',
+      variants: [
+        { ru: 'Бокал 150 мл', en: 'Glass 150ml', name: 'Комбуча Beetroot Ginger Mint 150мл', price: 3 },
+        { ru: 'Бутылка 500 мл', en: 'Bottle 500ml', name: 'Комбуча Beetroot Ginger Mint 500мл', price: 9 },
+        { ru: 'Бутылка 1000 мл', en: 'Bottle 1000ml', name: 'Комбуча Beetroot Ginger Mint 1000мл', price: 16 },
+      ]
+    },
+    'Комбуча Green Tea Grapefruit': {
+      ru: 'Комбуча Green Tea · Grapefruit', en: 'Kombucha Green Tea · Grapefruit',
+      variants: [
+        { ru: 'Бокал 150 мл', en: 'Glass 150ml', name: 'Комбуча Green Tea Grapefruit 150мл', price: 3 },
+        { ru: 'Бутылка 500 мл', en: 'Bottle 500ml', name: 'Комбуча Green Tea Grapefruit 500мл', price: 9 },
+        { ru: 'Бутылка 1000 мл', en: 'Bottle 1000ml', name: 'Комбуча Green Tea Grapefruit 1000мл', price: 16 },
+      ]
+    },
+    'Комбуча Red Fruits Hibiscus': {
+      ru: 'Комбуча Red Fruits · Hibiscus', en: 'Kombucha Red Fruits · Hibiscus',
+      variants: [
+        { ru: 'Бокал 150 мл', en: 'Glass 150ml', name: 'Комбуча Red Fruits Hibiscus 150мл', price: 3 },
+        { ru: 'Бутылка 500 мл', en: 'Bottle 500ml', name: 'Комбуча Red Fruits Hibiscus 500мл', price: 9 },
+        { ru: 'Бутылка 1000 мл', en: 'Bottle 1000ml', name: 'Комбуча Red Fruits Hibiscus 1000мл', price: 16 },
+      ]
+    },
+    'Куриный суп': {
+      ru: 'Куриный суп', en: 'Chicken soup',
+      variants: [
+        { ru: 'Чашка', en: 'Cup', name: 'Куриный суп чашка', price: 5 },
+        { ru: 'Тарелка', en: 'Bowl', name: 'Куриный суп тарелка', price: 7 },
+      ]
+    },
+    'Грибной крем': {
+      ru: 'Грибной крем 🌿', en: 'Mushroom cream 🌿',
+      variants: [
+        { ru: 'Чашка', en: 'Cup', name: 'Грибной крем чашка', price: 6 },
+        { ru: 'Тарелка', en: 'Bowl', name: 'Грибной крем тарелка', price: 8 },
+      ]
+    },
+  };
+
+  // =============================================
+  // MENU ORDER INDEX
+  // =============================================
+  function buildMenuOrderIndex() {
+    const orderIndex = {};
+    let idx = 0;
+    document.querySelectorAll('.menu-items-area .item-btn').forEach(btn => {
+      const onclick = btn.getAttribute('onclick') || '';
+      const addMatch = onclick.match(/addItem\(this,'([^']+)'/);
+      if (addMatch) {
+        orderIndex[addMatch[1]] = idx++;
+        return;
+      }
+      const groupKey = btn.dataset.group;
+      if (groupKey && VARIANT_GROUPS[groupKey]) {
+        VARIANT_GROUPS[groupKey].variants.forEach((v, vi) => {
+          orderIndex[v.name] = idx + vi / 1000;
+        });
+        idx++;
+      }
+    });
+    return orderIndex;
+  }
+
+  function getOrderSortValue(item, key, orderIndex) {
+    const name = item.displayName || item.itemName || key;
+    return orderIndex[name] !== undefined ? orderIndex[name] : 999999;
+  }
+
+  let currentVarGroup = null;
+  let currentVarBtn = null;
+
+  function openVarPopup(groupKey, btn) {
+    const group = VARIANT_GROUPS[groupKey];
+    if (!group) return;
+    currentVarGroup = groupKey;
+    currentVarBtn = btn;
+
+    document.getElementById('varTitle').textContent = lang === 'ru' ? group.ru : group.en;
+    document.getElementById('varSubtitle').textContent = lang === 'ru' ? 'Выберите вариант' : 'Choose variant';
+
+    const opts = document.getElementById('varOptions');
+    opts.innerHTML = '';
+    const tableOrder = orders[currentTable] || {};
+
+    group.variants.forEach(v => {
+      const isStopped = currentTable !== '🛑' && isInStoplist(v.name);
+      const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
+      const label = lang === 'ru' ? v.ru : v.en;
+
+      const btn = document.createElement('button');
+      btn.className = 'var-btn' + (isStopped ? ' stopped' : '');
+      btn.innerHTML = `
+        <span class="var-btn-name">${label}</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span class="var-btn-price">€${v.price}</span>
+          ${isStopped ? `<span style="color:#ff6b6b;font-size:10px;letter-spacing:1px">${lang === 'ru' ? 'СТОП' : 'STOP'}</span>` : ''}
+          ${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}
+        </span>`;
+      btn.onclick = () => {
+        addItemByVariant(v.name, v.price);
+        // Обновляем счётчик в popup
+        const newQty = (orders[currentTable] && orders[currentTable][v.name])
+          ? orders[currentTable][v.name].qty : 0;
+        const countEl = btn.querySelector('.var-btn-count');
+        if (newQty > 0) {
+          if (countEl) countEl.textContent = newQty;
+          else btn.querySelector('[style]').insertAdjacentHTML('afterbegin',
+            `<span class="var-btn-count">${newQty}</span>`);
+        }
+        updateGroupBtn(groupKey, currentVarBtn);
+      };
+      opts.appendChild(btn);
+    });
+
+    document.getElementById('varOverlay').classList.add('show');
+  }
+
+  function closeVarPopup() {
+    document.getElementById('varOverlay').classList.remove('show');
+    currentVarGroup = null;
+    currentVarBtn = null;
+  }
+
+  function varOverlayClick(e) {
+    if (e.target === document.getElementById('varOverlay')) closeVarPopup();
+  }
+
+  function addItemByVariant(name, price) {
+    // Создаём фиктивный btn-объект для совместимости с addItem
+    const fakeBtn = {
+      classList: { add: () => {}, contains: () => false },
+      querySelector: () => ({ textContent: '' }),
+    };
+    addItem(fakeBtn, name, price);
+  }
+
+  function updateGroupBtn(groupKey, btn) {
+    if (!btn) return;
+    const group = VARIANT_GROUPS[groupKey];
+    if (!group) return;
+    const tableOrder = orders[currentTable] || {};
+    const total = group.variants.reduce((s, v) => {
+      return s + (tableOrder[v.name] ? tableOrder[v.name].qty : 0);
+    }, 0);
+    const countEl = btn.querySelector('.item-count');
+    if (total > 0) {
+      btn.classList.add('has-count');
+      if (countEl) countEl.textContent = total;
+    } else {
+      btn.classList.remove('has-count');
+      if (countEl) countEl.textContent = '0';
+    }
+  }
+
+  function restoreGroupBtns() {
+    document.querySelectorAll('.item-btn[data-group]').forEach(btn => {
+      const groupKey = btn.dataset.group;
+      updateGroupBtn(groupKey, btn);
+    });
+  }
+
+  // =============================================
+  // ACCORDION
+  // =============================================
+  function toggleAcc(header) {
+    header.classList.toggle('open');
+    const body = header.nextElementSibling;
+    body.classList.toggle('open');
+  }
+
+  function openAccByCat(cat) {
+    const section = document.querySelector('.section[data-cat="' + cat + '"]');
+    if (!section) return;
+    const header = section.querySelector('.acc-header');
+    const body = section.querySelector('.acc-body');
+    if (header && body && !body.classList.contains('open')) {
+      header.classList.add('open');
+      body.classList.add('open');
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  // =============================================
+  // TABLE
+  // =============================================
+  function setTable(btn) {
+    document.querySelectorAll('.table-btn, #table13btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    clearMenuVisual();
+    currentTable = btn.id === 'table13btn' ? '🛑' : btn.textContent.trim();
+    updateCurrentTableBadge();
+    updateNotesVisual();
+    const nf = document.getElementById('notesField');
+    if (nf) nf.placeholder = currentTable === '🛑'
+      ? 'Components needed to remove from stop list...'
+      : 'Notes for kitchen: steak doneness, allergies, sauce, timing...';
+    if (currentTable === '🛑') syncTable13Visual();
+    else applyStopList();
+    restoreMenuVisual();
+    renderOrder();
+  }
+
+  // =============================================
+  // ADD ITEM
+  // =============================================
+  function addItem(btn, name, price) {
+    if (!orders[currentTable]) orders[currentTable] = {};
+
+    // Программная защита стоп-листа (дублирует CSS-мьют)
+    if (currentTable !== '🛑' && isInStoplist(name)) {
+      alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
+      applyStopList();
+      return;
+    }
+
+    // Стоп-лист — та же логика что обычный стол
+    if (currentTable === '🛑') {
+      if (!orders[currentTable][name]) {
+        orders[currentTable][name] = { price, qty: 0, itemName: name };
+      }
+      orders[currentTable][name].qty++;
+      btn.classList.add('has-count');
+      btn.querySelector('.item-count').textContent = orders[currentTable][name].qty;
+      saveOrderToFirebase('🛑');
+      renderOrder();
+      return;
+    }
+
+    // Обычная позиция
+    if (!MAIN_COURSE_ITEMS.includes(name)) {
+      if (!orders[currentTable][name]) {
+        orders[currentTable][name] = { price, qty: 0, itemName: name };
+      }
+      orders[currentTable][name].qty++;
+      // Декремент стоп-листа при заказе
+      if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+        orders['🛑'][name].qty--;
+        saveOrderToFirebase('🛑');
+        applyStopList();
+      }
+      btn.classList.add('has-count');
+      btn.querySelector('.item-count').textContent = orders[currentTable][name].qty;
+      renderOrder();
+      saveOrderToFirebase(currentTable);
+      return;
+    }
+
+    // Основное блюдо
+    if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+      orders['🛑'][name].qty--;
+      saveOrderToFirebase('🛑');
+      applyStopList();
+    }
+    const pairId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    const mainKey = name + '__' + pairId;
+    orders[currentTable][mainKey] = { price, qty: 1, itemName: name, pairId, displayName: name };
+    const total = Object.values(orders[currentTable]).filter(i => i.displayName === name).reduce((s, i) => s + i.qty, 0);
+    btn.classList.add('has-count');
+    btn.querySelector('.item-count').textContent = total;
+    pendingSide = { mainName: name, pairId, mainKey };
+    try { openSidePicker(name); } catch(e) { alert('Ошибка: ' + e.message); }
+    renderOrder();
+    saveOrderToFirebase(currentTable);
+  }
+
+  function addItemByName(name, price) {
+    if (!orders[currentTable]) orders[currentTable] = {};
+
+    if (currentTable === '🛑') {
+      if (!orders[currentTable][name]) {
+        orders[currentTable][name] = { price, qty: 0, itemName: name };
+      }
+      orders[currentTable][name].qty++;
+      renderOrder();
+      restoreMenuVisual();
+      saveOrderToFirebase('🛑');
+      return;
+    }
+
+    if (!MAIN_COURSE_ITEMS.includes(name)) {
+      if (!orders[currentTable][name]) {
+        orders[currentTable][name] = { price, qty: 0, itemName: name };
+      }
+      orders[currentTable][name].qty++;
+      // Декремент стоп-листа при заказе
+      if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+        orders['🛑'][name].qty--;
+        saveOrderToFirebase('🛑');
+        applyStopList();
+      }
+      renderOrder();
+      restoreMenuVisual();
+      saveOrderToFirebase(currentTable);
+      return;
+    }
+
+    // Основное блюдо — декремент стоп-листа + пикер гарнира
+    if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+      orders['🛑'][name].qty--;
+      saveOrderToFirebase('🛑');
+      applyStopList();
+    }
+
+    const pairId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    const mainKey = name + '__' + pairId;
+    orders[currentTable][mainKey] = {
+      price,
+      qty: 1,
+      itemName: name,
+      pairId,
+      displayName: name
+    };
+    pendingSide = { mainName: name, pairId, mainKey };
+    try {
+      openSidePicker(name);
+    } catch(e) {
+      alert('Ошибка: ' + e.message);
+    }
+    renderOrder();
+    restoreMenuVisual();
+    saveOrderToFirebase(currentTable);
+  }
+
+  // =============================================
+  // SIDE PICKER
+  // =============================================
+  function openSidePicker(mainName) {
+    const tableOrder = orders[currentTable] || {};
+    const thisPairId = pendingSide ? pendingSide.pairId : null;
+    const alreadyHasFreeSide = thisPairId
+      ? Object.values(tableOrder).some(item => item.pairId === thisPairId && item.isSide && item.price === 0)
+      : false;
+    const isFree = !alreadyHasFreeSide;
+
+    document.getElementById('sideMainName').textContent = '→ ' + displayName(mainName);
+    document.getElementById('sideFreeNote').textContent = isFree
+      ? (lang==='ru'?'✓ Первый гарнир входит в цену блюда':'✓ First side dish is included')
+      : (lang==='ru'?'Гарнир — дополнительная стоимость':'Side dish — additional cost');
+
+    const list = document.getElementById('sideList');
+    list.innerHTML = '';
+    SIDES.forEach(side => {
+      const displayPrice = isFree ? (lang === 'ru' ? 'Бесплатно' : 'Included') : '€' + side.price;
+      const btn = document.createElement('button');
+      btn.style.cssText = "background:#1e302d;border:1px solid #2a9d8f;border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500";
+      const enNames={Рис:'Rice',Овощи:'Vegetables',Спагетти:'Spaghetti',Салат:'Salad',Спаржа:'Asparagus',Пюре:'Mashed potato','Жареный картофель':'Roast potato','Картофель фри':'French fries'};
+      btn.innerHTML = `<span style="color:#ffffff;font-size:14px">${lang==='ru'?side.name:enNames[side.name]||side.name}</span><span style="color:${isFree?'#3dbfaf':'#e9c46a'};font-size:13px;font-weight:bold">${displayPrice}</span>`;
+      btn.onclick = () => selectSide(side.name, isFree ? 0 : side.price);
+      list.appendChild(btn);
+    });
+
+    const overlay = document.getElementById('sideOverlay');
+    overlay.style.cssText = 'display:flex !important;position:fixed;inset:0;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;';
+  }
+
+  function selectSide(sideName, price) {
+    document.getElementById('sideOverlay').style.cssText = 'display:none';
+    if (!orders[currentTable]) orders[currentTable] = {};
+    const baseKey = price === 0 ? sideName + ' (вкл.)' : sideName + ' (гарнир)';
+    const key = pendingSide ? baseKey + '__' + pendingSide.pairId : baseKey;
+    if (!orders[currentTable][key]) orders[currentTable][key] = { price, qty: 0, displayName: baseKey };
+    orders[currentTable][key].qty++;
+    if (pendingSide) { orders[currentTable][key].pairId = pendingSide.pairId; orders[currentTable][key].isSide = true; }
+    renderOrder();
+    saveOrderToFirebase(currentTable);
+    pendingSide = null;
+  }
+
+  function closeSidePicker() {
+    document.getElementById('sideOverlay').style.cssText = 'display:none';
+    pendingSide = null;
+  }
+
+  // =============================================
+  // ROLLBACK ONE UNIT TO STOPLIST
+  // =============================================
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function onNotesInput() {
+    const val = document.getElementById('notesField').value;
+    notes[currentTable] = val;
+    saveNotesToFirebase(currentTable);
+    updateNotesVisual();
+    updateTableBadges();
+  }
+
+  function updateNotesVisual() {
+    const field = document.getElementById('notesField');
+    const label = document.getElementById('notesLabel');
+    if (!field || !label) return;
+    const val = notes[currentTable] || '';
+    field.value = val;
+    const hasNotes = val.trim().length > 0;
+    field.classList.toggle('has-notes', hasNotes);
+    label.classList.toggle('active', hasNotes);
+  }
+
+  function rollbackOneToStoplist(key, item) {
+    if (currentTable === '🛑') return;
+    if (!orders['🛑']) return;
+    if (item.isSide) return;
+    const baseName = item.displayName || item.itemName || key;
+    if (!orders['🛑'][baseName]) return;
+    const prev = sentQty[currentTable] || {};
+    const alreadySent = prev[key] || 0;
+    // Возвращаем только если удаляем неотправленную единицу
+    if (item.qty > alreadySent) {
+      orders['🛑'][baseName].qty += 1;
+      saveOrderToFirebase('🛑');
+      applyStopList();
+    }
+  }
+
+  // =============================================
+  // CHANGE QTY
+  // =============================================
+  function changeQty(name, delta) {
+    const tableOrder = orders[currentTable];
+    if (!tableOrder || !tableOrder[name]) return;
+
+    const item = tableOrder[name];
+
+    if (delta > 0) {
+      const baseName = item.displayName || item.itemName || name;
+
+      if (currentTable !== '🛑' && !item.isSide && isInStoplist(baseName)) {
+        alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
+        return;
+      }
+
+      if (!item.isSide && MAIN_COURSE_ITEMS.includes(baseName)) {
+        addItemByName(baseName, item.price);
+        return;
+      }
+
+      // Декремент стоп-листа при + (симметрично addItem)
+      if (currentTable !== '🛑' && !item.isSide && orders['🛑'] && orders['🛑'][baseName] && orders['🛑'][baseName].qty > 1) {
+        orders['🛑'][baseName].qty--;
+        saveOrderToFirebase('🛑');
+        applyStopList();
+      }
+      item.qty += delta;
+      renderOrder();
+      restoreMenuVisual();
+      saveOrderToFirebase(currentTable);
+      return;
+    }
+
+    // Защита от уменьшения ниже уже отправленного + rollback в стоп-лист
+    if (delta < 0) {
+      const prev = sentQty[currentTable] || {};
+      const alreadySent = prev[name] || 0;
+      if (item.qty <= alreadySent) {
+        alert(lang === 'ru' ? 'Эта позиция уже отправлена в KEEPER' : 'This item has already been sent to KEEPER');
+        return;
+      }
+      rollbackOneToStoplist(name, item);
+    }
+
+    item.qty += delta;
+
+    if (item.qty <= 0) {
+      if (item.pairId && !item.isSide) {
+        const sk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && tableOrder[k].isSide);
+        if (sk) delete tableOrder[sk];
+      }
+      if (item.pairId && item.isSide) {
+        const mk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && !tableOrder[k].isSide);
+        if (mk) delete tableOrder[mk];
+      }
+      delete tableOrder[name];
+    }
+
+    renderOrder();
+    restoreMenuVisual();
+    saveOrderToFirebase(currentTable);
+  }
+
+  // =============================================
+  // RENDER ORDER
+  // =============================================
+  function renderOrder() {
+    const list = document.getElementById('orderList');
+    const tableOrder = orders[currentTable] || {};
+    const keys = Object.keys(tableOrder);
+
+    const clearStopBtn = document.getElementById('clearStopBtn');
+    if (clearStopBtn) clearStopBtn.style.display = currentTable === '🛑' ? 'block' : 'none';
+    updateTableBadges();
+
+    if (keys.length === 0) {
+      list.innerHTML = lang === 'ru'
+        ? '<div class="empty-order"><div class="empty-order-icon">🍽</div>Нажмите на позицию<br>из меню слева</div>'
+        : '<div class="empty-order"><div class="empty-order-icon">🍽</div>Tap an item<br>from the menu</div>';
+      document.getElementById('totalNum').textContent = '0.00';
+      document.getElementById('orderCountBadge').textContent = lang === 'ru' ? '0 поз.' : '0 items';
+      document.getElementById('sendBtn').disabled = true;
+      return;
+    }
+
+        const pairs = {}, standalone = [];
+    keys.forEach(name => {
+      const item = tableOrder[name];
+      if (item.pairId && !item.isSide) { if (!pairs[item.pairId]) pairs[item.pairId] = {}; pairs[item.pairId].mainKey = name; }
+      else if (item.pairId && item.isSide) { if (!pairs[item.pairId]) pairs[item.pairId] = {}; pairs[item.pairId].sideKey = name; }
+      else standalone.push(name);
+    });
+
+    const menuIndex = buildMenuOrderIndex();
+
+    const pairEntries = Object.entries(pairs).sort((a, b) => {
+      const mA = a[1].mainKey ? tableOrder[a[1].mainKey] : {};
+      const mB = b[1].mainKey ? tableOrder[b[1].mainKey] : {};
+      return getOrderSortValue(mA || {}, a[1].mainKey || '', menuIndex)
+           - getOrderSortValue(mB || {}, b[1].mainKey || '', menuIndex);
+    });
+
+    standalone.sort((a, b) =>
+      getOrderSortValue(tableOrder[a], a, menuIndex) -
+      getOrderSortValue(tableOrder[b], b, menuIndex)
+    );
+
+    let total = 0, count = 0, html = '';
+
+    pairEntries.forEach(([pid, pair]) => {
+
+      const { mainKey, sideKey } = pair;
+      if (!mainKey || !tableOrder[mainKey]) return;
+      const main = tableOrder[mainKey];
+      const mainLine = main.price * main.qty;
+      total += mainLine; count += main.qty;
+      const safeMain = mainKey.replace(/'/g, "\\'");
+      if (sideKey && tableOrder[sideKey]) {
+        const side = tableOrder[sideKey];
+        const sideLine = side.price * side.qty;
+        total += sideLine; count += side.qty;
+        const safeSide = sideKey.replace(/'/g, "\\'");
+        html += `<div class="order-pair"><div class="order-pair-main"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div><div class="order-pair-side"><div class="oi-name">↳ ${displayName(side.displayName||sideKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',-1)">−</button><span class="oi-qty">${side.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',1)">+</button></div><div class="oi-price" style="color:${side.price===0?'#3dbfaf':'#e9c46a'}">${side.price===0 ? (lang === 'ru' ? 'вкл.' : 'incl.') : '€' + sideLine.toFixed(2)}</div></div></div>`;
+      } else {
+        html += `<div class="order-item"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div>`;
+      }
+    });
+
+    standalone.forEach(name => {
+      const item = tableOrder[name];
+      const line = item.price * item.qty;
+      total += line; count += item.qty;
+      const safeName = name.replace(/'/g, "\\'");
+      html += `<div class="order-item"><div class="oi-name">${displayName(item.displayName||name)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',-1)">−</button><span class="oi-qty">${item.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',1)">+</button></div><div class="oi-price">€${line.toFixed(2)}</div></div>`;
+    });
+
+    list.innerHTML = html;
+    document.getElementById('totalNum').textContent = total.toFixed(2);
+    document.getElementById('orderCountBadge').textContent = lang === 'ru' ? count + ' поз.' : count + ' items';
+    document.getElementById('sendBtn').disabled = false;
+  }
+
+  // =============================================
+  // HELPERS
+  // =============================================
+  function updateTableBadges() {
+    document.querySelectorAll('.table-btn, #table13btn').forEach(btn => {
+      const t = btn.id === 'table13btn' ? '🛑' : btn.textContent.trim();
+      const tableOrder = orders[t] || {};
+      const count = Object.values(tableOrder).reduce((s, i) => s + (i.qty || 0), 0);
+      const hasNotes = !!(notes[t] && notes[t].trim().length > 0);
+      if (hasNotes) {
+        btn.style.outline = '2px solid #e76f51';
+        btn.title = '⚠️ Notes' + (count > 0 ? ' + ' + count + (lang === 'ru' ? ' позиций' : ' items') : '');
+      } else if (count > 0) {
+        btn.style.outline = '2px solid #e9c46a';
+        btn.title = count + (lang === 'ru' ? ' позиций' : ' items');
+      } else {
+        btn.style.outline = '';
+        btn.title = '';
+      }
+    });
+  }
+
+  function clearOrder() {
+    const message = currentTable === '🛑'
+      ? (lang === 'ru' ? 'Очистить стоп-лист?' : 'Clear the stop list?')
+      : (lang === 'ru' ? 'Стол ' + currentTable + ' рассчитан? Заказ будет очищен.' : 'Table ' + currentTable + ' checked out? Order will be cleared.');
+    if (!confirm(message)) return;
+    clearMenuVisual();
+    orders[currentTable] = {};
+    sentQty[currentTable] = {};
+    notes[currentTable] = '';
+    saveOrderToFirebase(currentTable);
+    saveSentQtyToFirebase(currentTable);
+    saveNotesToFirebase(currentTable);
+    if (currentTable === '🛑') applyStopList();
+    updateNotesVisual();
+    renderOrder();
+  }
+
+  // =============================================
+  // SEND ORDER
+  // =============================================
+  let sentOverlayOpen = false;
+
+  function sendOrder() {
+    const tableOrder = orders[currentTable] || {};
+    const keys = Object.keys(tableOrder);
+    if (!keys.length) return;
+    if (!sentQty[currentTable]) sentQty[currentTable] = {};
+    const prev = sentQty[currentTable];
+    let lines = '', total = 0, hasNew = false;
+    // Воспроизводим порядок как в renderOrder(): сначала пары, потом standalone
+    const sendPairs = {}, sendStandalone = [];
+    keys.forEach(name => {
+      const item = tableOrder[name];
+      if (item.pairId && !item.isSide) {
+        if (!sendPairs[item.pairId]) sendPairs[item.pairId] = {};
+        sendPairs[item.pairId].mainKey = name;
+      } else if (item.pairId && item.isSide) {
+        if (!sendPairs[item.pairId]) sendPairs[item.pairId] = {};
+        sendPairs[item.pairId].sideKey = name;
+      } else {
+        sendStandalone.push(name);
+      }
+    });
+
+    const sendMenuIndex = buildMenuOrderIndex();
+
+    const sendPairEntries = Object.entries(sendPairs).sort((a, b) => {
+      const mA = a[1].mainKey ? tableOrder[a[1].mainKey] : {};
+      const mB = b[1].mainKey ? tableOrder[b[1].mainKey] : {};
+      return getOrderSortValue(mA || {}, a[1].mainKey || '', sendMenuIndex)
+           - getOrderSortValue(mB || {}, b[1].mainKey || '', sendMenuIndex);
+    });
+
+    sendStandalone.sort((a, b) =>
+      getOrderSortValue(tableOrder[a], a, sendMenuIndex) -
+      getOrderSortValue(tableOrder[b], b, sendMenuIndex)
+    );
+
+    // Пары
+    sendPairEntries.forEach(([pid, pair]) => {
+
+      const { mainKey, sideKey } = pair;
+      if (mainKey) {
+        const item = tableOrder[mainKey];
+        const newQty = item.qty - (prev[mainKey] || 0);
+        if (newQty > 0) {
+          hasNew = true;
+          const line = item.price * newQty;
+          total += line;
+          lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||mainKey)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+        }
+      }
+      if (sideKey && tableOrder[sideKey]) {
+        const item = tableOrder[sideKey];
+        const newQty = item.qty - (prev[sideKey] || 0);
+        if (newQty > 0) {
+          hasNew = true;
+          const line = item.price * newQty;
+          total += line;
+          lines += `<div style="padding-left:12px;color:#7ab3ac">↳ × ${newQty} &nbsp; ${displayName(item.displayName||sideKey)} &nbsp; <span style="color:${item.price===0?'#3dbfaf':'#e9c46a'}">${item.price===0?(lang==='ru'?'вкл.':'incl.'):'€'+line.toFixed(2)}</span></div>`;
+        }
+      }
+    });
+
+    // Standalone
+    sendStandalone.forEach(name => {
+      const item = tableOrder[name];
+      const newQty = item.qty - (prev[name] || 0);
+      if (newQty > 0) {
+        hasNew = true;
+        const line = item.price * newQty;
+        total += line;
+        lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||name)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+      }
+    });
+    if (!hasNew) { alert(lang === 'ru' ? 'Нет новых позиций для отправки' : 'No new items to send'); return; }
+    keys.forEach(name => { prev[name] = tableOrder[name].qty; });
+    saveSentQtyToFirebase(currentTable);
+    document.getElementById('sentTable').textContent = (lang==='ru'?'СТОЛ ':'TABLE ') + currentTable;
+    const noteText = (notes[currentTable] || '').trim();
+    if (noteText) {
+      lines += `<div style="margin-top:8px;color:#e76f51;border-top:1px solid rgba(231,111,81,0.4);padding-top:6px">⚠️ NOTES:<br>${escapeHtml(noteText)}</div>`;
+    }
+    document.getElementById('sentItemsList').innerHTML = lines;
+    document.getElementById('sentTotal').textContent = (lang === 'ru' ? 'К переносу: €' : 'To KEEPER: €') + total.toFixed(2);
+    sentOverlayOpen = true;
+    document.getElementById('sentOverlay').classList.add('show');
+  }
+
+  function closeSent() {
+    sentOverlayOpen = false;
+    document.getElementById('sentOverlay').classList.remove('show');
+  }
+
+  // =============================================
+  // STOPLIST
+  // =============================================
+  function clearStopList() {
+    if (!confirm(lang === 'ru' ? 'Очистить весь стоп-лист?' : 'Clear the entire stop list?')) return;
+    orders['🛑'] = {};
+    saveOrderToFirebase('🛑');
+    applyStopList();
+    renderOrder();
+  }
+
+  // =============================================
+  // WINES
+  // =============================================
+  async function loadWines() {
+    const container = document.getElementById('winesList');
+    try {
+      const res = await fetch(SCRIPT_URL);
+      const wines = await res.json();
+      if (!wines || wines.length === 0) {
+        container.innerHTML = lang === 'ru' ? '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">Нет вин в папке</div>' : '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">No wines in folder</div>';
+        return;
+      }
+      const ruGroups = { '🔴 Красное': [], '⚪ Белое': [], '🌸 Розовое': [], '🥂 Игристое': [], '🍷 Другое': [] };
+      const enGroups = { '🔴 Red': [], '⚪ White': [], '🌸 Rosé': [], '🥂 Sparkling': [], '🍷 Other': [] };
+      const groups = lang === 'ru' ? ruGroups : enGroups;
+      wines.forEach(wine => {
+        const priceMatch = wine.filename.match(/(\d+)[€e]?\s*(\.|$)/);
+        const price = priceMatch ? parseInt(priceMatch[1]) : 0;
+        const name = wine.filename.replace(/\.[^/.]+$/, '').replace(/\d+[€e]?\s*$/, '').trim();
+        let group = '🍷 Другое';
+        const fn = wine.filename.toLowerCase();
+        let ruGroup = '🍷 Другое', enGroup = '🍷 Other';
+        if (fn.includes('красн') || fn.includes('tinto') || fn.includes('red')) { ruGroup = '🔴 Красное'; enGroup = '🔴 Red'; }
+        else if (fn.includes('бел') || fn.includes('branco') || fn.includes('white') || fn.includes('verde') || fn.includes('vinho')) { ruGroup = '⚪ Белое'; enGroup = '⚪ White'; }
+        else if (fn.includes('розов') || fn.includes('rosé') || fn.includes('rose') || fn.includes('rosado')) { ruGroup = '🌸 Розовое'; enGroup = '🌸 Rosé'; }
+        else if (fn.includes('игрист') || fn.includes('prosecco') || fn.includes('sparkling') || fn.includes('cava') || fn.includes('brut')) { ruGroup = '🥂 Игристое'; enGroup = '🥂 Sparkling'; }
+        ruGroups[ruGroup].push({ name, price });
+        enGroups[enGroup].push({ name, price });
+      });
+      let html = '';
+      Object.entries(groups).forEach(([groupName, items]) => {
+        if (!items.length) return;
+        html += `<div class="section-title" style="margin-top:6px">${groupName}</div>`;
+        items.forEach(w => {
+          const safeName = w.name.replace(/'/g, "\\'");
+          html += `<button class="item-btn" onclick="addItem(this,'${safeName}',${w.price})"><div class="item-name">${escapeHtml(w.name)}</div><div class="item-footer"><span class="item-price">${w.price ? '€'+w.price : '—'}</span><span class="item-count">0</span></div></button>`;
+        });
+      });
+      container.innerHTML = html || (lang === 'ru'
+        ? '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">Нет вин в папке</div>'
+        : '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">No wines in folder</div>');
+      restoreMenuVisual();
+    } catch(e) {
+      container.innerHTML = lang === 'ru' ? '<div style="color:#e76f51;font-size:10px;text-align:center;padding:10px">Ошибка загрузки вин</div>' : '<div style="color:#e76f51;font-size:10px;text-align:center;padding:10px">Wine loading error</div>';
+    }
+  }
+
+  // =============================================
+  // INIT
+  // =============================================
+  window.addEventListener('DOMContentLoaded', () => {
+    const firstBtn = document.querySelector('.table-btn');
+    if (firstBtn) currentTable = firstBtn.textContent.trim();
+
+    document.querySelectorAll('.item-btn').forEach(btn => {
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+    });
+
+    // Сначала загружаем sentQty, только потом запускаем listener на orders
+    function startOrdersListener() {
+      let ordersLoaded = false;
+      db.ref('orders').on('value', snapshot => {
+        const raw = snapshot.val() || {};
+        const data = {};
+        Object.entries(raw).forEach(([key, val]) => {
+          try {
+            const tableId = key === STOPLIST_KEY ? '🛑' : key;
+            data[tableId] = typeof val === 'object' && val.json ? JSON.parse(val.json) : val;
+          } catch(e) {}
+        });
+
+        if (!ordersLoaded) {
+          orders = data;
+          ordersLoaded = true;
+          renderOrder();
+          restoreMenuVisual();
+          if (currentTable !== '🛑') applyStopList();
+        } else {
+          Object.entries(data).forEach(([key, val]) => {
+            if (key !== currentTable) orders[key] = val;
+          });
+          Object.keys(orders).forEach(key => {
+            if (key !== currentTable && !data[key]) delete orders[key];
+          });
+          if (currentTable !== '🛑') applyStopList();
+          if (!pendingSide && !sentOverlayOpen) renderOrder();
+        }
+        updateTableBadges();
+      });
+    }
+
+    // Загружаем notes из Firebase
+    db.ref('notes').once('value', snapshot => {
+      const raw = snapshot.val() || {};
+      Object.entries(raw).forEach(([key, val]) => {
+        const tableId = key === STOPLIST_KEY ? '🛑' : key;
+        notes[tableId] = val || '';
+      });
+      updateNotesVisual();
+      updateTableBadges();
+    });
+
+    db.ref('notes').on('value', snapshot => {
+      const raw = snapshot.val() || {};
+      const field = document.getElementById('notesField');
+      const notesFocused = document.activeElement === field;
+      Object.entries(raw).forEach(([key, val]) => {
+        const tableId = key === STOPLIST_KEY ? '🛑' : key;
+        if (tableId !== currentTable || !notesFocused) {
+          notes[tableId] = val || '';
+        }
+      });
+      Object.keys(notes).forEach(key => {
+        const missing = !raw[getFirebaseKey(key)];
+        if (missing && (key !== currentTable || !notesFocused)) {
+          notes[key] = '';
+        }
+      });
+      if (!notesFocused) updateNotesVisual();
+      updateTableBadges();
+    });
+
+    db.ref('sent').once('value')
+      .then(snapshot => {
+        const raw = snapshot.val() || {};
+        Object.entries(raw).forEach(([key, val]) => {
+          try {
+            const tableId = key === STOPLIST_KEY ? '🛑' : key;
+            sentQty[tableId] = typeof val === 'object' && val.json ? JSON.parse(val.json) : {};
+          } catch(e) {}
+        });
+      })
+      .catch(e => {
+        console.warn('sentQty load failed, starting with empty sentQty', e);
+        sentQty = {};
+      })
+      .finally(() => {
+        startOrdersListener();
+      });
+
+    applyLang();
+    loadWines();
+  });
+</script>
+
+</body>
+</html>
