@@ -227,6 +227,9 @@
     'Сангрия красная 1л': 'Red Sangria 1l',
     'Сангрия белая 0.5л': 'White Sangria 0.5l',
     'Сангрия белая 1л': 'White Sangria 1l',
+    'Coca-Cola Classic 330мл банка': 'Coca-Cola Classic 330 ml can',
+    'Coca-Cola Zero 330мл банка':    'Coca-Cola Zero 330 ml can',
+    'Brisa Маракуйя 330мл банка':   'Brisa Maracujá 330 ml can',
   };
 
   function displayName(name) {
@@ -492,6 +495,13 @@
       variants: [
         { ru: 'Классик',  en: 'Classic',  name: 'Лимонад классик',  price: 6 },
         { ru: 'Маракуйя', en: 'Maracuja', name: 'Лимонад маракуйя', price: 6 },
+      ]
+    },
+    'Coca-Cola': {
+      ru: 'Coca-Cola', en: 'Coca-Cola',
+      variants: [
+        { ru: 'Classic · 330 мл банка', en: 'Classic · 330 ml can', name: 'Coca-Cola Classic 330мл банка', price: 2.5 },
+        { ru: 'Zero · 330 мл банка',    en: 'Zero · 330 ml can',    name: 'Coca-Cola Zero 330мл банка',    price: 2.5 },
       ]
     },
   };
@@ -1523,6 +1533,8 @@
       seven_up:        { name: '7UP',                     nameRu: '7UP',            nameEn: '7UP',                 price: 2.5, isGroup: false, isActive: true, sortOrder: 60 },
       lipton:          { name: 'Lipton Ice Tea',          nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea',      descRu: 'манго / лимон / персик', descEn: 'mango / lemon / peach', price: 2.5, isGroup: false, isActive: true, sortOrder: 70 },
       compal:          { name: 'Сок Compal',              nameRu: 'Сок Compal',     nameEn: 'Compal juice',        price: 2.5, isGroup: false, isActive: true, sortOrder: 80 },
+      coca_cola_group: { name: 'Coca-Cola',               nameRu: 'Coca-Cola',      nameEn: 'Coca-Cola',           priceLabelRu: 'Classic / Zero · 330 мл банка', priceLabelEn: 'Classic / Zero · 330 ml can', isGroup: true, groupKey: 'Coca-Cola', isActive: true, sortOrder: 115 },
+      brisa_maracuja:  { name: 'Brisa Маракуйя 330мл банка', nameRu: 'Brisa Маракуйя', nameEn: 'Brisa Maracujá', descRu: '330 мл банка', descEn: '330 ml can', price: 2.5, isGroup: false, isActive: true, sortOrder: 116 },
     },
     coffee: {
       espresso:        { name: 'Эспрессо',         nameRu: 'Эспрессо',         nameEn: 'Espresso',        price: 1.4, isGroup: false, isActive: true, sortOrder: 10 },
@@ -1869,6 +1881,8 @@
       smoothie_group:  { name: 'Смузи',    nameRu: 'Смузи',    nameEn: 'Smoothie',  priceLabelRu: 'киви-банан / манго-банан / мультифрукт', priceLabelEn: 'kiwi-banana / mango-banana / mix fruits', isGroup: true, groupKey: 'Смузи',    isActive: true, sortOrder: 20 },
       milkshake_group: { name: 'Милкшейк', nameRu: 'Милкшейк', nameEn: 'Milkshake', priceLabelRu: 'ваниль / клубника / шоколад',           priceLabelEn: 'vanilla / strawberry / chocolate',       isGroup: true, groupKey: 'Милкшейк', isActive: true, sortOrder: 30 },
       lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40 },
+      coca_cola_group: { name: 'Coca-Cola', nameRu: 'Coca-Cola', nameEn: 'Coca-Cola', priceLabelRu: 'Classic / Zero · 330 мл банка',         priceLabelEn: 'Classic / Zero · 330 ml can',            isGroup: true, groupKey: 'Coca-Cola', isActive: true, sortOrder: 115 },
+      brisa_maracuja:  { name: 'Brisa Маракуйя 330мл банка', nameRu: 'Brisa Маракуйя', nameEn: 'Brisa Maracujá', descRu: '330 мл банка', descEn: '330 ml can', price: 2.5, isGroup: false, isActive: true, sortOrder: 116 },
     };
     db.ref('menuSections/soft/items').once('value', snap => {
       const existing = snap.val() || {};
@@ -1876,8 +1890,13 @@
       const updates = {};
       Object.entries(groupSeeds).forEach(([id, seed]) => {
         if (existing[id]) return;
-        const alreadyGrouped = Object.values(existing).some(item => item.isGroup && item.groupKey === seed.groupKey);
-        if (alreadyGrouped) return;
+        if (seed.isGroup) {
+          const alreadyGrouped = Object.values(existing).some(item => item.isGroup && item.groupKey === seed.groupKey);
+          if (alreadyGrouped) return;
+        } else {
+          const alreadyExists = Object.values(existing).some(item => item.name === seed.name);
+          if (alreadyExists) return;
+        }
         updates[id] = Object.assign({}, seed, { createdAt: now, updatedAt: now });
       });
       if (Object.keys(updates).length > 0) {
