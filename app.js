@@ -619,6 +619,39 @@
   }
 
   // =============================================
+  // QUICK NAVIGATION
+  // =============================================
+  function quickNav(target) {
+    if (target === 'water') {
+      const waterBtn = document.querySelector('[data-group="Вода"]');
+      if (waterBtn) openVarPopup('Вода', waterBtn);
+      return;
+    }
+    const map = {
+      beer:      { cat: 'drinks',    anchor: 'anchor-beer' },
+      soft:      { cat: 'drinks',    anchor: 'anchor-soft' },
+      coffee:    { cat: 'drinks',    anchor: 'anchor-coffee' },
+      wineglass: { cat: 'drinks',    anchor: 'anchor-wineglass' },
+      kombucha:  { cat: 'kombucha',  anchor: null },
+      wines:     { cat: 'wines',     anchor: null },
+      cocktails: { cat: 'cocktails', anchor: null },
+      spirits:   { cat: 'spirits',   anchor: null },
+    };
+    const cfg = map[target];
+    if (!cfg) return;
+    const section = document.querySelector('.section[data-cat="' + cfg.cat + '"]');
+    if (!section) return;
+    const header = section.querySelector('.acc-header');
+    const body = section.querySelector('.acc-body');
+    if (header && body && !body.classList.contains('open')) {
+      header.classList.add('open');
+      body.classList.add('open');
+    }
+    const el = cfg.anchor ? document.getElementById(cfg.anchor) : header;
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // =============================================
   // TABLE
   // =============================================
   function setTable(btn) {
