@@ -1509,7 +1509,7 @@
       black_coffee: { name: 'Комбуча черный кофе',        nameRu: 'Комбуча чёрный кофе',         nameEn: 'Kombucha Black Coffee',          priceLabelRu: '75 / 250 / 500 мл',   priceLabelEn: '75 / 250 / 500 ml',   isGroup: true, groupKey: 'Комбуча черный кофе',           isActive: true, sortOrder: 20 },
       beetroot:   { name: 'Комбуча Beetroot Ginger Mint', nameRu: 'Комбуча Beetroot·Ginger·Mint', nameEn: 'Kombucha Beetroot·Ginger·Mint',  priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Beetroot Ginger Mint',  isActive: true, sortOrder: 30 },
       green_tea:  { name: 'Комбуча Green Tea Grapefruit', nameRu: 'Комбуча Green Tea·Grapefruit', nameEn: 'Kombucha Green Tea·Grapefruit',  priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Green Tea Grapefruit',  isActive: true, sortOrder: 40 },
-      red_fruits: { name: 'Комбуча Red Fruits Hibiscus',  nameRu: 'Комбуча Red Fruits·Hibiscus',  nameEn: 'Комбуча Red Fruits·Hibiscus',    priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Red Fruits Hibiscus',   isActive: true, sortOrder: 50 },
+      red_fruits: { name: 'Комбуча Red Fruits Hibiscus',  nameRu: 'Комбуча Red Fruits·Hibiscus',  nameEn: 'Kombucha Red Fruits·Hibiscus',   priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Red Fruits Hibiscus',   isActive: true, sortOrder: 50 },
     },
     spirits: {
       eristoff:     { name: 'Eristoff',           nameRu: 'Eristoff',      nameEn: 'Eristoff',      descRu: 'водка',   descEn: 'vodka',    price: 5,  isGroup: false, isActive: true, sortOrder: 10  },
