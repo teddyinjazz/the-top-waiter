@@ -1368,20 +1368,102 @@
   }
 
   // =============================================
-  // EDITABLE MENU SECTIONS (beer / wineglass / soft / coffee)
+  // EDITABLE MENU SECTIONS
   // =============================================
-  const EDITABLE_SECTION_KEYS = ['beer', 'wineglass', 'soft', 'coffee'];
+  const EDITABLE_SECTION_KEYS = [
+    'starters', 'soups', 'salads', 'burgers', 'pasta', 'mains', 'desserts',
+    'beer', 'wineglass', 'soft', 'coffee',
+    'kombucha', 'spirits', 'cocktails',
+  ];
 
   const EDITABLE_SECTION_TITLES_RU = {
+    starters: 'ЗАКУСКИ — ADMIN', soups: 'СУПЫ — ADMIN', salads: 'САЛАТЫ — ADMIN',
+    burgers: 'БУРГЕРЫ — ADMIN', pasta: 'ПАСТА — ADMIN', mains: 'ОСНОВНОЕ — ADMIN',
+    desserts: 'ДЕСЕРТЫ — ADMIN',
     beer: 'ПИВО — ADMIN', wineglass: 'ВИНО БОКАЛ — ADMIN',
     soft: 'БЕЗАЛКОГОЛЬНЫЕ — ADMIN', coffee: 'КОФЕ — ADMIN',
+    kombucha: 'КОМБУЧА — ADMIN', spirits: 'АЛКОГОЛЬ — ADMIN', cocktails: 'КОКТЕЙЛИ — ADMIN',
   };
   const EDITABLE_SECTION_TITLES_EN = {
+    starters: 'STARTERS — ADMIN', soups: 'SOUPS — ADMIN', salads: 'SALADS — ADMIN',
+    burgers: 'BURGERS — ADMIN', pasta: 'PASTA — ADMIN', mains: 'MAINS — ADMIN',
+    desserts: 'DESSERTS — ADMIN',
     beer: 'BEER — ADMIN', wineglass: 'WINE BY GLASS — ADMIN',
     soft: 'SOFT DRINKS — ADMIN', coffee: 'COFFEE — ADMIN',
+    kombucha: 'KOMBUCHA — ADMIN', spirits: 'SPIRITS — ADMIN', cocktails: 'COCKTAILS — ADMIN',
   };
 
   const SECTION_SEEDS = {
+    starters: {
+      bruschetta_shrimp: { name: 'Брускетта с креветками', nameRu: 'Брускетта',        nameEn: 'Bruschetta',        descRu: 'cream cheese & креветки',       descEn: 'cream cheese & shrimps',         price: 7,  isGroup: false, isActive: true, sortOrder: 10  },
+      bruschetta_tomato: { name: 'Брускетта томаты',       nameRu: 'Брускетта 🌿',      nameEn: 'Bruschetta 🌿',      descRu: 'вяленые томаты',                descEn: 'sun dried tomatoes',              price: 6,  isGroup: false, isActive: true, sortOrder: 20  },
+      crepe_salmon:      { name: 'Блин с лососем',         nameRu: 'Блин лосось',       nameEn: 'Crepe salmon',      descRu: 'лосось, cream cheese',          descEn: 'salmon, cream cheese',            price: 7,  isGroup: false, isActive: true, sortOrder: 30  },
+      crepe_beef:        { name: 'Блин с говядиной',       nameRu: 'Блин говядина',     nameEn: 'Crepe beef',        descRu: 'говядина, грибы',               descEn: 'beef & mushrooms',                price: 7,  isGroup: false, isActive: true, sortOrder: 40  },
+      red_caviar:        { name: 'Икра красная',           nameRu: 'Икра красная',      nameEn: 'Red caviar',        priceLabelRu: '50 / 100 г',              priceLabelEn: '50 / 100 g',                isGroup: true, groupKey: 'Икра красная',  isActive: true, sortOrder: 50  },
+      camembert:         { name: 'Камамбер запечённый',    nameRu: 'Камамбер 🌿',       nameEn: 'Baked camembert 🌿', price: 14, isGroup: false, isActive: true, sortOrder: 60  },
+      cheese_plate:      { name: 'Сырная тарелка',         nameRu: 'Сырная тарелка 🌿', nameEn: 'Cheese plate 🌿',    descRu: 'бри, пармезан, горгонзола',     descEn: 'brie, parmesan, gorgonzola',      price: 14, isGroup: false, isActive: true, sortOrder: 70  },
+      seafood_platter:   { name: 'Морепродукты плато',     nameRu: 'Плато море',        nameEn: 'Seafood platter',   descRu: 'креветки, осьминог, кальмар',   descEn: 'shrimps, octopus, calamari',      price: 32, isGroup: false, isActive: true, sortOrder: 80  },
+      shrimp_pesto:      { name: 'Креветки в песто',       nameRu: 'Креветки песто',    nameEn: 'Shrimps pesto',     descRu: 'вино, соус песто',              descEn: 'wine, pesto sauce',               price: 13, isGroup: false, isActive: true, sortOrder: 90  },
+      mussels:           { name: 'Мидии',                  nameRu: 'Мидии',             nameEn: 'Mussels',           price: 13, isGroup: false, isActive: true, sortOrder: 100 },
+      bread_bowl:        { name: 'Хлебная корзина',        nameRu: 'Хлебная корзина',   nameEn: 'Bread bowl',        descRu: 'боло, ржаной, чиабатта',        descEn: 'bolo do caco, rye, ciabatta',     price: 5,  isGroup: false, isActive: true, sortOrder: 110 },
+      garlic_bread:      { name: 'Чесночный хлеб',         nameRu: 'Чесночный хлеб',   nameEn: 'Garlic bread',      price: 5,  isGroup: false, isActive: true, sortOrder: 120 },
+    },
+    soups: {
+      chicken_soup:   { name: 'Куриный суп',  nameRu: 'Куриный суп',       nameEn: 'Chicken soup',        priceLabelRu: 'чашка / тарелка', priceLabelEn: 'cup / bowl', isGroup: true, groupKey: 'Куриный суп',  isActive: true, sortOrder: 10 },
+      mushroom_cream: { name: 'Грибной крем', nameRu: 'Грибной крем 🌿',   nameEn: 'Mushroom cream 🌿',   descRu: 'трюфель', descEn: 'truffle', priceLabelRu: 'чашка / тарелка', priceLabelEn: 'cup / bowl', isGroup: true, groupKey: 'Грибной крем', isActive: true, sortOrder: 20 },
+      borscht:        { name: 'Борщ',         nameRu: 'Борщ',              nameEn: 'Borscht',             descRu: 'говядина, свёкла, ржаной', descEn: 'beef, beetroot, rye bread', price: 11, isGroup: false, isActive: true, sortOrder: 30 },
+    },
+    salads: {
+      caesar:        { name: 'Цезарь',              nameRu: 'Цезарь 🌿',        nameEn: 'Caesar 🌿',        price: 10, isGroup: false, isActive: true, sortOrder: 10 },
+      caesar_chicken: { name: 'Цезарь с курицей',   nameRu: 'Цезарь + курица',  nameEn: 'Caesar + chicken', price: 12, isGroup: false, isActive: true, sortOrder: 20 },
+      caesar_shrimp:  { name: 'Цезарь с креветками', nameRu: 'Цезарь + креветки', nameEn: 'Caesar + shrimps', price: 14, isGroup: false, isActive: true, sortOrder: 30 },
+      tuna_salad:    { name: 'Салат с тунцом',       nameRu: 'Тунец кунжут',     nameEn: 'Sesame tuna',      descRu: 'томаты, кисло-сладкий', descEn: 'tomatoes, sweet & sour', price: 16, isGroup: false, isActive: true, sortOrder: 40 },
+      top_salad:     { name: 'The TOP салат',         nameRu: 'The TOP',          nameEn: 'The TOP',          descRu: 'креветки, манго, бри',  descEn: 'shrimps, mango, brie',   price: 16, isGroup: false, isActive: true, sortOrder: 50 },
+      roast_beef:    { name: 'Ростбиф с горчицей',   nameRu: 'Ростбиф',          nameEn: 'Roast beef salad', descRu: 'горчичный дрессинг',    descEn: 'honey mustard dressing', price: 17, isGroup: false, isActive: true, sortOrder: 60 },
+    },
+    burgers: {
+      classic_burger:     { name: 'Классический бургер', nameRu: 'Классический',   nameEn: 'Classic',            price: 14, isGroup: false, isActive: true, sortOrder: 10 },
+      double_burger:      { name: 'Двойной бургер',      nameRu: 'Двойной',        nameEn: 'Double',             price: 18, isGroup: false, isActive: true, sortOrder: 20 },
+      cheese_burger:      { name: 'Чизбургер',           nameRu: 'Чизбургер',      nameEn: 'Cheeseburger',       price: 15, isGroup: false, isActive: true, sortOrder: 30 },
+      double_cheese:      { name: 'Двойной чизбургер',   nameRu: 'Двойной чиз',   nameEn: 'Double cheese',      price: 19, isGroup: false, isActive: true, sortOrder: 40 },
+      blue_cheese:        { name: 'Блю-чиз бургер',      nameRu: 'Блю-чиз',       nameEn: 'Blue cheese',        price: 16, isGroup: false, isActive: true, sortOrder: 50 },
+      double_blue_cheese: { name: 'Двойной блю-чиз',     nameRu: 'Двойной блю-чиз', nameEn: 'Double blue cheese', price: 20, isGroup: false, isActive: true, sortOrder: 60 },
+      chicken_burger:     { name: 'Куриный бургер',      nameRu: 'Куриный',        nameEn: 'Chicken burger',     price: 13, isGroup: false, isActive: true, sortOrder: 70 },
+      veggie_burger:      { name: 'Вегги-бургер',        nameRu: 'Вегги 🌿',       nameEn: 'Veggie 🌿',          price: 14, isGroup: false, isActive: true, sortOrder: 80 },
+    },
+    pasta: {
+      seafood_pasta:    { name: 'Паста с морепродуктами', nameRu: 'Морепродукты',     nameEn: 'Seafood pasta',     descRu: 'креветки, кальмар, мидии', descEn: 'shrimps, calamari, mussels', price: 18, isGroup: false, isActive: true, sortOrder: 10 },
+      carbonara:        { name: 'Карбонара',              nameRu: 'Карбонара',        nameEn: 'Carbonara',         descRu: 'панчетта, бекон',          descEn: 'pancetta, bacon',            price: 18, isGroup: false, isActive: true, sortOrder: 20 },
+      mushroom_risotto: { name: 'Ризотто с грибами',      nameRu: 'Ризотто грибы 🌿', nameEn: 'Mushroom risotto 🌿', price: 15, isGroup: false, isActive: true, sortOrder: 30 },
+      shrimp_risotto:   { name: 'Ризотто с креветками',   nameRu: 'Ризотто креветки', nameEn: 'Shrimp risotto',    price: 18, isGroup: false, isActive: true, sortOrder: 40 },
+    },
+    mains: {
+      befstroganov:  { name: 'Бефстроганов',     nameRu: 'Бефстроганов',  nameEn: 'Beef Stroganoff',           descRu: 'Black Angus, грибы',            descEn: 'Black Angus, mushrooms',         price: 18, needsSide: true, isGroup: false, isActive: true, sortOrder: 10  },
+      espada:        { name: 'Эспада',           nameRu: 'Эспада',        nameEn: 'Espada',                    descRu: 'маракуйя, банан',               descEn: 'maracuja sauce & banana',        price: 18, needsSide: true, isGroup: false, isActive: true, sortOrder: 20  },
+      salmon:        { name: 'Лосось в сливках', nameRu: 'Лосось',        nameEn: 'Salmon',                    descRu: 'белое вино, сливки',            descEn: 'white wine cream sauce',         price: 25, needsSide: true, isGroup: false, isActive: true, sortOrder: 30  },
+      tuna_steak:    { name: 'Стейк тунца',      nameRu: 'Тунец стейк',   nameEn: 'Tuna steak',                descRu: 'кунжут, терияки',               descEn: 'sesame, teriyaki',               price: 0,  priceLabelRu: 'цена дня', priceLabelEn: 'day price', needsSide: true, isGroup: false, isActive: true, sortOrder: 40  },
+      duck:          { name: 'Утиная грудка',    nameRu: 'Утка',          nameEn: 'Duck breast',               descRu: 'портвейно-ягодный соус',        descEn: 'porto berries sauce',            price: 25, needsSide: true, isGroup: false, isActive: true, sortOrder: 50  },
+      octopus:       { name: 'Осьминог малиновый', nameRu: 'Осьминог',    nameEn: 'Octopus',                   descRu: 'малиново-бальзамический',       descEn: 'raspberry balsamic glaze',       price: 26, needsSide: true, isGroup: false, isActive: true, sortOrder: 60  },
+      chicken_kyiv:  { name: 'Котлета по-киевски', nameRu: 'Котлета Киев', nameEn: 'Chicken Kyiv',             descRu: 'зелень, чесночное масло',       descEn: 'herbs, garlic butter',           price: 24, needsSide: true, isGroup: false, isActive: true, sortOrder: 70  },
+      ribeye:        { name: 'Рибай 350г',        nameRu: 'Рибай 350г',   nameEn: 'Ribeye 350g',               descRu: 'перечный соус',                 descEn: 'pepper cream sauce',             price: 28, needsSide: true, isGroup: false, isActive: true, sortOrder: 80  },
+      rice_side:     { name: 'Рис',               nameRu: 'Рис',           nameEn: 'Rice',           price: 3, isGroup: false, isActive: true, sortOrder: 90  },
+      vegetables_side: { name: 'Овощи',           nameRu: 'Овощи',         nameEn: 'Vegetables',     price: 3, isGroup: false, isActive: true, sortOrder: 100 },
+      spaghetti_side: { name: 'Спагетти',         nameRu: 'Спагетти',      nameEn: 'Spaghetti',      price: 3, isGroup: false, isActive: true, sortOrder: 110 },
+      salad_side:    { name: 'Салат гарнир',       nameRu: 'Салат',         nameEn: 'Salad',          price: 3, isGroup: false, isActive: true, sortOrder: 120 },
+      asparagus_side: { name: 'Спаржа',           nameRu: 'Спаржа',        nameEn: 'Asparagus',      price: 4, isGroup: false, isActive: true, sortOrder: 130 },
+      mashed_potato: { name: 'Пюре',              nameRu: 'Пюре',          nameEn: 'Mashed potato',  price: 4, isGroup: false, isActive: true, sortOrder: 140 },
+      roast_potato:  { name: 'Жареный картофель',  nameRu: 'Жар. картофель', nameEn: 'Roast potato', price: 4, isGroup: false, isActive: true, sortOrder: 150 },
+      fries:         { name: 'Картофель фри',      nameRu: 'Картофель фри', nameEn: 'French fries',   price: 3, isGroup: false, isActive: true, sortOrder: 160 },
+    },
+    desserts: {
+      the_top_dessert: { name: 'The TOP десерт',   nameRu: 'The TOP',           nameEn: 'The TOP',                   descRu: 'меренговый рулет',         descEn: 'raspberry & pistachio meringue roll', price: 8,  isGroup: false, isActive: true, sortOrder: 10 },
+      napoleon:        { name: 'Наполеон',          nameRu: 'Наполеон',          nameEn: 'Napoleon',                  descRu: 'слоёный, ванильный крем',  descEn: 'layered pastry, vanilla custard cream', price: 10, isGroup: false, isActive: true, sortOrder: 20 },
+      medovik:         { name: 'Медовик',           nameRu: 'Медовик',           nameEn: 'Honey Cake (Medovik)',       price: 8,  isGroup: false, isActive: true, sortOrder: 30 },
+      crepes_ice:      { name: 'Блины с мороженым', nameRu: 'Блины + мороженое', nameEn: 'Crepes + ice cream',         price: 6,  isGroup: false, isActive: true, sortOrder: 40 },
+      strudel:         { name: 'Яблочный штрудель', nameRu: 'Штрудель',          nameEn: 'Apple strudel',             price: 7,  isGroup: false, isActive: true, sortOrder: 50 },
+      syrniki:         { name: 'Сырники',           nameRu: 'Сырники',           nameEn: 'Syrniki',                   descRu: 'творожные', descEn: 'cottage cheese', priceLabelRu: '2 / 4 шт', priceLabelEn: '2 / 4 pcs', isGroup: true, groupKey: 'Сырники', isActive: true, sortOrder: 60 },
+      ice_cream:       { name: 'Мороженое',         nameRu: 'Мороженое',         nameEn: 'Ice cream',                 descRu: 'ваниль, шоколад, клубника', descEn: 'vanilla, chocolate, strawberry', price: 5, isGroup: false, isActive: true, sortOrder: 70 },
+    },
     beer: {
       coral_light:      { name: 'Coral Light',      nameRu: 'Coral Light',      nameEn: 'Coral Light',      priceLabelRu: '200 / 300 / 500 мл', priceLabelEn: '200 / 300 / 500 ml', isGroup: true,  groupKey: 'Coral Light', isActive: true, sortOrder: 10 },
       coral_dark:       { name: 'Coral Dark',        nameRu: 'Coral Dark',       nameEn: 'Coral Dark',       priceLabelRu: '200 / 300 / 500 мл', priceLabelEn: '200 / 300 / 500 ml', isGroup: true,  groupKey: 'Coral Dark',  isActive: true, sortOrder: 20 },
@@ -1422,9 +1504,61 @@
       cappuccino:      { name: 'Капучино',         nameRu: 'Капучино',         nameEn: 'Cappuccino',      price: 4,   isGroup: false, isActive: true, sortOrder: 50 },
       latte:           { name: 'Латте',            nameRu: 'Латте',            nameEn: 'Latte',           price: 4,   isGroup: false, isActive: true, sortOrder: 60 },
     },
+    kombucha: {
+      black_tea:  { name: 'Комбуча черный чай',           nameRu: 'Комбуча чёрный чай',          nameEn: 'Kombucha Black Tea',             priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча черный чай',           isActive: true, sortOrder: 10 },
+      black_coffee: { name: 'Комбуча черный кофе',        nameRu: 'Комбуча чёрный кофе',         nameEn: 'Kombucha Black Coffee',          priceLabelRu: '75 / 250 / 500 мл',   priceLabelEn: '75 / 250 / 500 ml',   isGroup: true, groupKey: 'Комбуча черный кофе',           isActive: true, sortOrder: 20 },
+      beetroot:   { name: 'Комбуча Beetroot Ginger Mint', nameRu: 'Комбуча Beetroot·Ginger·Mint', nameEn: 'Kombucha Beetroot·Ginger·Mint',  priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Beetroot Ginger Mint',  isActive: true, sortOrder: 30 },
+      green_tea:  { name: 'Комбуча Green Tea Grapefruit', nameRu: 'Комбуча Green Tea·Grapefruit', nameEn: 'Kombucha Green Tea·Grapefruit',  priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Green Tea Grapefruit',  isActive: true, sortOrder: 40 },
+      red_fruits: { name: 'Комбуча Red Fruits Hibiscus',  nameRu: 'Комбуча Red Fruits·Hibiscus',  nameEn: 'Комбуча Red Fruits·Hibiscus',    priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча Red Fruits Hibiscus',   isActive: true, sortOrder: 50 },
+    },
+    spirits: {
+      eristoff:     { name: 'Eristoff',           nameRu: 'Eristoff',      nameEn: 'Eristoff',      descRu: 'водка',   descEn: 'vodka',    price: 5,  isGroup: false, isActive: true, sortOrder: 10  },
+      absolut:      { name: 'Absolut',            nameRu: 'Absolut',       nameEn: 'Absolut',       descRu: 'водка',   descEn: 'vodka',    price: 6,  isGroup: false, isActive: true, sortOrder: 20  },
+      tanqueray:    { name: 'Tanqueray',          nameRu: 'Tanqueray',     nameEn: 'Tanqueray',     descRu: 'джин',    descEn: 'gin',      price: 6,  isGroup: false, isActive: true, sortOrder: 30  },
+      bacardi:      { name: 'Bacardi',            nameRu: 'Bacardi',       nameEn: 'Bacardi',       descRu: 'ром',     descEn: 'rum',      price: 6,  isGroup: false, isActive: true, sortOrder: 40  },
+      jose_cuervo:  { name: 'Jose Cuervo',        nameRu: 'Jose Cuervo',   nameEn: 'Jose Cuervo',   descRu: 'текила',  descEn: 'tequila',  price: 6,  isGroup: false, isActive: true, sortOrder: 50  },
+      jameson:      { name: 'Jameson',            nameRu: 'Jameson',       nameEn: 'Jameson',       descRu: 'виски',   descEn: 'whiskey',  price: 7,  isGroup: false, isActive: true, sortOrder: 60  },
+      jack_daniels: { name: 'Jack Daniels',       nameRu: 'Jack Daniels',  nameEn: 'Jack Daniels',  descRu: 'виски',   descEn: 'whiskey',  price: 7,  isGroup: false, isActive: true, sortOrder: 70  },
+      dewars:       { name: 'Dewars',             nameRu: 'Dewars',        nameEn: 'Dewars',        descRu: 'виски',   descEn: 'whiskey',  price: 6,  isGroup: false, isActive: true, sortOrder: 80  },
+      chivas_royal: { name: 'Chivas Royal Salute', nameRu: 'Chivas Royal', nameEn: 'Chivas Royal',  descRu: 'виски',   descEn: 'whiskey',  price: 30, isGroup: false, isActive: true, sortOrder: 90  },
+      blue_label:   { name: 'Blue Label',         nameRu: 'Blue Label',    nameEn: 'Blue Label',    descRu: 'виски',   descEn: 'whiskey',  price: 60, isGroup: false, isActive: true, sortOrder: 100 },
+      hennessy:     { name: 'Hennessy',           nameRu: 'Hennessy',      nameEn: 'Hennessy',      descRu: 'коньяк',  descEn: 'cognac',   price: 10, isGroup: false, isActive: true, sortOrder: 110 },
+      jagermeister: { name: 'Jagermeister',       nameRu: 'Jagermeister',  nameEn: 'Jagermeister',  price: 5,  isGroup: false, isActive: true, sortOrder: 120 },
+      fernet:       { name: 'Fernet',             nameRu: 'Fernet',        nameEn: 'Fernet',        price: 4,  isGroup: false, isActive: true, sortOrder: 130 },
+      campari:      { name: 'Campari',            nameRu: 'Campari',       nameEn: 'Campari',       price: 4,  isGroup: false, isActive: true, sortOrder: 140 },
+      baileys:      { name: 'Baileys',            nameRu: 'Baileys',       nameEn: 'Baileys',       price: 4,  isGroup: false, isActive: true, sortOrder: 150 },
+      kahlua:       { name: 'Kahlua',             nameRu: 'Kahlua',        nameEn: 'Kahlua',        price: 4,  isGroup: false, isActive: true, sortOrder: 160 },
+      aperol:       { name: 'Aperol',             nameRu: 'Aperol',        nameEn: 'Aperol',        price: 4,  isGroup: false, isActive: true, sortOrder: 170 },
+      disaronno:    { name: 'Disaronno',          nameRu: 'Disaronno',     nameEn: 'Disaronno',     price: 4,  isGroup: false, isActive: true, sortOrder: 180 },
+    },
+    cocktails: {
+      aperol_spritz:        { name: 'Aperol Spritz',        nameRu: 'Aperol Spritz',        nameEn: 'Aperol Spritz',        descRu: 'Aperol, Sparkling Wine, Soda',                      descEn: 'Aperol, Sparkling Wine, Soda',                      price: 8,  isGroup: false, isActive: true, sortOrder: 10  },
+      hugo_spritz:          { name: 'Hugo Spritz',          nameRu: 'Hugo Spritz',          nameEn: 'Hugo Spritz',          descRu: 'St.Germain, Prosecco, Soda Water',                  descEn: 'St.Germain, Prosecco, Soda Water',                  price: 8,  isGroup: false, isActive: true, sortOrder: 20  },
+      french_75:            { name: 'French 75',            nameRu: 'French 75',            nameEn: 'French 75',            descRu: 'Gin, Lemon, Simple Syrup, Prosecco',                descEn: 'Gin, Lemon, Simple Syrup, Prosecco',                price: 8,  isGroup: false, isActive: true, sortOrder: 30  },
+      old_fashioned:        { name: 'Old Fashioned',        nameRu: 'Old Fashioned',        nameEn: 'Old Fashioned',        descRu: 'Jack Daniels, Angostura, Simple Syrup',             descEn: 'Jack Daniels, Angostura, Simple Syrup',             price: 8,  isGroup: false, isActive: true, sortOrder: 40  },
+      caipirinha:           { name: 'Caipirinha',           nameRu: 'Caipirinha',           nameEn: 'Caipirinha',           descRu: 'Cachaca, Brown Sugar, Lime',                        descEn: 'Cachaca, Brown Sugar, Lime',                        price: 8,  isGroup: false, isActive: true, sortOrder: 50  },
+      penicillin:           { name: 'Penicillin',           nameRu: 'Penicillin',           nameEn: 'Penicillin',           descRu: 'Scotch Whiskey, Honey, Ginger, Lemon',              descEn: 'Scotch Whiskey, Honey, Ginger, Lemon',              price: 9,  isGroup: false, isActive: true, sortOrder: 60  },
+      passion_long:         { name: 'Passion Long',         nameRu: 'Passion Long',         nameEn: 'Passion Long',         descRu: 'Vodka, Passion Syrup, Passion Puree, Peach Juice',  descEn: 'Vodka, Passion Syrup, Passion Puree, Peach Juice',  price: 9,  isGroup: false, isActive: true, sortOrder: 70  },
+      amaretto_sour:        { name: 'Amaretto Sour',        nameRu: 'Amaretto Sour',        nameEn: 'Amaretto Sour',        descRu: 'Jack Daniels, Amaretto, Lemon, Egg White',          descEn: 'Jack Daniels, Amaretto, Lemon, Egg White',          price: 9,  isGroup: false, isActive: true, sortOrder: 80  },
+      espresso_martini:     { name: 'Espresso Martini',     nameRu: 'Espresso Martini',     nameEn: 'Espresso Martini',     descRu: 'Vanilla Vodka, Kahlua, Double Espresso',            descEn: 'Vanilla Vodka, Kahlua, Double Espresso',            price: 9,  isGroup: false, isActive: true, sortOrder: 90  },
+      basil_smash:          { name: 'Basil Smash',          nameRu: 'Basil Smash',          nameEn: 'Basil Smash',          descRu: 'Gin, Lemon, Brown Sugar, St.Germain, Soda',         descEn: 'Gin, Lemon, Brown Sugar, St.Germain, Soda',         price: 9,  isGroup: false, isActive: true, sortOrder: 100 },
+      ginger_mule:          { name: 'Ginger Mule',          nameRu: 'Ginger Mule',          nameEn: 'Ginger Mule',          descRu: 'Vodka, Ginger Syrup, Ginger Ale, Lemon',            descEn: 'Vodka, Ginger Syrup, Ginger Ale, Lemon',            price: 9,  isGroup: false, isActive: true, sortOrder: 110 },
+      melon_fizz:           { name: 'Melon Fizz',           nameRu: 'Melon Fizz',           nameEn: 'Melon Fizz',           descRu: 'Rum, Midori, Lemon Juice, Pineapple Juice',         descEn: 'Rum, Midori, Lemon Juice, Pineapple Juice',         price: 9,  isGroup: false, isActive: true, sortOrder: 120 },
+      lynchburg:            { name: 'Lynchburg Lemonade',   nameRu: 'Lynchburg Lemonade',   nameEn: 'Lynchburg Lemonade',   descRu: 'Jack Daniels, Triple Sec, Peach Liqueur, Soda',     descEn: 'Jack Daniels, Triple Sec, Peach Liqueur, Soda',     price: 9,  isGroup: false, isActive: true, sortOrder: 130 },
+      cream_gin_fizz:       { name: 'Cream Gin Fizz',       nameRu: 'Cream Gin Fizz',       nameEn: 'Cream Gin Fizz',       descRu: 'Gin, Cream, Vanilla Syrup, Lemon',                  descEn: 'Gin, Cream, Vanilla Syrup, Lemon',                  price: 9,  isGroup: false, isActive: true, sortOrder: 140 },
+      strawberry_margarita: { name: 'Strawberry Margarita', nameRu: 'Strawberry Margarita', nameEn: 'Strawberry Margarita', descRu: 'Tequila, Triple Sec, Strawberry, Lime',             descEn: 'Tequila, Triple Sec, Strawberry, Lime',             price: 10, isGroup: false, isActive: true, sortOrder: 150 },
+      singapore_sling:      { name: 'Singapur Sling',       nameRu: 'Singapur Sling',       nameEn: 'Singapore Sling',      descRu: 'Gin, Triple Sec, Lemon, Pineapple, Cherry Brandy',  descEn: 'Gin, Triple Sec, Lemon, Pineapple, Cherry Brandy',  price: 10, isGroup: false, isActive: true, sortOrder: 160 },
+      mango_caipirinha:     { name: 'Mango Caipirinha',     nameRu: 'Mango Caipirinha',     nameEn: 'Mango Caipirinha',     descRu: 'Fresh Mango, Cachaca, Brown Sugar, Lime',           descEn: 'Fresh Mango, Cachaca, Brown Sugar, Lime',           price: 10, isGroup: false, isActive: true, sortOrder: 170 },
+      porn_star:            { name: 'Porn Star',            nameRu: 'Porn Star',            nameEn: 'Porn Star',            price: 10, isGroup: false, isActive: true, sortOrder: 180 },
+      sangria:              { name: 'Сангрия',              nameRu: 'Сангрия',              nameEn: 'Sangria',              priceLabelRu: '0.5 / 1 л', priceLabelEn: '0.5 / 1 l', isGroup: true, groupKey: 'Сангрия', isActive: true, sortOrder: 190 },
+    },
   };
 
-  let editableSections = { beer: {}, wineglass: {}, soft: {}, coffee: {} };
+  let editableSections = {
+    starters: {}, soups: {}, salads: {}, burgers: {}, pasta: {}, mains: {}, desserts: {},
+    beer: {}, wineglass: {}, soft: {}, coffee: {},
+    kombucha: {}, spirits: {}, cocktails: {},
+  };
   let currentMenuItemAdminSection = null;
   let currentMenuItemAdminId = null;
 
@@ -1602,6 +1736,8 @@
     document.getElementById('miaPrice').value        = item.price !== undefined ? item.price : '';
     document.getElementById('miaPriceLabelRu').value = item.priceLabelRu || '';
     document.getElementById('miaPriceLabelEn').value = item.priceLabelEn || '';
+    document.getElementById('miaNeedsSide').checked  = !!item.needsSide;
+    document.getElementById('miaSideType').value     = item.sideType || '';
     document.getElementById('miaIsGroup').checked    = !!item.isGroup;
     document.getElementById('miaGroupKey').value     = item.groupKey || '';
     document.getElementById('miaSortOrder').value    = item.sortOrder !== undefined ? item.sortOrder : '';
@@ -1613,10 +1749,11 @@
   function menuItemAdminNew() {
     currentMenuItemAdminId = null;
     ['miaName','miaNameRu','miaNameEn','miaDescRu','miaDescEn','miaPrice',
-     'miaPriceLabelRu','miaPriceLabelEn','miaGroupKey','miaSortOrder'].forEach(elId => {
+     'miaPriceLabelRu','miaPriceLabelEn','miaSideType','miaGroupKey','miaSortOrder'].forEach(elId => {
       const el = document.getElementById(elId);
       if (el) el.value = '';
     });
+    document.getElementById('miaNeedsSide').checked = false;
     document.getElementById('miaIsGroup').checked = false;
     document.getElementById('miaActive').checked  = true;
     document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
@@ -1641,6 +1778,8 @@
       sortOrder = parseInt(sortStr, 10) || 0;
     }
     const now = Date.now();
+    const needsSide = document.getElementById('miaNeedsSide').checked;
+    const sideType  = (document.getElementById('miaSideType').value || '').trim();
     const data = {
       name,
       nameRu:       (document.getElementById('miaNameRu').value       || '').trim() || name,
@@ -1649,6 +1788,8 @@
       descEn:       (document.getElementById('miaDescEn').value       || '').trim(),
       priceLabelRu: (document.getElementById('miaPriceLabelRu').value || '').trim(),
       priceLabelEn: (document.getElementById('miaPriceLabelEn').value || '').trim(),
+      needsSide,
+      sideType,
       isGroup,
       groupKey: isGroup ? groupKey : '',
       isActive: document.getElementById('miaActive').checked,
