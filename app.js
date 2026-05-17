@@ -45,6 +45,7 @@
     applyLang();
     renderOrder();
     renderWines(cachedWines);
+    EDITABLE_SECTION_KEYS.forEach(key => renderEditableSection(key));
   }
 
 
@@ -614,39 +615,6 @@
       body.classList.add('open');
       section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }
-
-  // =============================================
-  // QUICK NAVIGATION
-  // =============================================
-  function quickNav(target) {
-    if (target === 'water') {
-      const waterBtn = document.querySelector('[data-group="Вода"]');
-      if (waterBtn) openVarPopup('Вода', waterBtn);
-      return;
-    }
-    const map = {
-      beer:      { cat: 'drinks',    anchor: 'anchor-beer' },
-      soft:      { cat: 'drinks',    anchor: 'anchor-soft' },
-      coffee:    { cat: 'drinks',    anchor: 'anchor-coffee' },
-      wineglass: { cat: 'drinks',    anchor: 'anchor-wineglass' },
-      kombucha:  { cat: 'kombucha',  anchor: null },
-      wines:     { cat: 'wines',     anchor: null },
-      cocktails: { cat: 'cocktails', anchor: null },
-      spirits:   { cat: 'spirits',   anchor: null },
-    };
-    const cfg = map[target];
-    if (!cfg) return;
-    const section = document.querySelector('.section[data-cat="' + cfg.cat + '"]');
-    if (!section) return;
-    const header = section.querySelector('.acc-header');
-    const body = section.querySelector('.acc-body');
-    if (header && body && !body.classList.contains('open')) {
-      header.classList.add('open');
-      body.classList.add('open');
-    }
-    const el = cfg.anchor ? document.getElementById(cfg.anchor) : header;
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // =============================================
@@ -1400,6 +1368,315 @@
   }
 
   // =============================================
+  // EDITABLE MENU SECTIONS (beer / wineglass / soft / coffee)
+  // =============================================
+  const EDITABLE_SECTION_KEYS = ['beer', 'wineglass', 'soft', 'coffee'];
+
+  const EDITABLE_SECTION_TITLES_RU = {
+    beer: 'ПИВО — ADMIN', wineglass: 'ВИНО БОКАЛ — ADMIN',
+    soft: 'БЕЗАЛКОГОЛЬНЫЕ — ADMIN', coffee: 'КОФЕ — ADMIN',
+  };
+  const EDITABLE_SECTION_TITLES_EN = {
+    beer: 'BEER — ADMIN', wineglass: 'WINE BY GLASS — ADMIN',
+    soft: 'SOFT DRINKS — ADMIN', coffee: 'COFFEE — ADMIN',
+  };
+
+  const SECTION_SEEDS = {
+    beer: {
+      coral_light:      { name: 'Coral Light',      nameRu: 'Coral Light',      nameEn: 'Coral Light',      priceLabelRu: '200 / 300 / 500 мл', priceLabelEn: '200 / 300 / 500 ml', isGroup: true,  groupKey: 'Coral Light', isActive: true, sortOrder: 10 },
+      coral_dark:       { name: 'Coral Dark',        nameRu: 'Coral Dark',       nameEn: 'Coral Dark',       priceLabelRu: '200 / 300 / 500 мл', priceLabelEn: '200 / 300 / 500 ml', isGroup: true,  groupKey: 'Coral Dark',  isActive: true, sortOrder: 20 },
+      shandy:           { name: 'Shandy',            nameRu: 'Shandy',           nameEn: 'Shandy',           descRu: 'пиво + лимонад', descEn: 'beer + lemonade', price: 3,   isGroup: false, isActive: true, sortOrder: 30 },
+      coral_non_alco:   { name: 'Coral Non Alco',    nameRu: 'Coral Non Alco',   nameEn: 'Coral Non Alco',   price: 2.5, isGroup: false, isActive: true, sortOrder: 40 },
+      coral_puro_malta: { name: 'Coral Puro Malta',  nameRu: 'Coral Puro Malta', nameEn: 'Coral Puro Malta', price: 2.5, isGroup: false, isActive: true, sortOrder: 50 },
+      coral_sidra:      { name: 'Coral Sidra',       nameRu: 'Coral Sidra',      nameEn: 'Coral Sidra',      price: 3,   isGroup: false, isActive: true, sortOrder: 60 },
+    },
+    wineglass: {
+      white_wine:   { name: 'Белое вино',   nameRu: 'Белое',        nameEn: 'White',        price: 4, isGroup: false, isActive: true, sortOrder: 10 },
+      rose_wine:    { name: 'Розовое вино', nameRu: 'Розовое',      nameEn: 'Rosé',         price: 4, isGroup: false, isActive: true, sortOrder: 20 },
+      green_wine:   { name: 'Зелёное вино', nameRu: 'Зелёное',      nameEn: 'Green',        price: 4, isGroup: false, isActive: true, sortOrder: 30 },
+      red_wine:     { name: 'Красное вино', nameRu: 'Красное',      nameEn: 'Red',          price: 4, isGroup: false, isActive: true, sortOrder: 40 },
+      platino_brut: { name: 'Platino Brut', nameRu: 'Platino Brut', nameEn: 'Platino Brut', price: 5, isGroup: false, isActive: true, sortOrder: 50 },
+      prosecco:     { name: 'Prosecco',     nameRu: 'Prosecco',     nameEn: 'Prosecco',     price: 7, isGroup: false, isActive: true, sortOrder: 60 },
+    },
+    soft: {
+      fresh_orange:          { name: 'Апельсиновый сок свежий', nameRu: 'Апельс. сок',       nameEn: 'Fresh orange juice',    price: 6,   isGroup: false, isActive: true, sortOrder: 10  },
+      smoothie_kiwi_banana:  { name: 'Смузи киви-банан',        nameRu: 'Смузи киви-банан',  nameEn: 'Smoothie kiwi-banana',  price: 6,   isGroup: false, isActive: true, sortOrder: 20  },
+      smoothie_mango_banana: { name: 'Смузи манго-банан',       nameRu: 'Смузи манго-банан', nameEn: 'Smoothie mango-banana', price: 6,   isGroup: false, isActive: true, sortOrder: 30  },
+      smoothie_mix:          { name: 'Смузи мультифрукт',       nameRu: 'Смузи мультифрукт', nameEn: 'Smoothie mix fruits',   price: 6,   isGroup: false, isActive: true, sortOrder: 40  },
+      milkshake_vanilla:     { name: 'Милкшейк ваниль',         nameRu: 'Милкшейк ваниль',   nameEn: 'Milkshake vanilla',     price: 5,   isGroup: false, isActive: true, sortOrder: 50  },
+      milkshake_strawberry:  { name: 'Милкшейк клубника',       nameRu: 'Милкшейк клубника', nameEn: 'Milkshake strawberry',  price: 5,   isGroup: false, isActive: true, sortOrder: 60  },
+      milkshake_chocolate:   { name: 'Милкшейк шоколад',        nameRu: 'Милкшейк шоколад',  nameEn: 'Milkshake chocolate',   price: 5,   isGroup: false, isActive: true, sortOrder: 70  },
+      lemonade_classic:      { name: 'Лимонад классик',         nameRu: 'Лимонад классик',   nameEn: 'Lemonade classic',      price: 6,   isGroup: false, isActive: true, sortOrder: 80  },
+      lemonade_maracuja:     { name: 'Лимонад маракуйя',        nameRu: 'Лимонад маракуйя',  nameEn: 'Lemonade maracuja',     price: 6,   isGroup: false, isActive: true, sortOrder: 90  },
+      pepsi:                 { name: 'Pepsi / Black',           nameRu: 'Pepsi / Black',     nameEn: 'Pepsi / Black',         price: 2.5, isGroup: false, isActive: true, sortOrder: 100 },
+      seven_up:              { name: '7UP',                     nameRu: '7UP',               nameEn: '7UP',                   price: 2.5, isGroup: false, isActive: true, sortOrder: 110 },
+      lipton:                { name: 'Lipton Ice Tea',          nameRu: 'Lipton Ice Tea',    nameEn: 'Lipton Ice Tea',        descRu: 'манго / лимон / персик', descEn: 'mango / lemon / peach', price: 2.5, isGroup: false, isActive: true, sortOrder: 120 },
+      compal:                { name: 'Сок Compal',              nameRu: 'Сок Compal',        nameEn: 'Compal juice',          price: 2.5, isGroup: false, isActive: true, sortOrder: 130 },
+      water:                 { name: 'Вода',                    nameRu: 'Вода',              nameEn: 'Water',                 priceLabelRu: 'с газом / без газа', priceLabelEn: 'still / sparkling', isGroup: true, groupKey: 'Вода', isActive: true, sortOrder: 140 },
+    },
+    coffee: {
+      espresso:        { name: 'Эспрессо',         nameRu: 'Эспрессо',         nameEn: 'Espresso',        price: 1.4, isGroup: false, isActive: true, sortOrder: 10 },
+      macchiato:       { name: 'Макиато',          nameRu: 'Макиато',          nameEn: 'Macchiato',       price: 1.4, isGroup: false, isActive: true, sortOrder: 20 },
+      double_espresso: { name: 'Двойной эспрессо', nameRu: 'Двойной эспрессо', nameEn: 'Double espresso', price: 2.5, isGroup: false, isActive: true, sortOrder: 30 },
+      americano:       { name: 'Американо',        nameRu: 'Американо',        nameEn: 'Americano',       price: 2,   isGroup: false, isActive: true, sortOrder: 40 },
+      cappuccino:      { name: 'Капучино',         nameRu: 'Капучино',         nameEn: 'Cappuccino',      price: 4,   isGroup: false, isActive: true, sortOrder: 50 },
+      latte:           { name: 'Латте',            nameRu: 'Латте',            nameEn: 'Latte',           price: 4,   isGroup: false, isActive: true, sortOrder: 60 },
+    },
+  };
+
+  let editableSections = { beer: {}, wineglass: {}, soft: {}, coffee: {} };
+  let currentMenuItemAdminSection = null;
+  let currentMenuItemAdminId = null;
+
+  function renderEditableSection(sectionKey) {
+    const container = document.getElementById(sectionKey + 'List');
+    if (!container) return;
+    const items = editableSections[sectionKey] || {};
+    const activeItems = Object.entries(items)
+      .filter(([, item]) => item.isActive !== false)
+      .sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    if (!activeItems.length) {
+      container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
+        (lang === 'ru' ? 'Нет позиций' : 'No items') + '</div>';
+      restoreMenuVisual();
+      restoreGroupBtns();
+      if (currentTable !== '🛑') applyStopList();
+      return;
+    }
+    container.innerHTML = activeItems.map(([id, item]) => renderEditableMenuItem(sectionKey, id, item)).join('');
+    restoreMenuVisual();
+    restoreGroupBtns();
+    if (currentTable !== '🛑') applyStopList();
+  }
+
+  function renderEditableMenuItem(sectionKey, id, item) {
+    const dispName = lang === 'ru' ? (item.nameRu || item.name || '') : (item.nameEn || item.name || '');
+    const descStr  = lang === 'ru' ? (item.descRu || '') : (item.descEn || '');
+    const descHtml = descStr ? `<div class="item-desc">${escapeHtml(descStr)}</div>` : '';
+    const safeId   = escapeHtml(id);
+    if (item.isGroup) {
+      const priceLabel = (lang === 'ru' ? item.priceLabelRu : item.priceLabelEn) || '';
+      const safeGK = (item.groupKey || '').replace(/'/g, "\\'");
+      return `<button class="item-btn is-group" data-group="${escapeHtml(item.groupKey || '')}" data-item-id="${safeId}" onclick="openVarPopup('${safeGK}',this)">` +
+        `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
+        `<div class="item-footer"><span class="item-price">${escapeHtml(priceLabel)}</span><span class="item-count">0</span></div></button>`;
+    } else {
+      const price = item.price || 0;
+      const safeName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const priceLabel = (lang === 'ru' ? item.priceLabelRu : item.priceLabelEn) || ('€' + price);
+      return `<button class="item-btn" data-item-id="${safeId}" onclick="addItem(this,'${safeName}',${price})">` +
+        `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
+        `<div class="item-footer"><span class="item-price">${escapeHtml(priceLabel)}</span><span class="item-count">0</span></div></button>`;
+    }
+  }
+
+  function loadEditableMenuSections() {
+    EDITABLE_SECTION_KEYS.forEach(sectionKey => {
+      db.ref('menuSections/' + sectionKey + '/items').on('value', snapshot => {
+        editableSections[sectionKey] = snapshot.val() || {};
+        renderEditableSection(sectionKey);
+        const adminOverlay = document.getElementById('menuItemAdminOverlay');
+        if (adminOverlay && adminOverlay.classList.contains('show') && currentMenuItemAdminSection === sectionKey) {
+          renderMenuItemAdminList();
+        }
+      });
+    });
+  }
+
+  function seedEditableMenuSectionsIfEmpty() {
+    const now = Date.now();
+    EDITABLE_SECTION_KEYS.forEach(sectionKey => {
+      db.ref('menuSections/' + sectionKey + '/items').once('value', snapshot => {
+        const existing = snapshot.val();
+        if (!existing || Object.keys(existing).length === 0) {
+          const seeds = SECTION_SEEDS[sectionKey];
+          if (!seeds) return;
+          const data = {};
+          Object.entries(seeds).forEach(([id, item]) => {
+            data[id] = Object.assign({}, item, { createdAt: now, updatedAt: now });
+          });
+          db.ref('menuSections/' + sectionKey + '/items').set(data);
+        }
+      });
+    });
+  }
+
+  function initEditableSectionLongPress(sectionKey) {
+    const header = document.getElementById(sectionKey + 'AccHeader');
+    if (!header) return;
+    let timer = null, fired = false;
+    header.addEventListener('pointerdown', () => {
+      fired = false;
+      timer = setTimeout(() => { fired = true; openMenuItemAdminForSection(sectionKey); }, 1200);
+    });
+    header.addEventListener('pointerup', () => {
+      clearTimeout(timer); timer = null;
+      if (!fired) toggleAcc(header);
+    });
+    const cancel = () => { clearTimeout(timer); timer = null; };
+    header.addEventListener('pointerleave', cancel);
+    header.addEventListener('pointercancel', cancel);
+    header.addEventListener('contextmenu', e => e.preventDefault());
+  }
+
+  function initEditableSectionItemLongPress(sectionKey) {
+    const container = document.getElementById(sectionKey + 'List');
+    if (!container) return;
+    let lpTimer = null, lpFired = false;
+    container.addEventListener('pointerdown', e => {
+      const btn = e.target.closest('.item-btn');
+      if (!btn) return;
+      lpFired = false;
+      lpTimer = setTimeout(() => {
+        lpFired = true;
+        const itemId = btn.dataset.itemId;
+        if (itemId) openMenuItemAdmin(sectionKey, itemId);
+      }, 1200);
+    });
+    container.addEventListener('pointerup', () => { clearTimeout(lpTimer); lpTimer = null; });
+    const lpCancel = () => { clearTimeout(lpTimer); lpTimer = null; };
+    container.addEventListener('pointerleave', lpCancel);
+    container.addEventListener('pointercancel', lpCancel);
+    container.addEventListener('contextmenu', e => { if (e.target.closest('.item-btn')) e.preventDefault(); });
+    container.addEventListener('click', e => {
+      if (lpFired) { lpFired = false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
+  }
+
+  // =============================================
+  // MENU ITEM ADMIN
+  // =============================================
+  function openMenuItemAdminForSection(sectionKey) {
+    currentMenuItemAdminSection = sectionKey;
+    const titles = lang === 'ru' ? EDITABLE_SECTION_TITLES_RU : EDITABLE_SECTION_TITLES_EN;
+    const titleEl = document.getElementById('menuItemAdminTitle');
+    if (titleEl) titleEl.textContent = titles[sectionKey] || sectionKey.toUpperCase() + ' — ADMIN';
+    renderMenuItemAdminList();
+    menuItemAdminNew();
+    document.getElementById('menuItemAdminOverlay').classList.add('show');
+  }
+
+  function openMenuItemAdmin(sectionKey, itemId) {
+    currentMenuItemAdminSection = sectionKey;
+    const titles = lang === 'ru' ? EDITABLE_SECTION_TITLES_RU : EDITABLE_SECTION_TITLES_EN;
+    const titleEl = document.getElementById('menuItemAdminTitle');
+    if (titleEl) titleEl.textContent = titles[sectionKey] || sectionKey.toUpperCase() + ' — ADMIN';
+    renderMenuItemAdminList();
+    menuItemAdminSelect(itemId);
+    document.getElementById('menuItemAdminOverlay').classList.add('show');
+  }
+
+  function closeMenuItemAdmin() {
+    document.getElementById('menuItemAdminOverlay').classList.remove('show');
+  }
+
+  function renderMenuItemAdminList() {
+    const listEl = document.getElementById('menuItemAdminList');
+    if (!listEl || !currentMenuItemAdminSection) return;
+    const items = editableSections[currentMenuItemAdminSection] || {};
+    const sorted = Object.entries(items).sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    if (!sorted.length) {
+      listEl.innerHTML = '<div style="color:#7ab3ac;font-size:10px;padding:10px 12px">No items yet — create one below</div>';
+      return;
+    }
+    listEl.innerHTML = sorted.map(([id, item]) => {
+      const safeId = id.replace(/'/g, "\\'");
+      return `<div class="wine-admin-row${item.isActive === false ? ' wine-admin-row-inactive' : ''}" data-id="${escapeHtml(id)}" onclick="menuItemAdminSelect('${safeId}')">` +
+        `<span class="wine-admin-row-name">${escapeHtml(item.name || '(no name)')}</span>` +
+        `<span class="wine-admin-row-price">${item.isGroup ? '(group)' : '€' + (item.price || 0)}</span>` +
+        (item.isActive === false ? '<span class="wine-admin-row-badge">OFF</span>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  function menuItemAdminSelect(id) {
+    if (!currentMenuItemAdminSection) return;
+    const item = (editableSections[currentMenuItemAdminSection] || {})[id];
+    if (!item) return;
+    currentMenuItemAdminId = id;
+    document.getElementById('miaName').value         = item.name || '';
+    document.getElementById('miaNameRu').value       = item.nameRu || '';
+    document.getElementById('miaNameEn').value       = item.nameEn || '';
+    document.getElementById('miaDescRu').value       = item.descRu || '';
+    document.getElementById('miaDescEn').value       = item.descEn || '';
+    document.getElementById('miaPrice').value        = item.price !== undefined ? item.price : '';
+    document.getElementById('miaPriceLabelRu').value = item.priceLabelRu || '';
+    document.getElementById('miaPriceLabelEn').value = item.priceLabelEn || '';
+    document.getElementById('miaIsGroup').checked    = !!item.isGroup;
+    document.getElementById('miaGroupKey').value     = item.groupKey || '';
+    document.getElementById('miaSortOrder').value    = item.sortOrder !== undefined ? item.sortOrder : '';
+    document.getElementById('miaActive').checked     = item.isActive !== false;
+    document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r =>
+      r.classList.toggle('selected', r.dataset.id === id));
+  }
+
+  function menuItemAdminNew() {
+    currentMenuItemAdminId = null;
+    ['miaName','miaNameRu','miaNameEn','miaDescRu','miaDescEn','miaPrice',
+     'miaPriceLabelRu','miaPriceLabelEn','miaGroupKey','miaSortOrder'].forEach(elId => {
+      const el = document.getElementById(elId);
+      if (el) el.value = '';
+    });
+    document.getElementById('miaIsGroup').checked = false;
+    document.getElementById('miaActive').checked  = true;
+    document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
+  }
+
+  function saveMenuItemAdmin() {
+    if (!currentMenuItemAdminSection) return;
+    const name = (document.getElementById('miaName').value || '').trim();
+    if (!name) { alert(lang === 'ru' ? 'Укажите внутреннее название' : 'Internal order name is required'); return; }
+    const isGroup  = document.getElementById('miaIsGroup').checked;
+    const groupKey = (document.getElementById('miaGroupKey').value || '').trim();
+    if (isGroup && !groupKey) { alert(lang === 'ru' ? 'Укажите ключ группы' : 'Group key is required'); return; }
+    const priceVal = document.getElementById('miaPrice').value;
+    const price    = parseFloat(priceVal);
+    if (!isGroup && (isNaN(price) || price < 0)) { alert(lang === 'ru' ? 'Укажите корректную цену' : 'Enter a valid price >= 0'); return; }
+    const sortStr = (document.getElementById('miaSortOrder').value || '').trim();
+    let sortOrder;
+    if (!sortStr) {
+      const existing = editableSections[currentMenuItemAdminSection] || {};
+      sortOrder = Object.values(existing).reduce((m, i) => Math.max(m, i.sortOrder || 0), 0) + 10;
+    } else {
+      sortOrder = parseInt(sortStr, 10) || 0;
+    }
+    const now = Date.now();
+    const data = {
+      name,
+      nameRu:       (document.getElementById('miaNameRu').value       || '').trim() || name,
+      nameEn:       (document.getElementById('miaNameEn').value       || '').trim() || name,
+      descRu:       (document.getElementById('miaDescRu').value       || '').trim(),
+      descEn:       (document.getElementById('miaDescEn').value       || '').trim(),
+      priceLabelRu: (document.getElementById('miaPriceLabelRu').value || '').trim(),
+      priceLabelEn: (document.getElementById('miaPriceLabelEn').value || '').trim(),
+      isGroup,
+      groupKey: isGroup ? groupKey : '',
+      isActive: document.getElementById('miaActive').checked,
+      sortOrder,
+      updatedAt: now,
+    };
+    if (!isGroup) data.price = price;
+    if (currentMenuItemAdminId) {
+      const prev = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId];
+      if (prev && prev.createdAt) data.createdAt = prev.createdAt;
+      db.ref('menuSections/' + currentMenuItemAdminSection + '/items/' + currentMenuItemAdminId).update(data);
+    } else {
+      data.createdAt = now;
+      const ref = db.ref('menuSections/' + currentMenuItemAdminSection + '/items').push();
+      currentMenuItemAdminId = ref.key;
+      ref.set(data);
+    }
+  }
+
+  function disableMenuItemAdmin() {
+    if (!currentMenuItemAdminId || !currentMenuItemAdminSection) return;
+    if (!confirm(lang === 'ru' ? 'Отключить позицию?' : 'Disable this item?')) return;
+    db.ref('menuSections/' + currentMenuItemAdminSection + '/items/' + currentMenuItemAdminId)
+      .update({ isActive: false, updatedAt: Date.now() });
+    document.getElementById('miaActive').checked = false;
+  }
+
+  // =============================================
   // INIT
   // =============================================
   window.addEventListener('DOMContentLoaded', () => {
@@ -1497,4 +1774,10 @@
     initWinesLongPress();
     initWineAdminYear();
     loadWines();
+    EDITABLE_SECTION_KEYS.forEach(key => {
+      initEditableSectionLongPress(key);
+      initEditableSectionItemLongPress(key);
+    });
+    seedEditableMenuSectionsIfEmpty();
+    loadEditableMenuSections();
   });
