@@ -1400,9 +1400,9 @@
   // EDITABLE MENU SECTIONS
   // =============================================
   const EDITABLE_SECTION_KEYS = [
-    'water', 'kombucha', 'soft', 'wineglass', 'cocktails',
+    'water', 'kombucha', 'soft', 'wineglass', 'cocktails', 'spirits',
     'starters', 'soups', 'salads', 'burgers', 'pasta', 'mains', 'desserts',
-    'coffee', 'spirits',
+    'coffee',
   ];
 
   const EDITABLE_SECTION_TITLES_RU = {
@@ -1609,7 +1609,7 @@
         return true;
       })
       .sort(([, a], [, b]) => {
-        if (sectionKey === 'cocktails') {
+        if (sectionKey === 'cocktails' || sectionKey === 'spirits') {
           const nameA = (lang === 'ru' ? a.nameRu || a.name : a.nameEn || a.name) || '';
           const nameB = (lang === 'ru' ? b.nameRu || b.name : b.nameEn || b.name) || '';
           return nameA.localeCompare(nameB, lang === 'ru' ? 'ru' : 'en');
