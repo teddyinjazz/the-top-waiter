@@ -543,6 +543,19 @@
         orderIndex[addMatch[1]] = idx++;
         return;
       }
+      // Editable group popup — prefer item.variants from Firebase over VARIANT_GROUPS
+      const editMatch = onclick.match(/openEditableGroupPopup\('([^']+)','([^']+)'/);
+      if (editMatch) {
+        const item = (editableSections[editMatch[1]] || {})[editMatch[2]];
+        const rawV = item && item.variants;
+        if (rawV) {
+          const arr = Array.isArray(rawV) ? rawV : Object.values(rawV);
+          arr.filter(v => v && v.name).forEach((v, vi) => { orderIndex[v.name] = idx + vi / 1000; });
+          idx++;
+          return;
+        }
+      }
+      // Fallback: static VARIANT_GROUPS (openVarPopup buttons and unsynced editable groups)
       const groupKey = btn.dataset.group;
       if (groupKey && VARIANT_GROUPS[groupKey]) {
         VARIANT_GROUPS[groupKey].variants.forEach((v, vi) => {
@@ -1048,7 +1061,7 @@
       return;
     }
 
-        const pairs = {}, standalone = [];
+    const pairs = {}, standalone = [];
     keys.forEach(name => {
       const item = tableOrder[name];
       if (item.pairId && !item.isSide) { if (!pairs[item.pairId]) pairs[item.pairId] = {}; pairs[item.pairId].mainKey = name; }
@@ -1058,45 +1071,43 @@
 
     const menuIndex = buildMenuOrderIndex();
 
-    const pairEntries = Object.entries(pairs).sort((a, b) => {
-      const mA = a[1].mainKey ? tableOrder[a[1].mainKey] : {};
-      const mB = b[1].mainKey ? tableOrder[b[1].mainKey] : {};
-      return getOrderSortValue(mA || {}, a[1].mainKey || '', menuIndex)
-           - getOrderSortValue(mB || {}, b[1].mainKey || '', menuIndex);
+    const blocks = [];
+    Object.entries(pairs).forEach(([, pair]) => {
+      const mainKey = pair.mainKey || '';
+      blocks.push({ type: 'pair', pair, sortKey: getOrderSortValue(mainKey ? tableOrder[mainKey] : {}, mainKey, menuIndex) });
     });
-
-    standalone.sort((a, b) =>
-      getOrderSortValue(tableOrder[a], a, menuIndex) -
-      getOrderSortValue(tableOrder[b], b, menuIndex)
-    );
+    standalone.forEach(name => {
+      blocks.push({ type: 'single', name, sortKey: getOrderSortValue(tableOrder[name], name, menuIndex) });
+    });
+    blocks.sort((a, b) => a.sortKey - b.sortKey);
 
     let total = 0, count = 0, html = '';
 
-    pairEntries.forEach(([pid, pair]) => {
-
-      const { mainKey, sideKey } = pair;
-      if (!mainKey || !tableOrder[mainKey]) return;
-      const main = tableOrder[mainKey];
-      const mainLine = main.price * main.qty;
-      total += mainLine; count += main.qty;
-      const safeMain = mainKey.replace(/'/g, "\\'");
-      if (sideKey && tableOrder[sideKey]) {
-        const side = tableOrder[sideKey];
-        const sideLine = side.price * side.qty;
-        total += sideLine; count += side.qty;
-        const safeSide = sideKey.replace(/'/g, "\\'");
-        html += `<div class="order-pair"><div class="order-pair-main"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div><div class="order-pair-side"><div class="oi-name">↳ ${displayName(side.displayName||sideKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',-1)">−</button><span class="oi-qty">${side.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',1)">+</button></div><div class="oi-price" style="color:${side.price===0?'#3dbfaf':'#e9c46a'}">${side.price===0 ? (lang === 'ru' ? 'вкл.' : 'incl.') : '€' + sideLine.toFixed(2)}</div></div></div>`;
+    blocks.forEach(block => {
+      if (block.type === 'pair') {
+        const { mainKey, sideKey } = block.pair;
+        if (!mainKey || !tableOrder[mainKey]) return;
+        const main = tableOrder[mainKey];
+        const mainLine = main.price * main.qty;
+        total += mainLine; count += main.qty;
+        const safeMain = mainKey.replace(/'/g, "\\'");
+        if (sideKey && tableOrder[sideKey]) {
+          const side = tableOrder[sideKey];
+          const sideLine = side.price * side.qty;
+          total += sideLine; count += side.qty;
+          const safeSide = sideKey.replace(/'/g, "\\'");
+          html += `<div class="order-pair"><div class="order-pair-main"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div><div class="order-pair-side"><div class="oi-name">↳ ${displayName(side.displayName||sideKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',-1)">−</button><span class="oi-qty">${side.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',1)">+</button></div><div class="oi-price" style="color:${side.price===0?'#3dbfaf':'#e9c46a'}">${side.price===0 ? (lang === 'ru' ? 'вкл.' : 'incl.') : '€' + sideLine.toFixed(2)}</div></div></div>`;
+        } else {
+          html += `<div class="order-item"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div>`;
+        }
       } else {
-        html += `<div class="order-item"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div>`;
+        const { name } = block;
+        const item = tableOrder[name];
+        const line = item.price * item.qty;
+        total += line; count += item.qty;
+        const safeName = name.replace(/'/g, "\\'");
+        html += `<div class="order-item"><div class="oi-name">${displayName(item.displayName||name)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',-1)">−</button><span class="oi-qty">${item.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',1)">+</button></div><div class="oi-price">€${line.toFixed(2)}</div></div>`;
       }
-    });
-
-    standalone.forEach(name => {
-      const item = tableOrder[name];
-      const line = item.price * item.qty;
-      total += line; count += item.qty;
-      const safeName = name.replace(/'/g, "\\'");
-      html += `<div class="order-item"><div class="oi-name">${displayName(item.displayName||name)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',-1)">−</button><span class="oi-qty">${item.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',1)">+</button></div><div class="oi-price">€${line.toFixed(2)}</div></div>`;
     });
 
     list.innerHTML = html;
@@ -1173,53 +1184,49 @@
 
     const sendMenuIndex = buildMenuOrderIndex();
 
-    const sendPairEntries = Object.entries(sendPairs).sort((a, b) => {
-      const mA = a[1].mainKey ? tableOrder[a[1].mainKey] : {};
-      const mB = b[1].mainKey ? tableOrder[b[1].mainKey] : {};
-      return getOrderSortValue(mA || {}, a[1].mainKey || '', sendMenuIndex)
-           - getOrderSortValue(mB || {}, b[1].mainKey || '', sendMenuIndex);
+    const sendBlocks = [];
+    Object.entries(sendPairs).forEach(([, pair]) => {
+      const mainKey = pair.mainKey || '';
+      sendBlocks.push({ type: 'pair', pair, sortKey: getOrderSortValue(mainKey ? tableOrder[mainKey] : {}, mainKey, sendMenuIndex) });
     });
-
-    sendStandalone.sort((a, b) =>
-      getOrderSortValue(tableOrder[a], a, sendMenuIndex) -
-      getOrderSortValue(tableOrder[b], b, sendMenuIndex)
-    );
-
-    // Пары
-    sendPairEntries.forEach(([pid, pair]) => {
-
-      const { mainKey, sideKey } = pair;
-      if (mainKey) {
-        const item = tableOrder[mainKey];
-        const newQty = item.qty - (prev[mainKey] || 0);
-        if (newQty > 0) {
-          hasNew = true;
-          const line = item.price * newQty;
-          total += line;
-          lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||mainKey)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
-        }
-      }
-      if (sideKey && tableOrder[sideKey]) {
-        const item = tableOrder[sideKey];
-        const newQty = item.qty - (prev[sideKey] || 0);
-        if (newQty > 0) {
-          hasNew = true;
-          const line = item.price * newQty;
-          total += line;
-          lines += `<div style="padding-left:12px;color:#7ab3ac">↳ × ${newQty} &nbsp; ${displayName(item.displayName||sideKey)} &nbsp; <span style="color:${item.price===0?'#3dbfaf':'#e9c46a'}">${item.price===0?(lang==='ru'?'вкл.':'incl.'):'€'+line.toFixed(2)}</span></div>`;
-        }
-      }
-    });
-
-    // Standalone
     sendStandalone.forEach(name => {
-      const item = tableOrder[name];
-      const newQty = item.qty - (prev[name] || 0);
-      if (newQty > 0) {
-        hasNew = true;
-        const line = item.price * newQty;
-        total += line;
-        lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||name)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+      sendBlocks.push({ type: 'single', name, sortKey: getOrderSortValue(tableOrder[name], name, sendMenuIndex) });
+    });
+    sendBlocks.sort((a, b) => a.sortKey - b.sortKey);
+
+    sendBlocks.forEach(block => {
+      if (block.type === 'pair') {
+        const { mainKey, sideKey } = block.pair;
+        if (mainKey) {
+          const item = tableOrder[mainKey];
+          const newQty = item.qty - (prev[mainKey] || 0);
+          if (newQty > 0) {
+            hasNew = true;
+            const line = item.price * newQty;
+            total += line;
+            lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||mainKey)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+          }
+        }
+        if (sideKey && tableOrder[sideKey]) {
+          const item = tableOrder[sideKey];
+          const newQty = item.qty - (prev[sideKey] || 0);
+          if (newQty > 0) {
+            hasNew = true;
+            const line = item.price * newQty;
+            total += line;
+            lines += `<div style="padding-left:12px;color:#7ab3ac">↳ × ${newQty} &nbsp; ${displayName(item.displayName||sideKey)} &nbsp; <span style="color:${item.price===0?'#3dbfaf':'#e9c46a'}">${item.price===0?(lang==='ru'?'вкл.':'incl.'):'€'+line.toFixed(2)}</span></div>`;
+          }
+        }
+      } else {
+        const { name } = block;
+        const item = tableOrder[name];
+        const newQty = item.qty - (prev[name] || 0);
+        if (newQty > 0) {
+          hasNew = true;
+          const line = item.price * newQty;
+          total += line;
+          lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||name)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+        }
       }
     });
     if (!hasNew) { alert(lang === 'ru' ? 'Нет новых позиций для отправки' : 'No new items to send'); return; }
