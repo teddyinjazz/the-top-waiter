@@ -615,6 +615,54 @@
     document.getElementById('varOverlay').classList.add('show');
   }
 
+  function openEditableGroupPopup(sectionKey, itemId, btn) {
+    const item = (editableSections[sectionKey] || {})[itemId];
+    if (!item) { openVarPopup(item && item.groupKey, btn); return; }
+    const rawVariants = item.variants;
+    const variantsArr = rawVariants
+      ? (Array.isArray(rawVariants) ? rawVariants : Object.values(rawVariants)).filter(v => v && v.name)
+      : null;
+    if (variantsArr && variantsArr.length > 0) {
+      const groupKey = item.groupKey || '';
+      currentVarGroup = groupKey;
+      currentVarBtn = btn;
+      const grp = VARIANT_GROUPS[groupKey];
+      document.getElementById('varTitle').textContent = lang === 'ru'
+        ? (grp ? grp.ru : (item.nameRu || item.name || groupKey))
+        : (grp ? grp.en : (item.nameEn || item.name || groupKey));
+      document.getElementById('varSubtitle').textContent = lang === 'ru' ? 'Выберите вариант' : 'Choose variant';
+      const opts = document.getElementById('varOptions');
+      opts.innerHTML = '';
+      const tableOrder = orders[currentTable] || {};
+      variantsArr.forEach(v => {
+        const isStopped = currentTable !== '🛑' && isInStoplist(v.name);
+        const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
+        const label = lang === 'ru' ? v.ru : v.en;
+        const varBtn = document.createElement('button');
+        varBtn.className = 'var-btn' + (isStopped ? ' stopped' : '');
+        varBtn.innerHTML = `<span class="var-btn-name">${label}</span><span style="display:flex;align-items:center;gap:6px"><span class="var-btn-price">€${v.price}</span>${isStopped ? `<span style="color:#ff6b6b;font-size:10px;letter-spacing:1px">${lang === 'ru' ? 'СТОП' : 'STOP'}</span>` : ''}${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}</span>`;
+        varBtn.onclick = () => {
+          addItemByVariant(v.name, v.price);
+          const newQty = (orders[currentTable] && orders[currentTable][v.name]) ? orders[currentTable][v.name].qty : 0;
+          const countEl = varBtn.querySelector('.var-btn-count');
+          if (newQty > 0) {
+            if (countEl) countEl.textContent = newQty;
+            else varBtn.querySelector('[style]').insertAdjacentHTML('afterbegin', `<span class="var-btn-count">${newQty}</span>`);
+          }
+          const tOrder = orders[currentTable] || {};
+          const total = variantsArr.reduce((s, v2) => s + (tOrder[v2.name] ? tOrder[v2.name].qty : 0), 0);
+          const cEl = currentVarBtn && currentVarBtn.querySelector('.item-count');
+          if (cEl) cEl.textContent = total > 0 ? total : '0';
+          if (currentVarBtn) currentVarBtn.classList.toggle('has-count', total > 0);
+        };
+        opts.appendChild(varBtn);
+      });
+      document.getElementById('varOverlay').classList.add('show');
+    } else {
+      openVarPopup(item.groupKey, btn);
+    }
+  }
+
   function closeVarPopup() {
     document.getElementById('varOverlay').classList.remove('show');
     currentVarGroup = null;
@@ -1675,17 +1723,17 @@
     const safeId   = escapeHtml(id);
     if (item.isGroup) {
       const priceLabel = (lang === 'ru' ? item.priceLabelRu : item.priceLabelEn) || '';
-      const safeGK = (item.groupKey || '').replace(/'/g, "\\'");
-      return `<button class="item-btn is-group" data-group="${escapeHtml(item.groupKey || '')}" data-item-id="${safeId}" onclick="openVarPopup('${safeGK}',this)">` +
+      const safeSK   = sectionKey.replace(/'/g, "\\'");
+      const safeIdJs = id.replace(/'/g, "\\'");
+      return `<button class="item-btn is-group" data-group="${escapeHtml(item.groupKey || '')}" data-item-id="${safeId}" onclick="openEditableGroupPopup('${safeSK}','${safeIdJs}',this)">` +
         `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
         `<div class="item-footer"><span class="item-price">${escapeHtml(priceLabel)}</span><span class="item-count">0</span></div></button>`;
     } else {
       const price = item.price || 0;
       const safeName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      const priceLabel = (lang === 'ru' ? item.priceLabelRu : item.priceLabelEn) || ('€' + price);
       return `<button class="item-btn" data-item-id="${safeId}" onclick="addItem(this,'${safeName}',${price})">` +
         `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
-        `<div class="item-footer"><span class="item-price">${escapeHtml(priceLabel)}</span><span class="item-count">0</span></div></button>`;
+        `<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
     }
   }
 
@@ -1808,6 +1856,12 @@
     }).join('');
   }
 
+  function toggleMiaVariantsRow() {
+    const isGroup = document.getElementById('miaIsGroup').checked;
+    const row = document.getElementById('miaVariantsRow');
+    if (row) row.style.display = isGroup ? 'flex' : 'none';
+  }
+
   function menuItemAdminSelect(id) {
     if (!currentMenuItemAdminSection) return;
     const item = (editableSections[currentMenuItemAdminSection] || {})[id];
@@ -1829,18 +1883,40 @@
     document.getElementById('miaActive').checked     = item.isActive !== false;
     document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r =>
       r.classList.toggle('selected', r.dataset.id === id));
+    const isGrp = !!item.isGroup;
+    const varRow = document.getElementById('miaVariantsRow');
+    const varField = document.getElementById('miaVariants');
+    if (varRow) varRow.style.display = isGrp ? 'flex' : 'none';
+    if (varField) {
+      if (isGrp) {
+        const rawV = item.variants;
+        if (rawV) {
+          const arr = Array.isArray(rawV) ? rawV : Object.values(rawV);
+          varField.value = arr.filter(Boolean).map(v => `${v.ru} | ${v.en} | ${v.name} | ${v.price}`).join('\n');
+        } else {
+          const fallback = VARIANT_GROUPS[item.groupKey];
+          varField.value = fallback && fallback.variants
+            ? fallback.variants.map(v => `${v.ru} | ${v.en} | ${v.name} | ${v.price}`).join('\n')
+            : '';
+        }
+      } else {
+        varField.value = '';
+      }
+    }
   }
 
   function menuItemAdminNew() {
     currentMenuItemAdminId = null;
     ['miaName','miaNameRu','miaNameEn','miaDescRu','miaDescEn','miaPrice',
-     'miaPriceLabelRu','miaPriceLabelEn','miaSideType','miaGroupKey','miaSortOrder'].forEach(elId => {
+     'miaPriceLabelRu','miaPriceLabelEn','miaSideType','miaGroupKey','miaSortOrder','miaVariants'].forEach(elId => {
       const el = document.getElementById(elId);
       if (el) el.value = '';
     });
     document.getElementById('miaNeedsSide').checked = false;
     document.getElementById('miaIsGroup').checked = false;
     document.getElementById('miaActive').checked  = true;
+    const varRow = document.getElementById('miaVariantsRow');
+    if (varRow) varRow.style.display = 'none';
     document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
   }
 
@@ -1882,6 +1958,20 @@
       updatedAt: now,
     };
     if (!isGroup) data.price = price;
+    if (isGroup) {
+      const varText = (document.getElementById('miaVariants').value || '').trim();
+      if (varText) {
+        const parsedVariants = varText.split('\n')
+          .map(line => line.trim()).filter(Boolean)
+          .map(line => {
+            const parts = line.split('|').map(p => p.trim());
+            if (parts.length < 4) return null;
+            const pr = parseFloat(parts[3]);
+            return isNaN(pr) ? null : { ru: parts[0], en: parts[1], name: parts[2], price: pr };
+          }).filter(Boolean);
+        if (parsedVariants.length > 0) data.variants = parsedVariants;
+      }
+    }
     if (currentMenuItemAdminId) {
       const prev = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId];
       if (prev && prev.createdAt) data.createdAt = prev.createdAt;
@@ -1904,19 +1994,27 @@
 
   function syncSoftGroupItemsIfMissing() {
     const groupSeeds = {
-      smoothie_group:  { name: 'Смузи',    nameRu: 'Смузи',    nameEn: 'Smoothie',  priceLabelRu: 'киви-банан / манго-банан / мультифрукт', priceLabelEn: 'kiwi-banana / mango-banana / mix fruits', isGroup: true, groupKey: 'Смузи',    isActive: true, sortOrder: 20 },
-      milkshake_group: { name: 'Милкшейк', nameRu: 'Милкшейк', nameEn: 'Milkshake', priceLabelRu: 'ваниль / клубника / шоколад',           priceLabelEn: 'vanilla / strawberry / chocolate',       isGroup: true, groupKey: 'Милкшейк', isActive: true, sortOrder: 30 },
-      lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40 },
-      coca_cola_group:     { name: 'Coca-Cola',   nameRu: 'Coca-Cola',   nameEn: 'Coca-Cola',   priceLabelRu: 'Classic / Zero · 330 мл банка', priceLabelEn: 'Classic / Zero · 330 ml can', isGroup: true,  groupKey: 'Coca-Cola',     isActive: true, sortOrder: 115 },
+      smoothie_group:  { name: 'Смузи',    nameRu: 'Смузи',    nameEn: 'Smoothie',  priceLabelRu: 'киви-банан / манго-банан / мультифрукт', priceLabelEn: 'kiwi-banana / mango-banana / mix fruits', isGroup: true, groupKey: 'Смузи',    isActive: true, sortOrder: 20,
+        variants: [{ru:'Киви-банан',en:'Kiwi-banana',name:'Смузи киви-банан',price:6},{ru:'Манго-банан',en:'Mango-banana',name:'Смузи манго-банан',price:6},{ru:'Мультифрукт',en:'Mix fruits',name:'Смузи мультифрукт',price:6}] },
+      milkshake_group: { name: 'Милкшейк', nameRu: 'Милкшейк', nameEn: 'Milkshake', priceLabelRu: 'ваниль / клубника / шоколад',           priceLabelEn: 'vanilla / strawberry / chocolate',       isGroup: true, groupKey: 'Милкшейк', isActive: true, sortOrder: 30,
+        variants: [{ru:'Ваниль',en:'Vanilla',name:'Милкшейк ваниль',price:6},{ru:'Клубника',en:'Strawberry',name:'Милкшейк клубника',price:6},{ru:'Шоколад',en:'Chocolate',name:'Милкшейк шоколад',price:6}] },
+      lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40,
+        variants: [{ru:'Классик',en:'Classic',name:'Лимонад классик',price:5},{ru:'Маракуйя',en:'Maracuja',name:'Лимонад маракуйя',price:5}] },
+      coca_cola_group:     { name: 'Coca-Cola',   nameRu: 'Coca-Cola',   nameEn: 'Coca-Cola',   priceLabelRu: 'Classic / Zero · 330 мл банка', priceLabelEn: 'Classic / Zero · 330 ml can', isGroup: true,  groupKey: 'Coca-Cola',     isActive: true, sortOrder: 115,
+        variants: [{ru:'Classic · 330 мл банка',en:'Classic · 330 ml can',name:'Coca-Cola Classic 330мл банка',price:2.5},{ru:'Zero · 330 мл банка',en:'Zero · 330 ml can',name:'Coca-Cola Zero 330мл банка',price:2.5}] },
       brisa_maracuja:      { name: 'Brisa Маракуйя 330мл банка', nameRu: 'Brisa Маракуйя', nameEn: 'Brisa Maracujá', descRu: '330 мл банка', descEn: '330 ml can', price: 2.5, isGroup: false, isActive: true, sortOrder: 116 },
-      lipton_ice_tea_group: { name: 'Lipton Ice Tea', nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea', priceLabelRu: 'манго / лимон / персик', priceLabelEn: 'mango / lemon / peach', isGroup: true, groupKey: 'Lipton Ice Tea', isActive: true, sortOrder: 120 },
+      lipton_ice_tea_group: { name: 'Lipton Ice Tea', nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea', priceLabelRu: 'манго / лимон / персик', priceLabelEn: 'mango / lemon / peach', isGroup: true, groupKey: 'Lipton Ice Tea', isActive: true, sortOrder: 120,
+        variants: [{ru:'Манго',en:'Mango',name:'Lipton Ice Tea Mango',price:2.5},{ru:'Лимон',en:'Lemon',name:'Lipton Ice Tea Lemon',price:2.5},{ru:'Персик',en:'Peach',name:'Lipton Ice Tea Peach',price:2.5}] },
     };
     db.ref('menuSections/soft/items').once('value', snap => {
       const existing = snap.val() || {};
       const now = Date.now();
       const updates = {};
       Object.entries(groupSeeds).forEach(([id, seed]) => {
-        if (existing[id]) return;
+        if (existing[id]) {
+          if (seed.variants && !existing[id].variants) updates[id + '/variants'] = seed.variants;
+          return;
+        }
         if (seed.isGroup) {
           const alreadyGrouped = Object.values(existing).some(item => item.isGroup && item.groupKey === seed.groupKey);
           if (alreadyGrouped) return;
@@ -1934,14 +2032,18 @@
 
   function syncCoffeeGroupItemsIfMissing() {
     const groupSeeds = {
-      hot_tea_group: { name: 'Hot tea', nameRu: 'Чай', nameEn: 'Hot tea', priceLabelRu: 'чёрный / зелёный / ромашка / корка лимона', priceLabelEn: 'black / green / chamomile / lemon peel', isGroup: true, groupKey: 'Hot tea', isActive: true, sortOrder: 70 },
+      hot_tea_group: { name: 'Hot tea', nameRu: 'Чай', nameEn: 'Hot tea', priceLabelRu: 'чёрный / зелёный / ромашка / корка лимона', priceLabelEn: 'black / green / chamomile / lemon peel', isGroup: true, groupKey: 'Hot tea', isActive: true, sortOrder: 70,
+        variants: [{ru:'Чёрный',en:'Black tea',name:'Чай чёрный',price:2.5},{ru:'Зелёный',en:'Green tea',name:'Чай зелёный',price:2.5},{ru:'Ромашка',en:'Chamomile',name:'Чай ромашка',price:2.5},{ru:'Корка лимона',en:'Lemon peel',name:'Чай корка лимона',price:2.5}] },
     };
     db.ref('menuSections/coffee/items').once('value', snap => {
       const existing = snap.val() || {};
       const now = Date.now();
       const updates = {};
       Object.entries(groupSeeds).forEach(([id, seed]) => {
-        if (existing[id]) return;
+        if (existing[id]) {
+          if (seed.variants && !existing[id].variants) updates[id + '/variants'] = seed.variants;
+          return;
+        }
         const alreadyGrouped = Object.values(existing).some(item => item.isGroup && item.groupKey === seed.groupKey);
         if (alreadyGrouped) return;
         updates[id] = Object.assign({}, seed, { createdAt: now, updatedAt: now });

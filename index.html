@@ -15,7 +15,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 </script>
-<link rel="stylesheet" href="styles.css?v=20260517-lipton-hotea">
+<link rel="stylesheet" href="styles.css?v=20260517-variantfix">
 </head>
 <body>
 
@@ -394,11 +394,16 @@
       </div>
       <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="Группа" data-en="Is group">Группа</span>
-        <input type="checkbox" id="miaIsGroup" class="wine-admin-checkbox">
+        <input type="checkbox" id="miaIsGroup" class="wine-admin-checkbox" onchange="toggleMiaVariantsRow()">
       </div>
       <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="GroupKey" data-en="GroupKey">GroupKey</span>
         <input class="wine-admin-input" id="miaGroupKey" type="text">
+      </div>
+      <div class="wine-admin-field" id="miaVariantsRow" style="display:none;flex-direction:column;align-items:flex-start">
+        <span class="wine-admin-label" data-ru="Варианты" data-en="Variants">Варианты</span>
+        <div style="font-size:9px;color:#7ab3ac;margin-bottom:4px;letter-spacing:0.5px">RU | EN | order name | price</div>
+        <textarea class="wine-admin-input" id="miaVariants" rows="4" style="width:100%;resize:vertical;font-size:10px;min-height:64px;box-sizing:border-box"></textarea>
       </div>
       <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="Порядок" data-en="Sort">Порядок</span>
@@ -418,7 +423,7 @@
   </div>
 </div>
 
-<script src="app.js?v=20260517-lipton-hotea"></script>
+<script src="app.js?v=20260517-variantfix"></script>
 
 </body>
 </html>
