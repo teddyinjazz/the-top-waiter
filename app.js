@@ -1371,12 +1371,14 @@
   // EDITABLE MENU SECTIONS
   // =============================================
   const EDITABLE_SECTION_KEYS = [
+    'water',
     'starters', 'soups', 'salads', 'burgers', 'pasta', 'mains', 'desserts',
     'beer', 'wineglass', 'soft', 'coffee',
     'kombucha', 'spirits', 'cocktails',
   ];
 
   const EDITABLE_SECTION_TITLES_RU = {
+    water: 'ВОДА — ADMIN',
     starters: 'ЗАКУСКИ — ADMIN', soups: 'СУПЫ — ADMIN', salads: 'САЛАТЫ — ADMIN',
     burgers: 'БУРГЕРЫ — ADMIN', pasta: 'ПАСТА — ADMIN', mains: 'ОСНОВНОЕ — ADMIN',
     desserts: 'ДЕСЕРТЫ — ADMIN',
@@ -1385,6 +1387,7 @@
     kombucha: 'КОМБУЧА — ADMIN', spirits: 'АЛКОГОЛЬ — ADMIN', cocktails: 'КОКТЕЙЛИ — ADMIN',
   };
   const EDITABLE_SECTION_TITLES_EN = {
+    water: 'WATER — ADMIN',
     starters: 'STARTERS — ADMIN', soups: 'SOUPS — ADMIN', salads: 'SALADS — ADMIN',
     burgers: 'BURGERS — ADMIN', pasta: 'PASTA — ADMIN', mains: 'MAINS — ADMIN',
     desserts: 'DESSERTS — ADMIN',
@@ -1394,6 +1397,9 @@
   };
 
   const SECTION_SEEDS = {
+    water: {
+      water: { name: 'Вода', nameRu: 'Вода', nameEn: 'Water', priceLabelRu: 'с газом / без газа', priceLabelEn: 'still / sparkling', isGroup: true, groupKey: 'Вода', isActive: true, sortOrder: 10 },
+    },
     starters: {
       bruschetta_shrimp: { name: 'Брускетта с креветками', nameRu: 'Брускетта',        nameEn: 'Bruschetta',        descRu: 'cream cheese & креветки',       descEn: 'cream cheese & shrimps',         price: 7,  isGroup: false, isActive: true, sortOrder: 10  },
       bruschetta_tomato: { name: 'Брускетта томаты',       nameRu: 'Брускетта 🌿',      nameEn: 'Bruschetta 🌿',      descRu: 'вяленые томаты',                descEn: 'sun dried tomatoes',              price: 6,  isGroup: false, isActive: true, sortOrder: 20  },
@@ -1555,6 +1561,7 @@
   };
 
   let editableSections = {
+    water: {},
     starters: {}, soups: {}, salads: {}, burgers: {}, pasta: {}, mains: {}, desserts: {},
     beer: {}, wineglass: {}, soft: {}, coffee: {},
     kombucha: {}, spirits: {}, cocktails: {},
@@ -1568,6 +1575,7 @@
     const items = editableSections[sectionKey] || {};
     const activeItems = Object.entries(items)
       .filter(([, item]) => item.isActive !== false)
+      .filter(([, item]) => !(sectionKey === 'soft' && item.groupKey === 'Вода'))
       .sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
     if (!activeItems.length) {
       container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
