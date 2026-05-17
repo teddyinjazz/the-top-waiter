@@ -230,6 +230,13 @@
     'Coca-Cola Classic 330мл банка': 'Coca-Cola Classic 330 ml can',
     'Coca-Cola Zero 330мл банка':    'Coca-Cola Zero 330 ml can',
     'Brisa Маракуйя 330мл банка':   'Brisa Maracujá 330 ml can',
+    'Lipton Ice Tea Mango': 'Lipton Ice Tea Mango',
+    'Lipton Ice Tea Lemon': 'Lipton Ice Tea Lemon',
+    'Lipton Ice Tea Peach': 'Lipton Ice Tea Peach',
+    'Чай чёрный':       'Black tea',
+    'Чай зелёный':      'Green tea',
+    'Чай ромашка':      'Chamomile tea',
+    'Чай корка лимона': 'Lemon peel tea',
   };
 
   function displayName(name) {
@@ -502,6 +509,23 @@
       variants: [
         { ru: 'Classic · 330 мл банка', en: 'Classic · 330 ml can', name: 'Coca-Cola Classic 330мл банка', price: 2.5 },
         { ru: 'Zero · 330 мл банка',    en: 'Zero · 330 ml can',    name: 'Coca-Cola Zero 330мл банка',    price: 2.5 },
+      ]
+    },
+    'Lipton Ice Tea': {
+      ru: 'Lipton Ice Tea', en: 'Lipton Ice Tea',
+      variants: [
+        { ru: 'Манго',  en: 'Mango', name: 'Lipton Ice Tea Mango', price: 2.5 },
+        { ru: 'Лимон',  en: 'Lemon', name: 'Lipton Ice Tea Lemon', price: 2.5 },
+        { ru: 'Персик', en: 'Peach', name: 'Lipton Ice Tea Peach', price: 2.5 },
+      ]
+    },
+    'Hot tea': {
+      ru: 'Чай', en: 'Hot tea',
+      variants: [
+        { ru: 'Чёрный',       en: 'Black tea',   name: 'Чай чёрный',       price: 2.5 },
+        { ru: 'Зелёный',      en: 'Green tea',   name: 'Чай зелёный',      price: 2.5 },
+        { ru: 'Ромашка',      en: 'Chamomile',   name: 'Чай ромашка',      price: 2.5 },
+        { ru: 'Корка лимона', en: 'Lemon peel',  name: 'Чай корка лимона', price: 2.5 },
       ]
     },
   };
@@ -1421,7 +1445,7 @@
     burgers: 'БУРГЕРЫ — ADMIN', pasta: 'ПАСТА — ADMIN', mains: 'ОСНОВНОЕ — ADMIN',
     desserts: 'ДЕСЕРТЫ — ADMIN',
     beer: 'ПИВО — ADMIN', wineglass: 'ВИНО БОКАЛ — ADMIN',
-    soft: 'БЕЗАЛКОГОЛЬНЫЕ — ADMIN', coffee: 'КОФЕ — ADMIN',
+    soft: 'БЕЗАЛКОГОЛЬНЫЕ — ADMIN', coffee: 'КОФЕ · ЧАЙ — ADMIN',
     kombucha: 'КОМБУЧА — ADMIN', spirits: 'АЛКОГОЛЬ — ADMIN', cocktails: 'КОКТЕЙЛИ — ADMIN',
   };
   const EDITABLE_SECTION_TITLES_EN = {
@@ -1430,7 +1454,7 @@
     burgers: 'BURGERS — ADMIN', pasta: 'PASTA — ADMIN', mains: 'MAINS — ADMIN',
     desserts: 'DESSERTS — ADMIN',
     beer: 'BEER — ADMIN', wineglass: 'WINE BY GLASS — ADMIN',
-    soft: 'SOFT DRINKS — ADMIN', coffee: 'COFFEE — ADMIN',
+    soft: 'SOFT DRINKS — ADMIN', coffee: 'COFFEE · TEA — ADMIN',
     kombucha: 'KOMBUCHA — ADMIN', spirits: 'SPIRITS — ADMIN', cocktails: 'COCKTAILS — ADMIN',
   };
 
@@ -1531,7 +1555,7 @@
       lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40 },
       pepsi:           { name: 'Pepsi / Black',           nameRu: 'Pepsi / Black',  nameEn: 'Pepsi / Black',       price: 2.5, isGroup: false, isActive: true, sortOrder: 50 },
       seven_up:        { name: '7UP',                     nameRu: '7UP',            nameEn: '7UP',                 price: 2.5, isGroup: false, isActive: true, sortOrder: 60 },
-      lipton:          { name: 'Lipton Ice Tea',          nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea',      descRu: 'манго / лимон / персик', descEn: 'mango / lemon / peach', price: 2.5, isGroup: false, isActive: true, sortOrder: 70 },
+      lipton_ice_tea_group: { name: 'Lipton Ice Tea', nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea', priceLabelRu: 'манго / лимон / персик', priceLabelEn: 'mango / lemon / peach', isGroup: true, groupKey: 'Lipton Ice Tea', isActive: true, sortOrder: 70 },
       compal:          { name: 'Сок Compal',              nameRu: 'Сок Compal',     nameEn: 'Compal juice',        price: 2.5, isGroup: false, isActive: true, sortOrder: 80 },
       coca_cola_group: { name: 'Coca-Cola',               nameRu: 'Coca-Cola',      nameEn: 'Coca-Cola',           priceLabelRu: 'Classic / Zero · 330 мл банка', priceLabelEn: 'Classic / Zero · 330 ml can', isGroup: true, groupKey: 'Coca-Cola', isActive: true, sortOrder: 115 },
       brisa_maracuja:  { name: 'Brisa Маракуйя 330мл банка', nameRu: 'Brisa Маракуйя', nameEn: 'Brisa Maracujá', descRu: '330 мл банка', descEn: '330 ml can', price: 2.5, isGroup: false, isActive: true, sortOrder: 116 },
@@ -1543,6 +1567,7 @@
       americano:       { name: 'Американо',        nameRu: 'Американо',        nameEn: 'Americano',       price: 2,   isGroup: false, isActive: true, sortOrder: 40 },
       cappuccino:      { name: 'Капучино',         nameRu: 'Капучино',         nameEn: 'Cappuccino',      price: 4,   isGroup: false, isActive: true, sortOrder: 50 },
       latte:           { name: 'Латте',            nameRu: 'Латте',            nameEn: 'Latte',           price: 4,   isGroup: false, isActive: true, sortOrder: 60 },
+      hot_tea_group:   { name: 'Hot tea', nameRu: 'Чай', nameEn: 'Hot tea', priceLabelRu: 'чёрный / зелёный / ромашка / корка лимона', priceLabelEn: 'black / green / chamomile / lemon peel', isGroup: true, groupKey: 'Hot tea', isActive: true, sortOrder: 70 },
     },
     kombucha: {
       black_tea:  { name: 'Комбуча черный чай',           nameRu: 'Комбуча чёрный чай',          nameEn: 'Kombucha Black Tea',             priceLabelRu: '150 / 500 / 1000 мл', priceLabelEn: '150 / 500 / 1000 ml', isGroup: true, groupKey: 'Комбуча черный чай',           isActive: true, sortOrder: 10 },
@@ -1617,7 +1642,8 @@
         if (sectionKey !== 'soft' || item.isGroup) return true;
         if (softActiveGroupKeys.has('Смузи')    && item.name && item.name.startsWith('Смузи '))    return false;
         if (softActiveGroupKeys.has('Милкшейк') && item.name && item.name.startsWith('Милкшейк ')) return false;
-        if (softActiveGroupKeys.has('Лимонад')  && item.name && item.name.startsWith('Лимонад '))  return false;
+        if (softActiveGroupKeys.has('Лимонад')      && item.name && item.name.startsWith('Лимонад '))    return false;
+        if (softActiveGroupKeys.has('Lipton Ice Tea') && item.name && item.name.startsWith('Lipton Ice Tea')) return false;
         return true;
       })
       .sort(([, a], [, b]) => {
@@ -1881,8 +1907,9 @@
       smoothie_group:  { name: 'Смузи',    nameRu: 'Смузи',    nameEn: 'Smoothie',  priceLabelRu: 'киви-банан / манго-банан / мультифрукт', priceLabelEn: 'kiwi-banana / mango-banana / mix fruits', isGroup: true, groupKey: 'Смузи',    isActive: true, sortOrder: 20 },
       milkshake_group: { name: 'Милкшейк', nameRu: 'Милкшейк', nameEn: 'Milkshake', priceLabelRu: 'ваниль / клубника / шоколад',           priceLabelEn: 'vanilla / strawberry / chocolate',       isGroup: true, groupKey: 'Милкшейк', isActive: true, sortOrder: 30 },
       lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40 },
-      coca_cola_group: { name: 'Coca-Cola', nameRu: 'Coca-Cola', nameEn: 'Coca-Cola', priceLabelRu: 'Classic / Zero · 330 мл банка',         priceLabelEn: 'Classic / Zero · 330 ml can',            isGroup: true, groupKey: 'Coca-Cola', isActive: true, sortOrder: 115 },
-      brisa_maracuja:  { name: 'Brisa Маракуйя 330мл банка', nameRu: 'Brisa Маракуйя', nameEn: 'Brisa Maracujá', descRu: '330 мл банка', descEn: '330 ml can', price: 2.5, isGroup: false, isActive: true, sortOrder: 116 },
+      coca_cola_group:     { name: 'Coca-Cola',   nameRu: 'Coca-Cola',   nameEn: 'Coca-Cola',   priceLabelRu: 'Classic / Zero · 330 мл банка', priceLabelEn: 'Classic / Zero · 330 ml can', isGroup: true,  groupKey: 'Coca-Cola',     isActive: true, sortOrder: 115 },
+      brisa_maracuja:      { name: 'Brisa Маракуйя 330мл банка', nameRu: 'Brisa Маракуйя', nameEn: 'Brisa Maracujá', descRu: '330 мл банка', descEn: '330 ml can', price: 2.5, isGroup: false, isActive: true, sortOrder: 116 },
+      lipton_ice_tea_group: { name: 'Lipton Ice Tea', nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea', priceLabelRu: 'манго / лимон / персик', priceLabelEn: 'mango / lemon / peach', isGroup: true, groupKey: 'Lipton Ice Tea', isActive: true, sortOrder: 120 },
     };
     db.ref('menuSections/soft/items').once('value', snap => {
       const existing = snap.val() || {};
@@ -1901,6 +1928,26 @@
       });
       if (Object.keys(updates).length > 0) {
         db.ref('menuSections/soft/items').update(updates);
+      }
+    });
+  }
+
+  function syncCoffeeGroupItemsIfMissing() {
+    const groupSeeds = {
+      hot_tea_group: { name: 'Hot tea', nameRu: 'Чай', nameEn: 'Hot tea', priceLabelRu: 'чёрный / зелёный / ромашка / корка лимона', priceLabelEn: 'black / green / chamomile / lemon peel', isGroup: true, groupKey: 'Hot tea', isActive: true, sortOrder: 70 },
+    };
+    db.ref('menuSections/coffee/items').once('value', snap => {
+      const existing = snap.val() || {};
+      const now = Date.now();
+      const updates = {};
+      Object.entries(groupSeeds).forEach(([id, seed]) => {
+        if (existing[id]) return;
+        const alreadyGrouped = Object.values(existing).some(item => item.isGroup && item.groupKey === seed.groupKey);
+        if (alreadyGrouped) return;
+        updates[id] = Object.assign({}, seed, { createdAt: now, updatedAt: now });
+      });
+      if (Object.keys(updates).length > 0) {
+        db.ref('menuSections/coffee/items').update(updates);
       }
     });
   }
@@ -2038,6 +2085,7 @@
     });
     seedEditableMenuSectionsIfEmpty();
     syncSoftGroupItemsIfMissing();
+    syncCoffeeGroupItemsIfMissing();
     syncBeerItemsIntoWaterSectionOnce();
     loadEditableMenuSections();
   });
