@@ -1373,12 +1373,12 @@
   const EDITABLE_SECTION_KEYS = [
     'water',
     'starters', 'soups', 'salads', 'burgers', 'pasta', 'mains', 'desserts',
-    'beer', 'wineglass', 'soft', 'coffee',
+    'wineglass', 'soft', 'coffee',
     'kombucha', 'spirits', 'cocktails',
   ];
 
   const EDITABLE_SECTION_TITLES_RU = {
-    water: 'ВОДА — ADMIN',
+    water: 'ВОДА · ПИВО — ADMIN',
     starters: 'ЗАКУСКИ — ADMIN', soups: 'СУПЫ — ADMIN', salads: 'САЛАТЫ — ADMIN',
     burgers: 'БУРГЕРЫ — ADMIN', pasta: 'ПАСТА — ADMIN', mains: 'ОСНОВНОЕ — ADMIN',
     desserts: 'ДЕСЕРТЫ — ADMIN',
@@ -1387,7 +1387,7 @@
     kombucha: 'КОМБУЧА — ADMIN', spirits: 'АЛКОГОЛЬ — ADMIN', cocktails: 'КОКТЕЙЛИ — ADMIN',
   };
   const EDITABLE_SECTION_TITLES_EN = {
-    water: 'WATER — ADMIN',
+    water: 'WATER · BEER — ADMIN',
     starters: 'STARTERS — ADMIN', soups: 'SOUPS — ADMIN', salads: 'SALADS — ADMIN',
     burgers: 'BURGERS — ADMIN', pasta: 'PASTA — ADMIN', mains: 'MAINS — ADMIN',
     desserts: 'DESSERTS — ADMIN',
@@ -1563,7 +1563,7 @@
   let editableSections = {
     water: {},
     starters: {}, soups: {}, salads: {}, burgers: {}, pasta: {}, mains: {}, desserts: {},
-    beer: {}, wineglass: {}, soft: {}, coffee: {},
+    wineglass: {}, soft: {}, coffee: {},
     kombucha: {}, spirits: {}, cocktails: {},
   };
   let currentMenuItemAdminSection = null;
@@ -1825,6 +1825,35 @@
     document.getElementById('miaActive').checked = false;
   }
 
+  function syncBeerItemsIntoWaterSectionOnce() {
+    db.ref('menuSections/beer/items').once('value', beerSnap => {
+      const beerItems = beerSnap.val();
+      if (!beerItems) return;
+      db.ref('menuSections/water/items').once('value', waterSnap => {
+        const waterItems = waterSnap.val() || {};
+        const now = Date.now();
+        const updates = {};
+        Object.entries(beerItems).forEach(([beerId, beerItem]) => {
+          const targetId = 'beer_' + beerId;
+          if (waterItems[targetId]) return;
+          const alreadyExists = Object.values(waterItems).some(w =>
+            w.name === beerItem.name && (w.groupKey || null) === (beerItem.groupKey || null)
+          );
+          if (alreadyExists) return;
+          updates[targetId] = Object.assign({}, beerItem, {
+            sortOrder: (beerItem.sortOrder || 0) + 100,
+            movedFromSection: 'beer',
+            originalId: beerId,
+            updatedAt: now,
+          });
+        });
+        if (Object.keys(updates).length > 0) {
+          db.ref('menuSections/water/items').update(updates);
+        }
+      });
+    });
+  }
+
   // =============================================
   // INIT
   // =============================================
@@ -1928,5 +1957,6 @@
       initEditableSectionItemLongPress(key);
     });
     seedEditableMenuSectionsIfEmpty();
+    syncBeerItemsIntoWaterSectionOnce();
     loadEditableMenuSections();
   });
