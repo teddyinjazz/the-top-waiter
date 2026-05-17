@@ -108,3 +108,34 @@ html, body { font-family: 'DM Mono', monospace; background: #0f1a19; color: #e8f
 .quick-nav-panel { padding: 8px 6px 12px; border-top: 1px solid rgba(42,157,143,0.2); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 .quick-nav-btn { background: #1e302d; border: 1px solid rgba(42,157,143,0.25); color: #7ab3ac; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; padding: 7px 4px; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: all 0.15s; text-align: center; width: 100%; }
 .quick-nav-btn:active { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+.wine-admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 10000; align-items: flex-start; justify-content: center; overflow-y: auto; }
+.wine-admin-overlay.show { display: flex; }
+.wine-admin-box { background: #162320; border: 1px solid rgba(42,157,143,0.3); border-radius: 10px; width: 94%; max-width: 520px; margin: 16px auto; flex-shrink: 0; overflow: hidden; }
+.wine-admin-hdr { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #1e302d; border-bottom: 1px solid rgba(42,157,143,0.2); }
+.wine-admin-title { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 700; color: #3dbfaf; letter-spacing: 2px; }
+.wine-admin-close { background: none; border: none; color: #7ab3ac; font-size: 18px; cursor: pointer; padding: 2px 8px; line-height: 1; }
+.wine-admin-list-hdr { font-size: 9px; letter-spacing: 1.5px; color: #7ab3ac; padding: 6px 12px 2px; text-transform: uppercase; }
+.wine-admin-list-wrap { max-height: 180px; overflow-y: auto; border-bottom: 1px solid rgba(42,157,143,0.2); }
+.wine-admin-row { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; border-bottom: 1px solid rgba(42,157,143,0.07); user-select: none; }
+.wine-admin-row:active, .wine-admin-row.selected { background: #253b37; }
+.wine-admin-row-inactive { opacity: 0.38; }
+.wine-admin-row-name { flex: 1; font-family: 'Cormorant Garamond', serif; font-size: 13px; color: #e8f4f2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wine-admin-row-price { font-size: 11px; color: #e9c46a; flex-shrink: 0; }
+.wine-admin-row-badge { font-size: 8px; letter-spacing: 1px; color: #e76f51; border: 1px solid rgba(231,111,81,0.35); border-radius: 3px; padding: 1px 4px; flex-shrink: 0; }
+.wine-admin-form-wrap { padding: 10px 12px 14px; }
+.wine-admin-field { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.wine-admin-label { font-size: 9px; letter-spacing: 1px; color: #7ab3ac; text-transform: uppercase; min-width: 48px; flex-shrink: 0; }
+.wine-admin-input { flex: 1; background: #253b37; border: 1px solid rgba(42,157,143,0.25); border-radius: 4px; color: #e8f4f2; font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 8px; outline: none; }
+.wine-admin-input:focus { border-color: #2a9d8f; }
+.wine-admin-select { flex: 1; background: #253b37; border: 1px solid rgba(42,157,143,0.25); border-radius: 4px; color: #e8f4f2; font-family: 'DM Mono', monospace; font-size: 11px; padding: 5px 6px; outline: none; }
+.wine-admin-btn-group { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.wine-admin-choice { background: #1e302d; border: 1px solid rgba(42,157,143,0.2); color: #7ab3ac; font-family: 'DM Mono', monospace; font-size: 9px; padding: 4px 7px; border-radius: 3px; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+.wine-admin-choice.active { background: #2a9d8f; border-color: #2a9d8f; color: #fff; }
+.wine-admin-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: #2a9d8f; }
+.wine-admin-actions { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+.wine-admin-btn { flex: 1; min-width: 56px; padding: 8px 4px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; background: #253b37; border: 1px solid rgba(42,157,143,0.25); color: #7ab3ac; transition: all 0.12s; }
+.wine-admin-btn:active { background: #1e302d; }
+.wine-admin-btn-save { background: #2a9d8f; border-color: #2a9d8f; color: #fff; }
+.wine-admin-btn-save:active { background: #3dbfaf; }
+.wine-admin-btn-disable { border-color: rgba(231,111,81,0.4); color: #e76f51; }
+.wine-admin-btn-disable:active { background: rgba(231,111,81,0.2); }
