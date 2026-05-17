@@ -105,9 +105,8 @@ html, body { font-family: 'DM Mono', monospace; background: #0f1a19; color: #e8f
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #1a7a6e; border-radius: 2px; }
 .section[data-cat] { display: block; }
-.quick-nav-panel { padding: 8px 6px 12px; border-top: 1px solid rgba(42,157,143,0.2); display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.quick-nav-btn { background: #1e302d; border: 1px solid rgba(42,157,143,0.25); color: #7ab3ac; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; padding: 7px 4px; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: all 0.15s; text-align: center; width: 100%; }
-.quick-nav-btn:active { background: #2a9d8f; color: #fff; border-color: #2a9d8f; }
+.menu-item-admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 10001; align-items: flex-start; justify-content: center; overflow-y: auto; }
+.menu-item-admin-overlay.show { display: flex; }
 .wine-admin-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 10000; align-items: flex-start; justify-content: center; overflow-y: auto; }
 .wine-admin-overlay.show { display: flex; }
 .wine-admin-box { background: #162320; border: 1px solid rgba(42,157,143,0.3); border-radius: 10px; width: 94%; max-width: 520px; margin: 16px auto; flex-shrink: 0; overflow: hidden; }

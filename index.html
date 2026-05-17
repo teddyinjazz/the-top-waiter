@@ -183,51 +183,44 @@
     </div>
   </div>
 
-  <div class="section" data-cat="drinks">
-    <div class="acc-header" onclick="toggleAcc(this)">
-      <span class="acc-title" data-ru="Напитки" data-en="Drinks">Напитки</span>
+  <div class="section" data-cat="beer">
+    <div class="acc-header" id="beerAccHeader">
+      <span class="acc-title" data-ru="Пиво" data-en="Beer">Пиво</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" id="anchor-beer" data-ru="Пиво" data-en="Beer">Пиво</div>
-    <button class="item-btn is-group" data-group="Coral Light" onclick="openVarPopup('Coral Light',this)"><div class="item-name">Coral Light</div><div class="item-footer"><span class="item-price">200 / 300 / 500 мл</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Coral Dark" onclick="openVarPopup('Coral Dark',this)"><div class="item-name">Coral Dark</div><div class="item-footer"><span class="item-price">200 / 300 / 500 мл</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Shandy',3)"><div class="item-name" data-ru="Shandy" data-en="Shandy">Shandy</div><div class="item-desc" data-ru="пиво + лимонад" data-en="beer + lemonade">пиво + лимонад</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Coral Non Alco',2.5)"><div class="item-name">Coral Non Alco</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Coral Puro Malta',2.5)"><div class="item-name">Coral Puro Malta</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Coral Sidra',3)"><div class="item-name">Coral Sidra</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
-    <div class="section-title" id="anchor-wineglass" style="margin-top:6px" data-ru="Вино бокал" data-en="Wine by the Glass">Вино бокал</div>
-    <button class="item-btn" onclick="addItem(this,'Белое вино',4)"><div class="item-name" data-ru="Белое" data-en="White">Белое</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Розовое вино',4)"><div class="item-name" data-ru="Розовое" data-en="Rosé">Розовое</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Зелёное вино',4)"><div class="item-name" data-ru="Зелёное" data-en="Green">Зелёное</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Красное вино',4)"><div class="item-name" data-ru="Красное" data-en="Red">Красное</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Platino Brut',5)"><div class="item-name">Platino Brut</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Prosecco',7)"><div class="item-name">Prosecco</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <div class="section-title" id="anchor-soft" style="margin-top:6px" data-ru="Безалкогольные" data-en="Soft Drinks">Безалкогольные</div>
-    <button class="item-btn" onclick="addItem(this,'Апельсиновый сок свежий',6)"><div class="item-name" data-ru="Апельс. сок" data-en="Fresh orange juice">Апельс. сок</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Смузи киви-банан',6)"><div class="item-name" data-ru="Смузи киви-банан" data-en="Smoothie kiwi-banana">Смузи киви-банан</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Смузи манго-банан',6)"><div class="item-name" data-ru="Смузи манго-банан" data-en="Smoothie mango-banana">Смузи манго-банан</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Смузи мультифрукт',6)"><div class="item-name" data-ru="Смузи мультифрукт" data-en="Smoothie mix fruits">Смузи мультифрукт</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Милкшейк ваниль',5)"><div class="item-name" data-ru="Милкшейк ваниль" data-en="Milkshake vanilla">Милкшейк ваниль</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Милкшейк клубника',5)"><div class="item-name" data-ru="Милкшейк клубника" data-en="Milkshake strawberry">Милкшейк клубника</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Милкшейк шоколад',5)"><div class="item-name" data-ru="Милкшейк шоколад" data-en="Milkshake chocolate">Милкшейк шоколад</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Лимонад классик',6)"><div class="item-name" data-ru="Лимонад классик" data-en="Lemonade classic">Лимонад классик</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Лимонад маракуйя',6)"><div class="item-name" data-ru="Лимонад маракуйя" data-en="Lemonade maracuja">Лимонад маракуйя</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Pepsi / Black',2.5)"><div class="item-name">Pepsi / Black</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'7UP',2.5)"><div class="item-name">7UP</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Lipton Ice Tea',2.5)"><div class="item-name" data-ru="Lipton Ice Tea" data-en="Lipton Ice Tea">Lipton Ice Tea</div><div class="item-desc" data-ru="манго / лимон / персик" data-en="mango / lemon / peach">манго / лимон / персик</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Сок Compal',2.5)"><div class="item-name" data-ru="Сок Compal" data-en="Compal juice">Сок Compal</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Вода" onclick="openVarPopup('Вода',this)"><div class="item-name" data-ru="Вода" data-en="Water">Вода</div><div class="item-footer"><span class="item-price" data-ru="с газом / без газа" data-en="still / sparkling">с газом / без газа</span><span class="item-count">0</span></div></button>
+      <div id="beerList"></div>
+    </div>
+  </div>
 
-<div class="section-title" id="anchor-coffee" style="margin-top:6px" data-ru="Кофе" data-en="Coffee">Кофе</div>
-<button class="item-btn" onclick="addItem(this,'Эспрессо',1.4)"><div class="item-name" data-ru="Эспрессо" data-en="Espresso">Эспрессо</div><div class="item-footer"><span class="item-price">€1.4</span><span class="item-count">0</span></div></button>
-<button class="item-btn" onclick="addItem(this,'Макиато',1.4)"><div class="item-name" data-ru="Макиато" data-en="Macchiato">Макиато</div><div class="item-footer"><span class="item-price">€1.4</span><span class="item-count">0</span></div></button>
-<button class="item-btn" onclick="addItem(this,'Двойной эспрессо',2.5)"><div class="item-name" data-ru="Двойной эспрессо" data-en="Double espresso">Двойной эспрессо</div><div class="item-footer"><span class="item-price">€2.5</span><span class="item-count">0</span></div></button>
-<button class="item-btn" onclick="addItem(this,'Американо',2)"><div class="item-name" data-ru="Американо" data-en="Americano">Американо</div><div class="item-footer"><span class="item-price">€2</span><span class="item-count">0</span></div></button>
-<button class="item-btn" onclick="addItem(this,'Капучино',4)"><div class="item-name" data-ru="Капучино" data-en="Cappuccino">Капучино</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-<button class="item-btn" onclick="addItem(this,'Латте',4)"><div class="item-name" data-ru="Латте" data-en="Latte">Латте</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-</div>
+  <div class="section" data-cat="wineglass">
+    <div class="acc-header" id="wineglassAccHeader">
+      <span class="acc-title" data-ru="Вино бокал" data-en="Wine by the Glass">Вино бокал</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div id="wineglassList"></div>
+    </div>
+  </div>
 
+  <div class="section" data-cat="soft">
+    <div class="acc-header" id="softAccHeader">
+      <span class="acc-title" data-ru="Безалкогольные" data-en="Soft Drinks">Безалкогольные</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div id="softList"></div>
+    </div>
+  </div>
+
+  <div class="section" data-cat="coffee">
+    <div class="acc-header" id="coffeeAccHeader">
+      <span class="acc-title" data-ru="Кофе" data-en="Coffee">Кофе</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div class="acc-body">
+      <div id="coffeeList"></div>
+    </div>
   </div>
 
   <div class="section" data-cat="kombucha">
@@ -314,17 +307,6 @@
     </div>
   </div>
 
-  <div class="quick-nav-panel">
-    <button class="quick-nav-btn" onclick="quickNav('beer')">ПИВО</button>
-    <button class="quick-nav-btn" onclick="quickNav('soft')">SOFT</button>
-    <button class="quick-nav-btn" onclick="quickNav('coffee')">КОФЕ</button>
-    <button class="quick-nav-btn" onclick="quickNav('water')">ВОДА</button>
-    <button class="quick-nav-btn" onclick="quickNav('kombucha')">КОМБУЧА</button>
-    <button class="quick-nav-btn" onclick="quickNav('wineglass')">ВИНО БОКАЛ</button>
-    <button class="quick-nav-btn" onclick="quickNav('wines')">ВИНА</button>
-    <button class="quick-nav-btn" onclick="quickNav('cocktails')">КОКТЕЙЛИ</button>
-    <button class="quick-nav-btn" onclick="quickNav('spirits')">АЛКО</button>
-  </div>
 
 </div>
 
@@ -453,6 +435,75 @@
         <button class="wine-admin-btn wine-admin-btn-save" onclick="wineAdminSave()" data-ru="Сохранить" data-en="Save">Сохранить</button>
         <button class="wine-admin-btn wine-admin-btn-disable" onclick="wineAdminDisable()" data-ru="Отключить" data-en="Disable">Отключить</button>
         <button class="wine-admin-btn" onclick="closeWineAdmin()" data-ru="Закрыть" data-en="Close">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="menu-item-admin-overlay" id="menuItemAdminOverlay">
+  <div class="wine-admin-box">
+    <div class="wine-admin-hdr">
+      <span class="wine-admin-title" id="menuItemAdminTitle">ADMIN</span>
+      <button class="wine-admin-close" onclick="closeMenuItemAdmin()">✕</button>
+    </div>
+    <div class="wine-admin-list-hdr" data-ru="ВСЕ ПОЗИЦИИ" data-en="ALL ITEMS">ВСЕ ПОЗИЦИИ</div>
+    <div class="wine-admin-list-wrap">
+      <div class="wine-admin-list" id="menuItemAdminList"></div>
+    </div>
+    <div class="wine-admin-form-wrap">
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="ID назв." data-en="Order ID">ID назв.</span>
+        <input class="wine-admin-input" id="miaName" type="text" placeholder="internal order name">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="RU назв." data-en="RU label">RU назв.</span>
+        <input class="wine-admin-input" id="miaNameRu" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="EN назв." data-en="EN label">EN назв.</span>
+        <input class="wine-admin-input" id="miaNameEn" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="RU опис." data-en="RU desc">RU опис.</span>
+        <input class="wine-admin-input" id="miaDescRu" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="EN опис." data-en="EN desc">EN опис.</span>
+        <input class="wine-admin-input" id="miaDescEn" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Цена" data-en="Price">Цена</span>
+        <input class="wine-admin-input" id="miaPrice" type="number" min="0" step="0.1" style="max-width:80px">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="RU ярл." data-en="RU lbl">RU ярл.</span>
+        <input class="wine-admin-input" id="miaPriceLabelRu" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="EN ярл." data-en="EN lbl">EN ярл.</span>
+        <input class="wine-admin-input" id="miaPriceLabelEn" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Группа" data-en="Is group">Группа</span>
+        <input type="checkbox" id="miaIsGroup" class="wine-admin-checkbox">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="GroupKey" data-en="GroupKey">GroupKey</span>
+        <input class="wine-admin-input" id="miaGroupKey" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Порядок" data-en="Sort">Порядок</span>
+        <input class="wine-admin-input" id="miaSortOrder" type="number" min="0" step="10" style="max-width:80px">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Актив." data-en="Active">Актив.</span>
+        <input type="checkbox" id="miaActive" class="wine-admin-checkbox" checked>
+      </div>
+      <div class="wine-admin-actions">
+        <button class="wine-admin-btn" onclick="menuItemAdminNew()" data-ru="+ Новое" data-en="+ New">+ Новое</button>
+        <button class="wine-admin-btn wine-admin-btn-save" onclick="saveMenuItemAdmin()" data-ru="Сохранить" data-en="Save">Сохранить</button>
+        <button class="wine-admin-btn wine-admin-btn-disable" onclick="disableMenuItemAdmin()" data-ru="Отключить" data-en="Disable">Отключить</button>
+        <button class="wine-admin-btn" onclick="closeMenuItemAdmin()" data-ru="Закрыть" data-en="Close">Закрыть</button>
       </div>
     </div>
   </div>
