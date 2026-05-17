@@ -57,129 +57,72 @@
     <div class="menu-items-area" id="menuItemsArea">
 
   <div class="section" data-cat="starters">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="startersAccHeader">
       <span class="acc-title" data-ru="Закуски" data-en="Starters">Закуски</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Закуски" data-en="Starters">Закуски</div>
-    <button class="item-btn" onclick="addItem(this,'Брускетта с креветками',7)"><div class="item-name" data-ru="Брускетта" data-en="Bruschetta">Брускетта</div><div class="item-desc" data-ru="cream cheese & креветки" data-en="cream cheese & shrimps">cream cheese & креветки</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Брускетта томаты',6)"><div class="item-name" data-ru="Брускетта 🌿" data-en="Bruschetta 🌿">Брускетта 🌿</div><div class="item-desc" data-ru="вяленые томаты" data-en="sun dried tomatoes">вяленые томаты</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Блин с лососем',7)"><div class="item-name" data-ru="Блин лосось" data-en="Crepe salmon">Блин лосось</div><div class="item-desc" data-ru="лосось, cream cheese" data-en="salmon, cream cheese">лосось, cream cheese</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Блин с говядиной',7)"><div class="item-name" data-ru="Блин говядина" data-en="Crepe beef">Блин говядина</div><div class="item-desc" data-ru="говядина, грибы" data-en="beef & mushrooms">говядина, грибы</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Икра красная" onclick="openVarPopup('Икра красная',this)"><div class="item-name" data-ru="Икра красная" data-en="Red caviar">Икра красная</div><div class="item-footer"><span class="item-price">50 / 100 г</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Камамбер запечённый',14)"><div class="item-name" data-ru="Камамбер 🌿" data-en="Baked camembert 🌿">Камамбер 🌿</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Сырная тарелка',14)"><div class="item-name" data-ru="Сырная тарелка 🌿" data-en="Cheese plate 🌿">Сырная тарелка 🌿</div><div class="item-desc" data-ru="бри, пармезан, горгонзола" data-en="brie, parmesan, gorgonzola">бри, пармезан, горгонзола</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Морепродукты плато',32)"><div class="item-name" data-ru="Плато море" data-en="Seafood platter">Плато море</div><div class="item-desc" data-ru="креветки, осьминог, кальмар" data-en="shrimps, octopus, calamari">креветки, осьминог, кальмар</div><div class="item-footer"><span class="item-price">€32</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Креветки в песто',13)"><div class="item-name" data-ru="Креветки песто" data-en="Shrimps pesto">Креветки песто</div><div class="item-desc" data-ru="вино, соус песто" data-en="wine, pesto sauce">вино, соус песто</div><div class="item-footer"><span class="item-price">€13</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Мидии',13)"><div class="item-name" data-ru="Мидии" data-en="Mussels">Мидии</div><div class="item-footer"><span class="item-price">€13</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Хлебная корзина',5)"><div class="item-name" data-ru="Хлебная корзина" data-en="Bread bowl">Хлебная корзина</div><div class="item-desc" data-ru="боло, ржаной, чиабатта" data-en="bolo do caco, rye, ciabatta">боло, ржаной, чиабатта</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Чесночный хлеб',5)"><div class="item-name" data-ru="Чесночный хлеб" data-en="Garlic bread">Чесночный хлеб</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+      <div id="startersList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="soups">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="soupsAccHeader">
       <span class="acc-title" data-ru="Супы" data-en="Soups">Супы</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Супы" data-en="Soups">Супы</div>
-    <button class="item-btn is-group" data-group="Куриный суп" onclick="openVarPopup('Куриный суп',this)"><div class="item-name" data-ru="Куриный суп" data-en="Chicken soup">Куриный суп</div><div class="item-footer"><span class="item-price" data-ru="чашка / тарелка" data-en="cup / bowl">чашка / тарелка</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Грибной крем" onclick="openVarPopup('Грибной крем',this)"><div class="item-name" data-ru="Грибной крем 🌿" data-en="Mushroom cream 🌿">Грибной крем 🌿</div><div class="item-desc" data-ru="трюфель" data-en="truffle">трюфель</div><div class="item-footer"><span class="item-price" data-ru="чашка / тарелка" data-en="cup / bowl">чашка / тарелка</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Борщ',11)"><div class="item-name" data-ru="Борщ" data-en="Borscht">Борщ</div><div class="item-desc" data-ru="говядина, свёкла, ржаной" data-en="beef, beetroot, rye bread">говядина, свёкла, ржаной</div><div class="item-footer"><span class="item-price">€11</span><span class="item-count">0</span></div></button>
+      <div id="soupsList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="salads">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="saladsAccHeader">
       <span class="acc-title" data-ru="Салаты" data-en="Salads">Салаты</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Салаты" data-en="Salads">Салаты</div>
-    <button class="item-btn" onclick="addItem(this,'Цезарь',10)"><div class="item-name" data-ru="Цезарь 🌿" data-en="Caesar 🌿">Цезарь 🌿</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Цезарь с курицей',12)"><div class="item-name" data-ru="Цезарь + курица" data-en="Caesar + chicken">Цезарь + курица</div><div class="item-footer"><span class="item-price">€12</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Цезарь с креветками',14)"><div class="item-name" data-ru="Цезарь + креветки" data-en="Caesar + shrimps">Цезарь + креветки</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Салат с тунцом',16)"><div class="item-name" data-ru="Тунец кунжут" data-en="Sesame tuna">Тунец кунжут</div><div class="item-desc" data-ru="томаты, кисло-сладкий" data-en="tomatoes, sweet & sour">томаты, кисло-сладкий</div><div class="item-footer"><span class="item-price">€16</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'The TOP салат',16)"><div class="item-name" data-ru="The TOP" data-en="The TOP">The TOP</div><div class="item-desc" data-ru="креветки, манго, бри" data-en="shrimps, mango, brie">креветки, манго, бри</div><div class="item-footer"><span class="item-price">€16</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Ростбиф с горчицей',17)"><div class="item-name" data-ru="Ростбиф" data-en="Roast beef salad">Ростбиф</div><div class="item-desc" data-ru="горчичный дрессинг" data-en="honey mustard dressing">горчичный дрессинг</div><div class="item-footer"><span class="item-price">€17</span><span class="item-count">0</span></div></button>
+      <div id="saladsList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="burgers">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="burgersAccHeader">
       <span class="acc-title" data-ru="Бургеры" data-en="Burgers">Бургеры</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Бургеры" data-en="Burgers">Бургеры</div>
-    <button class="item-btn" onclick="addItem(this,'Классический бургер',14)"><div class="item-name" data-ru="Классический" data-en="Classic">Классический</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Двойной бургер',18)"><div class="item-name" data-ru="Двойной" data-en="Double">Двойной</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Чизбургер',15)"><div class="item-name" data-ru="Чизбургер" data-en="Cheeseburger">Чизбургер</div><div class="item-footer"><span class="item-price">€15</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Двойной чизбургер',19)"><div class="item-name" data-ru="Двойной чиз" data-en="Double cheese">Двойной чиз</div><div class="item-footer"><span class="item-price">€19</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Блю-чиз бургер',16)"><div class="item-name" data-ru="Блю-чиз" data-en="Blue cheese">Блю-чиз</div><div class="item-footer"><span class="item-price">€16</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Двойной блю-чиз',20)"><div class="item-name" data-ru="Двойной блю-чиз" data-en="Double blue cheese">Двойной блю-чиз</div><div class="item-footer"><span class="item-price">€20</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Куриный бургер',13)"><div class="item-name" data-ru="Куриный" data-en="Chicken burger">Куриный</div><div class="item-footer"><span class="item-price">€13</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Вегги-бургер',14)"><div class="item-name" data-ru="Вегги 🌿" data-en="Veggie 🌿">Вегги 🌿</div><div class="item-footer"><span class="item-price">€14</span><span class="item-count">0</span></div></button>
+      <div id="burgersList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="pasta">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="pastaAccHeader">
       <span class="acc-title" data-ru="Паста" data-en="Pasta">Паста</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Паста & Ризотто" data-en="Pasta & Risotto">Паста & Ризотто</div>
-    <button class="item-btn" onclick="addItem(this,'Паста с морепродуктами',18)"><div class="item-name" data-ru="Морепродукты" data-en="Seafood pasta">Морепродукты</div><div class="item-desc" data-ru="креветки, кальмар, мидии" data-en="shrimps, calamari, mussels">креветки, кальмар, мидии</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Карбонара',18)"><div class="item-name" data-ru="Карбонара" data-en="Carbonara">Карбонара</div><div class="item-desc" data-ru="панчетта, бекон" data-en="pancetta, bacon">панчетта, бекон</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Ризотто с грибами',15)"><div class="item-name" data-ru="Ризотто грибы 🌿" data-en="Mushroom risotto 🌿">Ризотто грибы 🌿</div><div class="item-footer"><span class="item-price">€15</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Ризотто с креветками',18)"><div class="item-name" data-ru="Ризотто креветки" data-en="Shrimp risotto">Ризотто креветки</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
+      <div id="pastaList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="mains">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="mainsAccHeader">
       <span class="acc-title" data-ru="Основное" data-en="Mains">Основное</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Основное" data-en="Mains">Основное</div>
-    <button class="item-btn" onclick="addItem(this,'Бефстроганов',18)"><div class="item-name" data-ru="Бефстроганов" data-en="Beef Stroganoff">Бефстроганов</div><div class="item-desc" data-ru="Black Angus, грибы" data-en="Black Angus, mushrooms">Black Angus, грибы</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Эспада',18)"><div class="item-name" data-ru="Эспада" data-en="Espada">Эспада</div><div class="item-desc" data-ru="маракуйя, банан" data-en="maracuja sauce & banana">маракуйя, банан</div><div class="item-footer"><span class="item-price">€18</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Лосось в сливках',25)"><div class="item-name" data-ru="Лосось" data-en="Salmon">Лосось</div><div class="item-desc" data-ru="белое вино, сливки" data-en="white wine cream sauce">белое вино, сливки</div><div class="item-footer"><span class="item-price">€25</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Стейк тунца',0)"><div class="item-name" data-ru="Тунец стейк" data-en="Tuna steak">Тунец стейк</div><div class="item-desc" data-ru="кунжут, терияки" data-en="sesame, teriyaki">кунжут, терияки</div><div class="item-footer"><span class="item-price" data-ru="цена дня" data-en="day price">цена дня</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Утиная грудка',25)"><div class="item-name" data-ru="Утка" data-en="Duck breast">Утка</div><div class="item-desc" data-ru="портвейно-ягодный соус" data-en="porto berries sauce">портвейно-ягодный соус</div><div class="item-footer"><span class="item-price">€25</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Осьминог малиновый',26)"><div class="item-name" data-ru="Осьминог" data-en="Octopus">Осьминог</div><div class="item-desc" data-ru="малиново-бальзамический" data-en="raspberry balsamic glaze">малиново-бальзамический</div><div class="item-footer"><span class="item-price">€26</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Котлета по-киевски',24)"><div class="item-name" data-ru="Котлета Киев" data-en="Chicken Kyiv">Котлета Киев</div><div class="item-desc" data-ru="зелень, чесночное масло" data-en="herbs, garlic butter">зелень, чесночное масло</div><div class="item-footer"><span class="item-price">€24</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Рибай 350г',28)"><div class="item-name" data-ru="Рибай 350г" data-en="Ribeye 350g">Рибай 350г</div><div class="item-desc" data-ru="перечный соус" data-en="pepper cream sauce">перечный соус</div><div class="item-footer"><span class="item-price">€28</span><span class="item-count">0</span></div></button>
-    <div class="section-title" style="margin-top:6px" data-ru="Гарниры" data-en="Side Dishes">Гарниры</div>
-    <button class="item-btn" onclick="addItem(this,'Рис',3)"><div class="item-name" data-ru="Рис" data-en="Rice">Рис</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Овощи',3)"><div class="item-name" data-ru="Овощи" data-en="Vegetables">Овощи</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Спагетти',3)"><div class="item-name" data-ru="Спагетти" data-en="Spaghetti">Спагетти</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Салат гарнир',3)"><div class="item-name" data-ru="Салат" data-en="Salad">Салат</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Спаржа',4)"><div class="item-name" data-ru="Спаржа" data-en="Asparagus">Спаржа</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Пюре',4)"><div class="item-name" data-ru="Пюре" data-en="Mashed potato">Пюре</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Жареный картофель',4)"><div class="item-name" data-ru="Жар. картофель" data-en="Roast potato">Жар. картофель</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Картофель фри',3)"><div class="item-name" data-ru="Картофель фри" data-en="French fries">Картофель фри</div><div class="item-footer"><span class="item-price">€3</span><span class="item-count">0</span></div></button>
+      <div id="mainsList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="desserts">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="dessertsAccHeader">
       <span class="acc-title" data-ru="Десерты" data-en="Desserts">Десерты</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Десерты" data-en="Desserts">Десерты</div>
-    <button class="item-btn" onclick="addItem(this,'The TOP десерт',8)"><div class="item-name" data-ru="The TOP" data-en="The TOP">The TOP</div><div class="item-desc" data-ru="меренговый рулет" data-en="raspberry & pistachio meringue roll">меренговый рулет</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Наполеон',10)"><div class="item-name" data-ru="Наполеон" data-en="Napoleon">Наполеон</div><div class="item-desc" data-ru="слоёный, ванильный крем" data-en="layered pastry, vanilla custard cream">слоёный, ванильный крем</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Медовик',8)"><div class="item-name" data-ru="Медовик" data-en="Honey Cake (Medovik)">Медовик</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Блины с мороженым',6)"><div class="item-name" data-ru="Блины + мороженое" data-en="Crepes + ice cream">Блины + мороженое</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Яблочный штрудель',7)"><div class="item-name" data-ru="Штрудель" data-en="Apple strudel">Штрудель</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Сырники" onclick="openVarPopup('Сырники',this)"><div class="item-name" data-ru="Сырники" data-en="Syrniki">Сырники</div><div class="item-desc" data-ru="творожные" data-en="cottage cheese">творожные</div><div class="item-footer"><span class="item-price">2 / 4 шт</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Мороженое',5)"><div class="item-name" data-ru="Мороженое" data-en="Ice cream">Мороженое</div><div class="item-desc" data-ru="ваниль, шоколад, клубника" data-en="vanilla, chocolate, strawberry">ваниль, шоколад, клубника</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
+      <div id="dessertsList"></div>
     </div>
   </div>
 
@@ -224,76 +167,32 @@
   </div>
 
   <div class="section" data-cat="kombucha">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="kombuchaAccHeader">
       <span class="acc-title" data-ru="Комбуча" data-en="Kombucha">Комбуча</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" style="margin-top:6px" data-ru="Комбуча" data-en="Kombucha">Комбуча</div>
-    <button class="item-btn is-group" data-group="Комбуча черный чай" onclick="openVarPopup('Комбуча черный чай',this)"><div class="item-name" data-ru="Комбуча чёрный чай" data-en="Kombucha Black Tea">Комбуча чёрный чай</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Комбуча черный кофе" onclick="openVarPopup('Комбуча черный кофе',this)"><div class="item-name" data-ru="Комбуча чёрный кофе" data-en="Kombucha Black Coffee">Комбуча чёрный кофе</div><div class="item-footer"><span class="item-price">75 / 250 / 500 мл</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Комбуча Beetroot Ginger Mint" onclick="openVarPopup('Комбуча Beetroot Ginger Mint',this)"><div class="item-name" data-ru="Комбуча Beetroot·Ginger·Mint" data-en="Kombucha Beetroot·Ginger·Mint">Комбуча Beetroot·Ginger·Mint</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Комбуча Green Tea Grapefruit" onclick="openVarPopup('Комбуча Green Tea Grapefruit',this)"><div class="item-name" data-ru="Комбуча Green Tea·Grapefruit" data-en="Kombucha Green Tea·Grapefruit">Комбуча Green Tea·Grapefruit</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
-    <button class="item-btn is-group" data-group="Комбуча Red Fruits Hibiscus" onclick="openVarPopup('Комбуча Red Fruits Hibiscus',this)"><div class="item-name" data-ru="Комбуча Red Fruits·Hibiscus" data-en="Kombucha Red Fruits·Hibiscus">Комбуча Red Fruits·Hibiscus</div><div class="item-footer"><span class="item-price">150 / 500 / 1000 мл</span><span class="item-count">0</span></div></button>
+      <div id="kombuchaList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="spirits">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="spiritsAccHeader">
       <span class="acc-title" data-ru="Алкоголь" data-en="Spirits">Алкоголь</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Крепкий алкоголь" data-en="Spirits">Крепкий алкоголь</div>
-    <button class="item-btn" onclick="addItem(this,'Eristoff',5)"><div class="item-name" data-ru="Eristoff" data-en="Eristoff">Eristoff</div><div class="item-desc" data-ru="водка" data-en="vodka">водка</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Absolut',6)"><div class="item-name" data-ru="Absolut" data-en="Absolut">Absolut</div><div class="item-desc" data-ru="водка" data-en="vodka">водка</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Tanqueray',6)"><div class="item-name" data-ru="Tanqueray" data-en="Tanqueray">Tanqueray</div><div class="item-desc" data-ru="джин" data-en="gin">джин</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Bacardi',6)"><div class="item-name" data-ru="Bacardi" data-en="Bacardi">Bacardi</div><div class="item-desc" data-ru="ром" data-en="rum">ром</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Jose Cuervo',6)"><div class="item-name" data-ru="Jose Cuervo" data-en="Jose Cuervo">Jose Cuervo</div><div class="item-desc" data-ru="текила" data-en="tequila">текила</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Jameson',7)"><div class="item-name" data-ru="Jameson" data-en="Jameson">Jameson</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Jack Daniels',7)"><div class="item-name" data-ru="Jack Daniels" data-en="Jack Daniels">Jack Daniels</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€7</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Dewars',6)"><div class="item-name" data-ru="Dewars" data-en="Dewars">Dewars</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€6</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Chivas Royal Salute',30)"><div class="item-name" data-ru="Chivas Royal" data-en="Chivas Royal">Chivas Royal</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€30</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Blue Label',60)"><div class="item-name" data-ru="Blue Label" data-en="Blue Label">Blue Label</div><div class="item-desc" data-ru="виски" data-en="whiskey">виски</div><div class="item-footer"><span class="item-price">€60</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Hennessy',10)"><div class="item-name" data-ru="Hennessy" data-en="Hennessy">Hennessy</div><div class="item-desc" data-ru="коньяк" data-en="cognac">коньяк</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <div class="section-title" style="margin-top:6px" data-ru="Ликёры" data-en="Liqueurs">Ликёры</div>
-    <button class="item-btn" onclick="addItem(this,'Jagermeister',5)"><div class="item-name">Jagermeister</div><div class="item-footer"><span class="item-price">€5</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Fernet',4)"><div class="item-name">Fernet</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Campari',4)"><div class="item-name">Campari</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Baileys',4)"><div class="item-name">Baileys</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Kahlua',4)"><div class="item-name">Kahlua</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Aperol',4)"><div class="item-name">Aperol</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Disaronno',4)"><div class="item-name">Disaronno</div><div class="item-footer"><span class="item-price">€4</span><span class="item-count">0</span></div></button>
+      <div id="spiritsList"></div>
     </div>
   </div>
 
   <div class="section" data-cat="cocktails">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="cocktailsAccHeader">
       <span class="acc-title bar-title" data-ru="Коктейли" data-en="Cocktails">Коктейли</span>
       <span class="acc-arrow">▼</span>
     </div>
     <div class="acc-body">
-    <div class="section-title" data-ru="Коктейли" data-en="Cocktails">Коктейли</div>
-    <button class="item-btn" onclick="addItem(this,'Aperol Spritz',8)"><div class="item-name">Aperol Spritz</div><div class="item-desc">Aperol, Sparkling Wine, Soda</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Hugo Spritz',8)"><div class="item-name">Hugo Spritz</div><div class="item-desc">St.Germain, Prosecco, Soda Water</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'French 75',8)"><div class="item-name">French 75</div><div class="item-desc">Gin, Lemon, Simple Syrup, Prosecco</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Old Fashioned',8)"><div class="item-name">Old Fashioned</div><div class="item-desc">Jack Daniels, Angostura, Simple Syrup</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Caipirinha',8)"><div class="item-name">Caipirinha</div><div class="item-desc">Cachaca, Brown Sugar, Lime</div><div class="item-footer"><span class="item-price">€8</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Penicillin',9)"><div class="item-name">Penicillin</div><div class="item-desc">Scotch Whiskey, Honey, Ginger, Lemon</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Passion Long',9)"><div class="item-name">Passion Long</div><div class="item-desc">Vodka, Passion Syrup, Passion Puree, Peach Juice</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Amaretto Sour',9)"><div class="item-name">Amaretto Sour</div><div class="item-desc">Jack Daniels, Amaretto, Lemon, Egg White</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Espresso Martini',9)"><div class="item-name">Espresso Martini</div><div class="item-desc">Vanilla Vodka, Kahlua, Double Espresso</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Basil Smash',9)"><div class="item-name">Basil Smash</div><div class="item-desc">Gin, Lemon, Brown Sugar, St.Germain, Soda</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Ginger Mule',9)"><div class="item-name">Ginger Mule</div><div class="item-desc">Vodka, Ginger Syrup, Ginger Ale, Lemon</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Melon Fizz',9)"><div class="item-name">Melon Fizz</div><div class="item-desc">Rum, Midori, Lemon Juice, Pineapple Juice</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Lynchburg Lemonade',9)"><div class="item-name">Lynchburg Lemonade</div><div class="item-desc">Jack Daniels, Triple Sec, Peach Liqueur, Soda</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Cream Gin Fizz',9)"><div class="item-name">Cream Gin Fizz</div><div class="item-desc">Gin, Cream, Vanilla Syrup, Lemon</div><div class="item-footer"><span class="item-price">€9</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Strawberry Margarita',10)"><div class="item-name">Strawberry Margarita</div><div class="item-desc">Tequila, Triple Sec, Strawberry, Lime</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Singapur Sling',10)"><div class="item-name">Singapur Sling</div><div class="item-desc">Gin, Triple Sec, Lemon, Pineapple, Cherry Brandy</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Mango Caipirinha',10)"><div class="item-name">Mango Caipirinha</div><div class="item-desc">Fresh Mango, Cachaca, Brown Sugar, Lime</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <button class="item-btn" onclick="addItem(this,'Porn Star',10)"><div class="item-name">Porn Star</div><div class="item-footer"><span class="item-price">€10</span><span class="item-count">0</span></div></button>
-    <div class="section-title" style="margin-top:6px" data-ru="Сангрия" data-en="Sangria">Сангрия</div>
-    <button class="item-btn is-group" data-group="Сангрия" onclick="openVarPopup('Сангрия',this)"><div class="item-name" data-ru="Сангрия" data-en="Sangria">Сангрия</div><div class="item-footer"><span class="item-price">0.5 / 1 л</span><span class="item-count">0</span></div></button>
+      <div id="cocktailsList"></div>
     </div>
   </div>
 
@@ -482,6 +381,14 @@
       <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="EN ярл." data-en="EN lbl">EN ярл.</span>
         <input class="wine-admin-input" id="miaPriceLabelEn" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Гарнир?" data-en="Needs side">Гарнир?</span>
+        <input type="checkbox" id="miaNeedsSide" class="wine-admin-checkbox">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Side type" data-en="Side type">Side type</span>
+        <input class="wine-admin-input" id="miaSideType" type="text">
       </div>
       <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="Группа" data-en="Is group">Группа</span>
