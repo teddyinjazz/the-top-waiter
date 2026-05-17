@@ -465,6 +465,29 @@
         { ru: 'Тарелка', en: 'Bowl', name: 'Грибной крем тарелка', price: 8 },
       ]
     },
+    'Смузи': {
+      ru: 'Смузи', en: 'Smoothie',
+      variants: [
+        { ru: 'Киви-банан',   en: 'Kiwi-banana',   name: 'Смузи киви-банан',  price: 6 },
+        { ru: 'Манго-банан',  en: 'Mango-banana',   name: 'Смузи манго-банан', price: 6 },
+        { ru: 'Мультифрукт', en: 'Mix fruits',      name: 'Смузи мультифрукт', price: 6 },
+      ]
+    },
+    'Милкшейк': {
+      ru: 'Милкшейк', en: 'Milkshake',
+      variants: [
+        { ru: 'Ваниль',   en: 'Vanilla',    name: 'Милкшейк ваниль',   price: 5 },
+        { ru: 'Клубника', en: 'Strawberry', name: 'Милкшейк клубника', price: 5 },
+        { ru: 'Шоколад',  en: 'Chocolate',  name: 'Милкшейк шоколад',  price: 5 },
+      ]
+    },
+    'Лимонад': {
+      ru: 'Лимонад', en: 'Lemonade',
+      variants: [
+        { ru: 'Классик',  en: 'Classic',  name: 'Лимонад классик',  price: 6 },
+        { ru: 'Маракуйя', en: 'Maracuja', name: 'Лимонад маракуйя', price: 6 },
+      ]
+    },
   };
 
   // =============================================
@@ -1371,10 +1394,10 @@
   // EDITABLE MENU SECTIONS
   // =============================================
   const EDITABLE_SECTION_KEYS = [
-    'water',
+    'water', 'kombucha', 'soft',
     'starters', 'soups', 'salads', 'burgers', 'pasta', 'mains', 'desserts',
-    'wineglass', 'soft', 'coffee',
-    'kombucha', 'spirits', 'cocktails',
+    'wineglass', 'coffee',
+    'spirits', 'cocktails',
   ];
 
   const EDITABLE_SECTION_TITLES_RU = {
@@ -1487,20 +1510,14 @@
       prosecco:     { name: 'Prosecco',     nameRu: 'Prosecco',     nameEn: 'Prosecco',     price: 7, isGroup: false, isActive: true, sortOrder: 60 },
     },
     soft: {
-      fresh_orange:          { name: 'Апельсиновый сок свежий', nameRu: 'Апельс. сок',       nameEn: 'Fresh orange juice',    price: 6,   isGroup: false, isActive: true, sortOrder: 10  },
-      smoothie_kiwi_banana:  { name: 'Смузи киви-банан',        nameRu: 'Смузи киви-банан',  nameEn: 'Smoothie kiwi-banana',  price: 6,   isGroup: false, isActive: true, sortOrder: 20  },
-      smoothie_mango_banana: { name: 'Смузи манго-банан',       nameRu: 'Смузи манго-банан', nameEn: 'Smoothie mango-banana', price: 6,   isGroup: false, isActive: true, sortOrder: 30  },
-      smoothie_mix:          { name: 'Смузи мультифрукт',       nameRu: 'Смузи мультифрукт', nameEn: 'Smoothie mix fruits',   price: 6,   isGroup: false, isActive: true, sortOrder: 40  },
-      milkshake_vanilla:     { name: 'Милкшейк ваниль',         nameRu: 'Милкшейк ваниль',   nameEn: 'Milkshake vanilla',     price: 5,   isGroup: false, isActive: true, sortOrder: 50  },
-      milkshake_strawberry:  { name: 'Милкшейк клубника',       nameRu: 'Милкшейк клубника', nameEn: 'Milkshake strawberry',  price: 5,   isGroup: false, isActive: true, sortOrder: 60  },
-      milkshake_chocolate:   { name: 'Милкшейк шоколад',        nameRu: 'Милкшейк шоколад',  nameEn: 'Milkshake chocolate',   price: 5,   isGroup: false, isActive: true, sortOrder: 70  },
-      lemonade_classic:      { name: 'Лимонад классик',         nameRu: 'Лимонад классик',   nameEn: 'Lemonade classic',      price: 6,   isGroup: false, isActive: true, sortOrder: 80  },
-      lemonade_maracuja:     { name: 'Лимонад маракуйя',        nameRu: 'Лимонад маракуйя',  nameEn: 'Lemonade maracuja',     price: 6,   isGroup: false, isActive: true, sortOrder: 90  },
-      pepsi:                 { name: 'Pepsi / Black',           nameRu: 'Pepsi / Black',     nameEn: 'Pepsi / Black',         price: 2.5, isGroup: false, isActive: true, sortOrder: 100 },
-      seven_up:              { name: '7UP',                     nameRu: '7UP',               nameEn: '7UP',                   price: 2.5, isGroup: false, isActive: true, sortOrder: 110 },
-      lipton:                { name: 'Lipton Ice Tea',          nameRu: 'Lipton Ice Tea',    nameEn: 'Lipton Ice Tea',        descRu: 'манго / лимон / персик', descEn: 'mango / lemon / peach', price: 2.5, isGroup: false, isActive: true, sortOrder: 120 },
-      compal:                { name: 'Сок Compal',              nameRu: 'Сок Compal',        nameEn: 'Compal juice',          price: 2.5, isGroup: false, isActive: true, sortOrder: 130 },
-      water:                 { name: 'Вода',                    nameRu: 'Вода',              nameEn: 'Water',                 priceLabelRu: 'с газом / без газа', priceLabelEn: 'still / sparkling', isGroup: true, groupKey: 'Вода', isActive: true, sortOrder: 140 },
+      fresh_orange:    { name: 'Апельсиновый сок свежий', nameRu: 'Апельс. сок',  nameEn: 'Fresh orange juice',  price: 6,   isGroup: false, isActive: true, sortOrder: 10 },
+      smoothie_group:  { name: 'Смузи',    nameRu: 'Смузи',    nameEn: 'Smoothie',  priceLabelRu: 'киви-банан / манго-банан / мультифрукт', priceLabelEn: 'kiwi-banana / mango-banana / mix fruits', isGroup: true, groupKey: 'Смузи',    isActive: true, sortOrder: 20 },
+      milkshake_group: { name: 'Милкшейк', nameRu: 'Милкшейк', nameEn: 'Milkshake', priceLabelRu: 'ваниль / клубника / шоколад',           priceLabelEn: 'vanilla / strawberry / chocolate',       isGroup: true, groupKey: 'Милкшейк', isActive: true, sortOrder: 30 },
+      lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40 },
+      pepsi:           { name: 'Pepsi / Black',           nameRu: 'Pepsi / Black',  nameEn: 'Pepsi / Black',       price: 2.5, isGroup: false, isActive: true, sortOrder: 50 },
+      seven_up:        { name: '7UP',                     nameRu: '7UP',            nameEn: '7UP',                 price: 2.5, isGroup: false, isActive: true, sortOrder: 60 },
+      lipton:          { name: 'Lipton Ice Tea',          nameRu: 'Lipton Ice Tea', nameEn: 'Lipton Ice Tea',      descRu: 'манго / лимон / персик', descEn: 'mango / lemon / peach', price: 2.5, isGroup: false, isActive: true, sortOrder: 70 },
+      compal:          { name: 'Сок Compal',              nameRu: 'Сок Compal',     nameEn: 'Compal juice',        price: 2.5, isGroup: false, isActive: true, sortOrder: 80 },
     },
     coffee: {
       espresso:        { name: 'Эспрессо',         nameRu: 'Эспрессо',         nameEn: 'Espresso',        price: 1.4, isGroup: false, isActive: true, sortOrder: 10 },
@@ -1573,9 +1590,19 @@
     const container = document.getElementById(sectionKey + 'List');
     if (!container) return;
     const items = editableSections[sectionKey] || {};
+    const softActiveGroupKeys = sectionKey === 'soft'
+      ? new Set(Object.values(items).filter(i => i.isGroup && i.isActive !== false).map(i => i.groupKey))
+      : null;
     const activeItems = Object.entries(items)
       .filter(([, item]) => item.isActive !== false)
       .filter(([, item]) => !(sectionKey === 'soft' && item.groupKey === 'Вода'))
+      .filter(([, item]) => {
+        if (sectionKey !== 'soft' || item.isGroup) return true;
+        if (softActiveGroupKeys.has('Смузи')    && item.name && item.name.startsWith('Смузи '))    return false;
+        if (softActiveGroupKeys.has('Милкшейк') && item.name && item.name.startsWith('Милкшейк ')) return false;
+        if (softActiveGroupKeys.has('Лимонад')  && item.name && item.name.startsWith('Лимонад '))  return false;
+        return true;
+      })
       .sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
     if (!activeItems.length) {
       container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
@@ -1825,6 +1852,28 @@
     document.getElementById('miaActive').checked = false;
   }
 
+  function syncSoftGroupItemsIfMissing() {
+    const groupSeeds = {
+      smoothie_group:  { name: 'Смузи',    nameRu: 'Смузи',    nameEn: 'Smoothie',  priceLabelRu: 'киви-банан / манго-банан / мультифрукт', priceLabelEn: 'kiwi-banana / mango-banana / mix fruits', isGroup: true, groupKey: 'Смузи',    isActive: true, sortOrder: 20 },
+      milkshake_group: { name: 'Милкшейк', nameRu: 'Милкшейк', nameEn: 'Milkshake', priceLabelRu: 'ваниль / клубника / шоколад',           priceLabelEn: 'vanilla / strawberry / chocolate',       isGroup: true, groupKey: 'Милкшейк', isActive: true, sortOrder: 30 },
+      lemonade_group:  { name: 'Лимонад',  nameRu: 'Лимонад',  nameEn: 'Lemonade',  priceLabelRu: 'классик / маракуйя',                    priceLabelEn: 'classic / maracuja',                     isGroup: true, groupKey: 'Лимонад',  isActive: true, sortOrder: 40 },
+    };
+    db.ref('menuSections/soft/items').once('value', snap => {
+      const existing = snap.val() || {};
+      const now = Date.now();
+      const updates = {};
+      Object.entries(groupSeeds).forEach(([id, seed]) => {
+        if (existing[id]) return;
+        const alreadyGrouped = Object.values(existing).some(item => item.isGroup && item.groupKey === seed.groupKey);
+        if (alreadyGrouped) return;
+        updates[id] = Object.assign({}, seed, { createdAt: now, updatedAt: now });
+      });
+      if (Object.keys(updates).length > 0) {
+        db.ref('menuSections/soft/items').update(updates);
+      }
+    });
+  }
+
   function syncBeerItemsIntoWaterSectionOnce() {
     db.ref('menuSections/beer/items').once('value', beerSnap => {
       const beerItems = beerSnap.val();
@@ -1957,6 +2006,7 @@
       initEditableSectionItemLongPress(key);
     });
     seedEditableMenuSectionsIfEmpty();
+    syncSoftGroupItemsIfMissing();
     syncBeerItemsIntoWaterSectionOnce();
     loadEditableMenuSections();
   });
