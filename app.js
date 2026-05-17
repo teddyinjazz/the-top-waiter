@@ -1064,6 +1064,21 @@
 
     const menuIndex = buildMenuOrderIndex();
 
+    // DEBUG: log sortKey for tracked items when present in order
+    (function() {
+      var watch = ['Комбуча Green Tea Grapefruit 150мл','Хлебная корзина','Чесночный хлеб','The TOP салат','Aveleda Fonte Vinho Verde Branco','Лосось в сливках','Стейк тунца'];
+      var present = watch.filter(function(n) { return tableOrder[n]; });
+      if (present.length > 0) {
+        console.group('[ORDER SORT DEBUG] sortKeys for current order:');
+        present.forEach(function(n) {
+          var item = tableOrder[n] || {};
+          var lookupName = item.displayName || item.itemName || n;
+          console.log(n, '→ sortKey:', menuIndex[lookupName] !== undefined ? menuIndex[lookupName] : 999999, '(index key: "' + lookupName + '")');
+        });
+        console.groupEnd();
+      }
+    })();
+
     const blocks = [];
     Object.entries(pairs).forEach(([, pair]) => {
       const mainKey = pair.mainKey || '';
@@ -1324,6 +1339,7 @@
       const adminOverlay = document.getElementById('wineAdminOverlay');
       if (adminOverlay && adminOverlay.classList.contains('show')) renderWineAdminList();
       restoreMenuVisual();
+      renderOrder();
     });
   }
 
@@ -1742,6 +1758,7 @@
       db.ref('menuSections/' + sectionKey + '/items').on('value', snapshot => {
         editableSections[sectionKey] = snapshot.val() || {};
         renderEditableSection(sectionKey);
+        renderOrder();
         const adminOverlay = document.getElementById('menuItemAdminOverlay');
         if (adminOverlay && adminOverlay.classList.contains('show') && currentMenuItemAdminSection === sectionKey) {
           renderMenuItemAdminList();
