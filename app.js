@@ -223,6 +223,10 @@
     'Porn Star': 'Porn Star',
     'Сангрия 0.5л': 'Sangria 0.5l',
     'Сангрия 1л': 'Sangria 1l',
+    'Сангрия красная 0.5л': 'Red Sangria 0.5l',
+    'Сангрия красная 1л': 'Red Sangria 1l',
+    'Сангрия белая 0.5л': 'White Sangria 0.5l',
+    'Сангрия белая 1л': 'White Sangria 1l',
   };
 
   function displayName(name) {
@@ -416,8 +420,10 @@
     'Сангрия': {
       ru: 'Сангрия', en: 'Sangria',
       variants: [
-        { ru: '0.5 л', en: '0.5l', name: 'Сангрия 0.5л', price: 8 },
-        { ru: '1 л', en: '1l', name: 'Сангрия 1л', price: 15 },
+        { ru: 'Красная 0.5 л', en: 'Red 0.5l',   name: 'Сангрия красная 0.5л', price: 8  },
+        { ru: 'Красная 1 л',   en: 'Red 1l',     name: 'Сангрия красная 1л',   price: 15 },
+        { ru: 'Белая 0.5 л',   en: 'White 0.5l', name: 'Сангрия белая 0.5л',   price: 8  },
+        { ru: 'Белая 1 л',     en: 'White 1l',   name: 'Сангрия белая 1л',     price: 15 },
       ]
     },
     'Икра красная': {
@@ -1394,10 +1400,9 @@
   // EDITABLE MENU SECTIONS
   // =============================================
   const EDITABLE_SECTION_KEYS = [
-    'water', 'kombucha', 'soft',
+    'water', 'kombucha', 'soft', 'wineglass', 'cocktails',
     'starters', 'soups', 'salads', 'burgers', 'pasta', 'mains', 'desserts',
-    'wineglass', 'coffee',
-    'spirits', 'cocktails',
+    'coffee', 'spirits',
   ];
 
   const EDITABLE_SECTION_TITLES_RU = {
@@ -1573,7 +1578,7 @@
       singapore_sling:      { name: 'Singapur Sling',       nameRu: 'Singapur Sling',       nameEn: 'Singapore Sling',      descRu: 'Gin, Triple Sec, Lemon, Pineapple, Cherry Brandy',  descEn: 'Gin, Triple Sec, Lemon, Pineapple, Cherry Brandy',  price: 10, isGroup: false, isActive: true, sortOrder: 160 },
       mango_caipirinha:     { name: 'Mango Caipirinha',     nameRu: 'Mango Caipirinha',     nameEn: 'Mango Caipirinha',     descRu: 'Fresh Mango, Cachaca, Brown Sugar, Lime',           descEn: 'Fresh Mango, Cachaca, Brown Sugar, Lime',           price: 10, isGroup: false, isActive: true, sortOrder: 170 },
       porn_star:            { name: 'Porn Star',            nameRu: 'Porn Star',            nameEn: 'Porn Star',            price: 10, isGroup: false, isActive: true, sortOrder: 180 },
-      sangria:              { name: 'Сангрия',              nameRu: 'Сангрия',              nameEn: 'Sangria',              priceLabelRu: '0.5 / 1 л', priceLabelEn: '0.5 / 1 l', isGroup: true, groupKey: 'Сангрия', isActive: true, sortOrder: 190 },
+      sangria:              { name: 'Сангрия',              nameRu: 'Сангрия',              nameEn: 'Sangria',              priceLabelRu: 'белая / красная · 0.5 / 1 л', priceLabelEn: 'white / red · 0.5 / 1 l', isGroup: true, groupKey: 'Сангрия', isActive: true, sortOrder: 190 },
     },
   };
 
