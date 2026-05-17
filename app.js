@@ -1608,7 +1608,14 @@
         if (softActiveGroupKeys.has('Лимонад')  && item.name && item.name.startsWith('Лимонад '))  return false;
         return true;
       })
-      .sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      .sort(([, a], [, b]) => {
+        if (sectionKey === 'cocktails') {
+          const nameA = (lang === 'ru' ? a.nameRu || a.name : a.nameEn || a.name) || '';
+          const nameB = (lang === 'ru' ? b.nameRu || b.name : b.nameEn || b.name) || '';
+          return nameA.localeCompare(nameB, lang === 'ru' ? 'ru' : 'en');
+        }
+        return (a.sortOrder || 0) - (b.sortOrder || 0);
+      });
     if (!activeItems.length) {
       container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
         (lang === 'ru' ? 'Нет позиций' : 'No items') + '</div>';
