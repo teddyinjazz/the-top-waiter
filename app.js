@@ -44,7 +44,7 @@
     localStorage.setItem('lang', lang);
     applyLang();
     renderOrder();
-    loadWines();
+    renderWines(cachedWines);
   }
 
 
@@ -239,8 +239,6 @@
   let pendingSide = null;
 
   const STOPLIST_KEY = 'stoplist';
-
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyU15zGkh9pnZcCaRSrMfW8IQC1YIvyO0pBtAAJsJSwfE2pW24J0-avO7o9891qAShwwQ/exec';
 
   const SIDES = [
     { name: 'Рис', price: 3 }, { name: 'Овощи', price: 3 },
@@ -1176,50 +1174,229 @@
   }
 
   // =============================================
-  // WINES
+  // WINES — Firebase Realtime Database
   // =============================================
-  async function loadWines() {
+
+  const WINE_GROUPS_RU = {
+    sparkling: '🥂 Игристое', white: '⚪ Белое', green: '🟢 Зелёное',
+    rose: '🌸 Розовое', red: '🔴 Красное', orange: '🟠 Оранжевое',
+    fortified: '🍷 Креплёное', dessert: '🍯 Десертное', other: '🍷 Другое',
+  };
+  const WINE_GROUPS_EN = {
+    sparkling: '🥂 Sparkling', white: '⚪ White', green: '🟢 Green',
+    rose: '🌸 Rosé', red: '🔴 Red', orange: '🟠 Orange',
+    fortified: '🍷 Fortified', dessert: '🍯 Dessert', other: '🍷 Other',
+  };
+  const WINE_GROUP_ORDER = ['sparkling','white','green','rose','red','orange','fortified','dessert','other'];
+
+  let cachedWines = [];
+  let allWines = {};
+
+  function getWineGroup(wine) {
+    if (wine.style === 'sparkling') return 'sparkling';
+    if (wine.style === 'fortified') return 'fortified';
+    if (wine.style === 'dessert') return 'dessert';
+    const c = wine.color || 'other';
+    return ['white','green','red','rose','orange'].includes(c) ? c : 'other';
+  }
+
+  function renderWines(wines) {
     const container = document.getElementById('winesList');
-    try {
-      const res = await fetch(SCRIPT_URL);
-      const wines = await res.json();
-      if (!wines || wines.length === 0) {
-        container.innerHTML = lang === 'ru' ? '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">Нет вин в папке</div>' : '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">No wines in folder</div>';
-        return;
-      }
-      const ruGroups = { '🔴 Красное': [], '⚪ Белое': [], '🌸 Розовое': [], '🥂 Игристое': [], '🍷 Другое': [] };
-      const enGroups = { '🔴 Red': [], '⚪ White': [], '🌸 Rosé': [], '🥂 Sparkling': [], '🍷 Other': [] };
-      const groups = lang === 'ru' ? ruGroups : enGroups;
-      wines.forEach(wine => {
-        const priceMatch = wine.filename.match(/(\d+)[€e]?\s*(\.|$)/);
-        const price = priceMatch ? parseInt(priceMatch[1]) : 0;
-        const name = wine.filename.replace(/\.[^/.]+$/, '').replace(/\d+[€e]?\s*$/, '').trim();
-        let group = '🍷 Другое';
-        const fn = wine.filename.toLowerCase();
-        let ruGroup = '🍷 Другое', enGroup = '🍷 Other';
-        if (fn.includes('красн') || fn.includes('tinto') || fn.includes('red')) { ruGroup = '🔴 Красное'; enGroup = '🔴 Red'; }
-        else if (fn.includes('бел') || fn.includes('branco') || fn.includes('white') || fn.includes('verde') || fn.includes('vinho')) { ruGroup = '⚪ Белое'; enGroup = '⚪ White'; }
-        else if (fn.includes('розов') || fn.includes('rosé') || fn.includes('rose') || fn.includes('rosado')) { ruGroup = '🌸 Розовое'; enGroup = '🌸 Rosé'; }
-        else if (fn.includes('игрист') || fn.includes('prosecco') || fn.includes('sparkling') || fn.includes('cava') || fn.includes('brut')) { ruGroup = '🥂 Игристое'; enGroup = '🥂 Sparkling'; }
-        ruGroups[ruGroup].push({ name, price });
-        enGroups[enGroup].push({ name, price });
-      });
-      let html = '';
-      Object.entries(groups).forEach(([groupName, items]) => {
-        if (!items.length) return;
-        html += `<div class="section-title" style="margin-top:6px">${groupName}</div>`;
-        items.forEach(w => {
-          const safeName = w.name.replace(/'/g, "\\'");
-          html += `<button class="item-btn" onclick="addItem(this,'${safeName}',${w.price})"><div class="item-name">${escapeHtml(w.name)}</div><div class="item-footer"><span class="item-price">${w.price ? '€'+w.price : '—'}</span><span class="item-count">0</span></div></button>`;
-        });
-      });
-      container.innerHTML = html || (lang === 'ru'
-        ? '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">Нет вин в папке</div>'
-        : '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">No wines in folder</div>');
-      restoreMenuVisual();
-    } catch(e) {
-      container.innerHTML = lang === 'ru' ? '<div style="color:#e76f51;font-size:10px;text-align:center;padding:10px">Ошибка загрузки вин</div>' : '<div style="color:#e76f51;font-size:10px;text-align:center;padding:10px">Wine loading error</div>';
+    if (!container) return;
+    if (!wines || wines.length === 0) {
+      container.innerHTML = lang === 'ru'
+        ? '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">Нет вин</div>'
+        : '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">No wines</div>';
+      return;
     }
+    const titles = lang === 'ru' ? WINE_GROUPS_RU : WINE_GROUPS_EN;
+    const groups = {};
+    wines.forEach(w => {
+      const g = getWineGroup(w);
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(w);
+    });
+    Object.values(groups).forEach(arr => arr.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+    let html = '';
+    WINE_GROUP_ORDER.forEach(g => {
+      if (!groups[g] || !groups[g].length) return;
+      html += `<div class="section-title" style="margin-top:6px">${escapeHtml(titles[g])}</div>`;
+      groups[g].forEach(w => {
+        const safeName = (w.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const price = w.price || 0;
+        const meta = [w.year, w.country, w.grape].filter(Boolean).join(' · ');
+        const descHtml = meta ? `<div class="item-desc">${escapeHtml(String(meta))}</div>` : '';
+        html += `<button class="item-btn" onclick="addItem(this,'${safeName}',${price})"><div class="item-name">${escapeHtml(w.name || '')}</div>${descHtml}<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
+      });
+    });
+    container.innerHTML = html || (lang === 'ru'
+      ? '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">Нет вин</div>'
+      : '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">No wines</div>');
+  }
+
+  function loadWines() {
+    db.ref('wines').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      allWines = data;
+      cachedWines = Object.entries(data)
+        .map(([id, wine]) => ({ id, ...wine }))
+        .filter(wine => wine.isActive !== false);
+      renderWines(cachedWines);
+      const adminOverlay = document.getElementById('wineAdminOverlay');
+      if (adminOverlay && adminOverlay.classList.contains('show')) renderWineAdminList();
+      restoreMenuVisual();
+    });
+  }
+
+  // =============================================
+  // WINE ADMIN
+  // =============================================
+
+  let currentWineId = null;
+  let wineAdminColor = 'other';
+  let wineAdminStyle = 'still';
+
+  function initWineAdminYear() {
+    const sel = document.getElementById('wineAdminYear');
+    if (!sel) return;
+    const yr = new Date().getFullYear();
+    let opts = '<option value="">— / no year</option>';
+    for (let y = yr + 1; y >= 1980; y--) opts += `<option value="${y}">${y}</option>`;
+    sel.innerHTML = opts;
+  }
+
+  function openWineAdmin() {
+    renderWineAdminList();
+    wineAdminNew();
+    document.getElementById('wineAdminOverlay').classList.add('show');
+  }
+
+  function closeWineAdmin() {
+    document.getElementById('wineAdminOverlay').classList.remove('show');
+  }
+
+  function renderWineAdminList() {
+    const listEl = document.getElementById('wineAdminList');
+    if (!listEl) return;
+    const wines = Object.entries(allWines)
+      .map(([id, w]) => ({ id, ...w }))
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (!wines.length) {
+      listEl.innerHTML = '<div style="color:#7ab3ac;font-size:10px;padding:10px 12px">No wines yet — create one below</div>';
+      return;
+    }
+    listEl.innerHTML = wines.map(w =>
+      `<div class="wine-admin-row${w.isActive === false ? ' wine-admin-row-inactive' : ''}" data-id="${w.id}" onclick="wineAdminSelect('${w.id}')">` +
+      `<span class="wine-admin-row-name">${escapeHtml(w.name || '(no name)')}</span>` +
+      `<span class="wine-admin-row-price">€${w.price || 0}</span>` +
+      (w.isActive === false ? '<span class="wine-admin-row-badge">OFF</span>' : '') +
+      '</div>'
+    ).join('');
+  }
+
+  function wineAdminSelect(id) {
+    const wine = allWines[id];
+    if (!wine) return;
+    currentWineId = id;
+    document.getElementById('wineAdminName').value = wine.name || '';
+    document.getElementById('wineAdminPrice').value = wine.price !== undefined ? wine.price : '';
+    document.getElementById('wineAdminCountry').value = wine.country || '';
+    document.getElementById('wineAdminRegion').value = wine.region || '';
+    document.getElementById('wineAdminGrape').value = wine.grape || '';
+    document.getElementById('wineAdminActive').checked = wine.isActive !== false;
+    const yearSel = document.getElementById('wineAdminYear');
+    if (yearSel) yearSel.value = wine.year ? String(wine.year) : '';
+    selectWineAdminColor(wine.color || 'other');
+    selectWineAdminStyle(wine.style || 'still');
+    document.querySelectorAll('.wine-admin-row').forEach(r =>
+      r.classList.toggle('selected', r.dataset.id === id));
+  }
+
+  function wineAdminNew() {
+    currentWineId = null;
+    document.getElementById('wineAdminName').value = '';
+    document.getElementById('wineAdminPrice').value = '';
+    document.getElementById('wineAdminCountry').value = '';
+    document.getElementById('wineAdminRegion').value = '';
+    document.getElementById('wineAdminGrape').value = '';
+    document.getElementById('wineAdminActive').checked = true;
+    const yearSel = document.getElementById('wineAdminYear');
+    if (yearSel) yearSel.value = '';
+    selectWineAdminColor('other');
+    selectWineAdminStyle('still');
+    document.querySelectorAll('.wine-admin-row').forEach(r => r.classList.remove('selected'));
+  }
+
+  function selectWineAdminColor(color) {
+    wineAdminColor = color;
+    document.querySelectorAll('#wineAdminColorGroup .wine-admin-choice').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.val === color));
+  }
+
+  function selectWineAdminStyle(style) {
+    wineAdminStyle = style;
+    document.querySelectorAll('#wineAdminStyleGroup .wine-admin-choice').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.val === style));
+  }
+
+  function wineAdminSave() {
+    const name = (document.getElementById('wineAdminName').value || '').trim();
+    const price = parseFloat(document.getElementById('wineAdminPrice').value);
+    if (!name) {
+      alert(lang === 'ru' ? 'Укажите название' : 'Name is required');
+      return;
+    }
+    if (isNaN(price) || price < 0) {
+      alert(lang === 'ru' ? 'Укажите корректную цену' : 'Enter a valid price');
+      return;
+    }
+    const yearVal = document.getElementById('wineAdminYear').value;
+    const country = document.getElementById('wineAdminCountry').value.trim();
+    const region = document.getElementById('wineAdminRegion').value.trim();
+    const grape = document.getElementById('wineAdminGrape').value.trim();
+    const isActive = document.getElementById('wineAdminActive').checked;
+    const now = Date.now();
+    const wineData = { name, price, color: wineAdminColor, style: wineAdminStyle, isActive, updatedAt: now };
+    if (yearVal) wineData.year = parseInt(yearVal, 10);
+    if (country) wineData.country = country;
+    if (region) wineData.region = region;
+    if (grape) wineData.grape = grape;
+    if (currentWineId) {
+      const existing = allWines[currentWineId];
+      if (existing && existing.createdAt) wineData.createdAt = existing.createdAt;
+      db.ref('wines/' + currentWineId).update(wineData);
+    } else {
+      wineData.createdAt = now;
+      const newRef = db.ref('wines').push();
+      currentWineId = newRef.key;
+      newRef.set(wineData);
+    }
+  }
+
+  function wineAdminDisable() {
+    if (!currentWineId) return;
+    if (!confirm(lang === 'ru' ? 'Отключить вино?' : 'Disable this wine?')) return;
+    db.ref('wines/' + currentWineId).update({ isActive: false, updatedAt: Date.now() });
+    document.getElementById('wineAdminActive').checked = false;
+  }
+
+  function initWinesLongPress() {
+    const header = document.getElementById('winesAccHeader');
+    if (!header) return;
+    let timer = null;
+    let fired = false;
+    header.addEventListener('pointerdown', () => {
+      fired = false;
+      timer = setTimeout(() => { fired = true; openWineAdmin(); }, 1200);
+    });
+    header.addEventListener('pointerup', () => {
+      clearTimeout(timer); timer = null;
+      if (!fired) toggleAcc(header);
+    });
+    const cancel = () => { clearTimeout(timer); timer = null; };
+    header.addEventListener('pointerleave', cancel);
+    header.addEventListener('pointercancel', cancel);
+    header.addEventListener('contextmenu', e => e.preventDefault());
   }
 
   // =============================================
@@ -1317,5 +1494,7 @@
       });
 
     applyLang();
+    initWinesLongPress();
+    initWineAdminYear();
     loadWines();
   });

@@ -305,7 +305,7 @@
   </div>
 
   <div class="section" data-cat="wines" id="winesSection">
-    <div class="acc-header" onclick="toggleAcc(this)">
+    <div class="acc-header" id="winesAccHeader">
       <span class="acc-title" data-ru="Вина 🍷" data-en="Wines 🍷">Вина 🍷</span>
       <span class="acc-arrow">▼</span>
     </div>
@@ -386,6 +386,75 @@
     <div class="sent-items" id="sentItemsList"></div>
     <div class="sent-total" id="sentTotal"></div>
     <button class="sent-close" onclick="closeSent()" data-ru="Закрыть" data-en="Close">Закрыть</button>
+  </div>
+</div>
+
+<div class="wine-admin-overlay" id="wineAdminOverlay">
+  <div class="wine-admin-box">
+    <div class="wine-admin-hdr">
+      <span class="wine-admin-title" data-ru="ВИНА — ADMIN" data-en="WINES — ADMIN">ВИНА — ADMIN</span>
+      <button class="wine-admin-close" onclick="closeWineAdmin()">✕</button>
+    </div>
+    <div class="wine-admin-list-hdr" data-ru="ВСЕ ВИНА" data-en="ALL WINES">ВСЕ ВИНА</div>
+    <div class="wine-admin-list-wrap">
+      <div class="wine-admin-list" id="wineAdminList"></div>
+    </div>
+    <div class="wine-admin-form-wrap">
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Назв." data-en="Name">Назв.</span>
+        <input class="wine-admin-input" id="wineAdminName" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Цена" data-en="Price">Цена</span>
+        <input class="wine-admin-input" id="wineAdminPrice" type="number" min="0" step="1" style="max-width:80px">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Цвет" data-en="Color">Цвет</span>
+        <div class="wine-admin-btn-group" id="wineAdminColorGroup">
+          <button class="wine-admin-choice" onclick="selectWineAdminColor('white')" data-val="white">white</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminColor('green')" data-val="green">green</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminColor('red')" data-val="red">red</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminColor('rose')" data-val="rose">rosé</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminColor('orange')" data-val="orange">orange</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminColor('other')" data-val="other">other</button>
+        </div>
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Стиль" data-en="Style">Стиль</span>
+        <div class="wine-admin-btn-group" id="wineAdminStyleGroup">
+          <button class="wine-admin-choice" onclick="selectWineAdminStyle('still')" data-val="still">still</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminStyle('sparkling')" data-val="sparkling">sparkling</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminStyle('fortified')" data-val="fortified">fortified</button>
+          <button class="wine-admin-choice" onclick="selectWineAdminStyle('dessert')" data-val="dessert">dessert</button>
+        </div>
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Год" data-en="Year">Год</span>
+        <select class="wine-admin-select" id="wineAdminYear"></select>
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Страна" data-en="Country">Страна</span>
+        <input class="wine-admin-input" id="wineAdminCountry" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Регион" data-en="Region">Регион</span>
+        <input class="wine-admin-input" id="wineAdminRegion" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Сорт" data-en="Grape">Сорт</span>
+        <input class="wine-admin-input" id="wineAdminGrape" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Актив." data-en="Active">Актив.</span>
+        <input type="checkbox" id="wineAdminActive" class="wine-admin-checkbox" checked>
+      </div>
+      <div class="wine-admin-actions">
+        <button class="wine-admin-btn" onclick="wineAdminNew()" data-ru="+ Новое" data-en="+ New">+ Новое</button>
+        <button class="wine-admin-btn wine-admin-btn-save" onclick="wineAdminSave()" data-ru="Сохранить" data-en="Save">Сохранить</button>
+        <button class="wine-admin-btn wine-admin-btn-disable" onclick="wineAdminDisable()" data-ru="Отключить" data-en="Disable">Отключить</button>
+        <button class="wine-admin-btn" onclick="closeWineAdmin()" data-ru="Закрыть" data-en="Close">Закрыть</button>
+      </div>
+    </div>
   </div>
 </div>
 
