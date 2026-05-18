@@ -1045,7 +1045,7 @@
     if (delta > 0) {
       const baseName = item.displayName || item.itemName || name;
 
-      if (currentTable !== '🛑' && !item.isSide && isInStoplist(baseName)) {
+      if (currentTable !== '🛑' && !item.isSide && isEffectivelyStopped(baseName)) {
         alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
         return;
       }
@@ -1060,6 +1060,8 @@
         orders['🛑'][baseName].qty--;
         saveOrderToFirebase('🛑');
         applyStopList();
+      } else if (currentTable !== '🛑' && !item.isSide) {
+        consumeLinkedGroupQuantity(baseName);
       }
       item.qty += delta;
       renderOrder();
