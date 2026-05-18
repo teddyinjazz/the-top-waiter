@@ -314,6 +314,37 @@
     return !!(orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty <= 1);
   }
 
+  function getGroupKeyForVariantName(name) {
+    for (const [key, group] of Object.entries(VARIANT_GROUPS)) {
+      if (group.variants.some(v => v.name === name)) return key;
+    }
+    return null;
+  }
+
+  function getVariantNamesForGroup(groupKey) {
+    const group = VARIANT_GROUPS[groupKey];
+    return group ? group.variants.map(v => v.name) : [];
+  }
+
+  function isEffectivelyStopped(name) {
+    if (isInStoplist(name)) return true;
+    const groupKey = getGroupKeyForVariantName(name);
+    if (!groupKey || !VOLUME_LINKED_GROUPS.has(groupKey)) return false;
+    return getVariantNamesForGroup(groupKey).some(n => isInStoplist(n));
+  }
+
+  function consumeLinkedGroupQuantity(name) {
+    const groupKey = getGroupKeyForVariantName(name);
+    if (!groupKey || !VOLUME_LINKED_GROUPS.has(groupKey)) return;
+    const siblings = getVariantNamesForGroup(groupKey);
+    const sibling = siblings.find(n => n !== name && orders['🛑'] && orders['🛑'][n] && orders['🛑'][n].qty > 1);
+    if (sibling) {
+      orders['🛑'][sibling].qty--;
+      saveOrderToFirebase('🛑');
+      applyStopList();
+    }
+  }
+
   // =============================================
   // VISUAL
   // =============================================
@@ -344,6 +375,23 @@
       btn.classList.toggle('stopped', isStopped);
       btn.style.opacity = '';
       btn.style.pointerEvents = '';
+      const badge = btn.querySelector('.stop-badge');
+      if (isStopped && !badge) {
+        const b = document.createElement('div');
+        b.className = 'stop-badge';
+        b.style.cssText = 'font-size:9px;color:#ff6b6b;letter-spacing:1px;margin-top:1px';
+        b.textContent = lang === 'ru' ? 'СТОП' : 'STOP';
+        btn.appendChild(b);
+      } else if (!isStopped && badge) {
+        badge.remove();
+      }
+    });
+    // Mute/unmute group parent buttons for volume-linked groups
+    document.querySelectorAll('.item-btn[data-group]').forEach(btn => {
+      const groupKey = btn.dataset.group;
+      if (!VOLUME_LINKED_GROUPS.has(groupKey)) return;
+      const isStopped = getVariantNamesForGroup(groupKey).some(n => isInStoplist(n));
+      btn.classList.toggle('stopped', isStopped);
       const badge = btn.querySelector('.stop-badge');
       if (isStopped && !badge) {
         const b = document.createElement('div');
@@ -530,6 +578,22 @@
     },
   };
 
+  // Groups where variants differ only by serving size/volume of the same product.
+  // If any sibling is stopped, all are muted; ordering any sibling decrements shared stock.
+  const VOLUME_LINKED_GROUPS = new Set([
+    'Coral Light',
+    'Coral Dark',
+    'Комбуча черный чай',
+    'Комбуча черный кофе',
+    'Комбуча Beetroot Ginger Mint',
+    'Комбуча Green Tea Grapefruit',
+    'Комбуча Red Fruits Hibiscus',
+    'Куриный суп',
+    'Грибной крем',
+    'Икра красная',
+    'Сырники',
+  ]);
+
   // =============================================
   // MENU ORDER INDEX
   // =============================================
@@ -589,7 +653,7 @@
     const tableOrder = orders[currentTable] || {};
 
     group.variants.forEach(v => {
-      const isStopped = currentTable !== '🛑' && isInStoplist(v.name);
+      const isStopped = currentTable !== '🛑' && isEffectivelyStopped(v.name);
       const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
       const label = lang === 'ru' ? v.ru : v.en;
 
@@ -641,7 +705,7 @@
       opts.innerHTML = '';
       const tableOrder = orders[currentTable] || {};
       variantsArr.forEach(v => {
-        const isStopped = currentTable !== '🛑' && isInStoplist(v.name);
+        const isStopped = currentTable !== '🛑' && isEffectivelyStopped(v.name);
         const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
         const label = lang === 'ru' ? v.ru : v.en;
         const varBtn = document.createElement('button');
@@ -761,7 +825,7 @@
     if (!orders[currentTable]) orders[currentTable] = {};
 
     // Программная защита стоп-листа (дублирует CSS-мьют)
-    if (currentTable !== '🛑' && isInStoplist(name)) {
+    if (currentTable !== '🛑' && isEffectivelyStopped(name)) {
       alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
       applyStopList();
       return;
@@ -791,6 +855,8 @@
         orders['🛑'][name].qty--;
         saveOrderToFirebase('🛑');
         applyStopList();
+      } else {
+        consumeLinkedGroupQuantity(name);
       }
       btn.classList.add('has-count');
       btn.querySelector('.item-count').textContent = orders[currentTable][name].qty;
@@ -979,7 +1045,7 @@
     if (delta > 0) {
       const baseName = item.displayName || item.itemName || name;
 
-      if (currentTable !== '🛑' && !item.isSide && isInStoplist(baseName)) {
+      if (currentTable !== '🛑' && !item.isSide && isEffectivelyStopped(baseName)) {
         alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
         return;
       }
@@ -994,6 +1060,8 @@
         orders['🛑'][baseName].qty--;
         saveOrderToFirebase('🛑');
         applyStopList();
+      } else if (currentTable !== '🛑' && !item.isSide) {
+        consumeLinkedGroupQuantity(baseName);
       }
       item.qty += delta;
       renderOrder();
