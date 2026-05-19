@@ -15,13 +15,14 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 </script>
-<link rel="stylesheet" href="styles.css?v=20260517-ordersort">
+<link rel="stylesheet" href="styles.css?v=device-audit-1">
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-logo">the <span>TOP</span></div>
   <button id="langBtn" onclick="toggleLang()" style="background:#1e302d;border:1px solid rgba(42,157,143,0.4);color:#3dbfaf;padding:3px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;flex-shrink:0;letter-spacing:1px">EN</button>
+  <div id="deviceBadgeWrap" onclick="openDeviceRenameModal()" title="Tap to rename device" style="display:none;cursor:pointer;background:#1e302d;border:1px solid rgba(42,157,143,0.3);color:#7ab3ac;padding:3px 8px;border-radius:4px;font-size:9px;letter-spacing:0.5px;align-items:center;gap:4px;flex-shrink:0;white-space:nowrap;user-select:none">DEVICE:&nbsp;<span id="deviceBadgeName" style="color:#3dbfaf"></span></div>
   <div class="table-scroll-wrap">
     <div class="table-row">
       <span class="table-label" data-ru="СТОЛ:" data-en="TABLE:">СТОЛ:</span>
@@ -423,7 +424,29 @@
   </div>
 </div>
 
-<script src="app.js?v=20260517-ordersort"></script>
+<script src="app.js?v=device-audit-1"></script>
+
+<!-- Device naming modal (first use) -->
+<div id="deviceNameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:99999;align-items:center;justify-content:center;">
+  <div style="background:#162320;border:2px solid #2a9d8f;border-radius:12px;padding:28px 22px;width:90%;max-width:340px">
+    <div data-ru="Назовите это устройство" data-en="Name this device" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#3dbfaf;letter-spacing:1px;margin-bottom:6px;text-align:center">Назовите это устройство</div>
+    <div data-ru="Например: iPhone João, Bar iPad, Volodymyr, Kitchen tablet" data-en="For example: iPhone João, Bar iPad, Volodymyr, Kitchen tablet" style="font-size:10px;color:#7ab3ac;margin-bottom:16px;text-align:center;letter-spacing:0.3px;line-height:1.5">Например: iPhone João, Bar iPad, Volodymyr, Kitchen tablet</div>
+    <input id="deviceNameInput" type="text" autocomplete="off" style="width:100%;background:#0e1a17;border:1px solid #2a9d8f;color:#e8f4f2;border-radius:5px;padding:11px 12px;font-family:'DM Mono',monospace;font-size:13px;outline:none;box-sizing:border-box;letter-spacing:0.5px" onkeydown="if(event.key==='Enter')saveDeviceName()" />
+    <button onclick="saveDeviceName()" data-ru="Сохранить" data-en="Save" style="width:100%;margin-top:12px;background:#2a9d8f;color:#fff;border:none;border-radius:5px;padding:13px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Сохранить</button>
+  </div>
+</div>
+
+<!-- Device rename modal -->
+<div id="deviceRenameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;align-items:center;justify-content:center;">
+  <div style="background:#162320;border:2px solid #2a9d8f;border-radius:12px;padding:24px 20px;width:88%;max-width:340px">
+    <div data-ru="Переименовать устройство" data-en="Rename device" style="font-family:'Cormorant Garamond',serif;font-size:18px;color:#3dbfaf;letter-spacing:1px;margin-bottom:14px;text-align:center">Переименовать устройство</div>
+    <input id="deviceRenameInput" type="text" autocomplete="off" style="width:100%;background:#0e1a17;border:1px solid #2a9d8f;color:#e8f4f2;border-radius:5px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:13px;outline:none;box-sizing:border-box" onkeydown="if(event.key==='Enter')saveDeviceRename()" />
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="closeDeviceRenameModal()" data-ru="Отмена" data-en="Cancel" style="flex:1;background:#253b37;color:#7ab3ac;border:1px solid rgba(42,157,143,0.3);border-radius:5px;padding:11px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer">Отмена</button>
+      <button onclick="saveDeviceRename()" data-ru="Сохранить" data-en="Save" style="flex:2;background:#2a9d8f;color:#fff;border:none;border-radius:5px;padding:11px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;cursor:pointer;text-transform:uppercase">Сохранить</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
