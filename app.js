@@ -1,6 +1,16 @@
 
 
   // =============================================
+  // DEVICE IDENTITY STATE
+  // =============================================
+  let deviceId   = localStorage.getItem('deviceId')   || null;
+  let deviceName = localStorage.getItem('deviceName') || null;
+  let _appOpenLogged    = false;
+  let _notesDebounceTimer = null;
+  let _notesBeforeValue   = null;
+  let _notesBeforeTable   = null;
+
+  // =============================================
   // LANGUAGE TOGGLE
   // =============================================
   let lang = localStorage.getItem('lang') || 'ru';
@@ -255,6 +265,152 @@
 
   const STOPLIST_KEY = 'stoplist';
 
+  // =============================================
+  // AUDIT LOGGER
+  // =============================================
+  function writeAudit(action, payload) {
+    try {
+      db.ref('auditLog').push({
+        deviceId:   deviceId   || '',
+        deviceName: deviceName || '',
+        action,
+        table:      currentTable || null,
+        payload:    payload || {},
+        createdAt:  Date.now(),
+      });
+    } catch(e) {
+      console.warn('[audit] write failed:', e);
+    }
+  }
+
+  // =============================================
+  // DEVICE IDENTITY
+  // =============================================
+  function generateDeviceId() {
+    return 'dev_' + Math.random().toString(36).slice(2, 10) +
+                    Math.random().toString(36).slice(2, 6);
+  }
+
+  function updateDeviceRecord() {
+    if (!deviceId || !deviceName) return;
+    const now = Date.now();
+    const firstSeen = parseInt(localStorage.getItem('deviceFirstSeen') || '0', 10) || now;
+    try {
+      db.ref('devices/' + deviceId).once('value', snap => {
+        const existing = snap.val();
+        db.ref('devices/' + deviceId).set({
+          name:        deviceName,
+          firstSeenAt: existing && existing.firstSeenAt ? existing.firstSeenAt : firstSeen,
+          lastSeenAt:  now,
+          userAgent:   navigator.userAgent,
+          app:         'the-top-waiter',
+        });
+      });
+    } catch(e) {
+      console.warn('[device] updateDeviceRecord failed:', e);
+    }
+  }
+
+  function updateDeviceBadge() {
+    const wrap   = document.getElementById('deviceBadgeWrap');
+    const nameEl = document.getElementById('deviceBadgeName');
+    if (nameEl) nameEl.textContent = deviceName || '...';
+    if (wrap)   wrap.style.display = deviceName ? 'flex' : 'none';
+  }
+
+  function logAppOpen(existingDevice) {
+    if (_appOpenLogged) return;
+    _appOpenLogged = true;
+    writeAudit('app_open', {
+      deviceId:       deviceId   || '',
+      deviceName:     deviceName || '',
+      userAgent:      navigator.userAgent,
+      url:            window.location.href,
+      lang,
+      existingDevice: !!existingDevice,
+    });
+  }
+
+  function showDeviceNameModal() {
+    const modal = document.getElementById('deviceNameModal');
+    if (modal) modal.style.display = 'flex';
+    const input = document.getElementById('deviceNameInput');
+    if (input) setTimeout(() => input.focus(), 120);
+  }
+
+  function saveDeviceName() {
+    const input = document.getElementById('deviceNameInput');
+    const val   = (input ? input.value : '').trim();
+    if (!val) {
+      alert(lang === 'ru' ? 'Введите имя устройства' : 'Enter device name');
+      return;
+    }
+    deviceName = val;
+    localStorage.setItem('deviceName', deviceName);
+    if (!localStorage.getItem('deviceFirstSeen')) {
+      localStorage.setItem('deviceFirstSeen', String(Date.now()));
+    }
+    updateDeviceRecord();
+    updateDeviceBadge();
+    const modal = document.getElementById('deviceNameModal');
+    if (modal) modal.style.display = 'none';
+    writeAudit('device_named', { deviceId: deviceId || '', deviceName, previousName: null });
+    logAppOpen(false);
+  }
+
+  function openDeviceRenameModal() {
+    const modal = document.getElementById('deviceRenameModal');
+    const input = document.getElementById('deviceRenameInput');
+    if (input) input.value = deviceName || '';
+    if (modal) modal.style.display = 'flex';
+    if (input) setTimeout(() => input.focus(), 120);
+  }
+
+  function saveDeviceRename() {
+    const input = document.getElementById('deviceRenameInput');
+    const val   = (input ? input.value : '').trim();
+    if (!val) {
+      alert(lang === 'ru' ? 'Введите имя устройства' : 'Enter device name');
+      return;
+    }
+    if (val === deviceName) { closeDeviceRenameModal(); return; }
+    const previousName = deviceName;
+    deviceName = val;
+    localStorage.setItem('deviceName', deviceName);
+    updateDeviceRecord();
+    updateDeviceBadge();
+    closeDeviceRenameModal();
+    writeAudit('device_rename', { deviceId: deviceId || '', previousName, newName: deviceName });
+  }
+
+  function closeDeviceRenameModal() {
+    const modal = document.getElementById('deviceRenameModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function initDeviceIdentity() {
+    const hadId = !!deviceId;
+    if (!deviceId) {
+      deviceId = generateDeviceId();
+      localStorage.setItem('deviceId', deviceId);
+      if (!localStorage.getItem('deviceFirstSeen')) {
+        localStorage.setItem('deviceFirstSeen', String(Date.now()));
+      }
+      writeAudit('device_created', {
+        deviceId,
+        userAgent: navigator.userAgent,
+        url:       window.location.href,
+      });
+    }
+    if (!deviceName) {
+      showDeviceNameModal();
+    } else {
+      updateDeviceRecord();
+      logAppOpen(hadId);
+    }
+    updateDeviceBadge();
+  }
+
   const SIDES = [
     { name: 'Рис', price: 3 }, { name: 'Овощи', price: 3 },
     { name: 'Спагетти', price: 3 }, { name: 'Салат', price: 3 },
@@ -339,9 +495,11 @@
     const siblings = getVariantNamesForGroup(groupKey);
     const sibling = siblings.find(n => n !== name && orders['🛑'] && orders['🛑'][n] && orders['🛑'][n].qty > 1);
     if (sibling) {
+      const _prevSibQty = orders['🛑'][sibling].qty;
       orders['🛑'][sibling].qty--;
       saveOrderToFirebase('🛑');
       applyStopList();
+      writeAudit('stoplist_change', { itemName: sibling, before: _prevSibQty, after: orders['🛑'][sibling].qty });
     }
   }
 
@@ -836,10 +994,12 @@
       if (!orders[currentTable][name]) {
         orders[currentTable][name] = { price, qty: 0, itemName: name };
       }
+      const _prevStopQtyA = orders[currentTable][name].qty;
       orders[currentTable][name].qty++;
       btn.classList.add('has-count');
       btn.querySelector('.item-count').textContent = orders[currentTable][name].qty;
       saveOrderToFirebase('🛑');
+      writeAudit('stoplist_change', { itemName: name, before: _prevStopQtyA, after: orders[currentTable][name].qty });
       renderOrder();
       return;
     }
@@ -852,14 +1012,17 @@
       orders[currentTable][name].qty++;
       // Декремент стоп-листа при заказе
       if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+        const _prevStopQtyB = orders['🛑'][name].qty;
         orders['🛑'][name].qty--;
         saveOrderToFirebase('🛑');
         applyStopList();
+        writeAudit('stoplist_change', { itemName: name, before: _prevStopQtyB, after: orders['🛑'][name].qty });
       } else {
         consumeLinkedGroupQuantity(name);
       }
       btn.classList.add('has-count');
       btn.querySelector('.item-count').textContent = orders[currentTable][name].qty;
+      writeAudit('order_add', { table: currentTable, itemName: name, price, qtyDelta: 1 });
       renderOrder();
       saveOrderToFirebase(currentTable);
       return;
@@ -867,9 +1030,11 @@
 
     // Основное блюдо
     if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+      const _prevStopQtyC = orders['🛑'][name].qty;
       orders['🛑'][name].qty--;
       saveOrderToFirebase('🛑');
       applyStopList();
+      writeAudit('stoplist_change', { itemName: name, before: _prevStopQtyC, after: orders['🛑'][name].qty });
     }
     const pairId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const mainKey = name + '__' + pairId;
@@ -877,6 +1042,7 @@
     const total = Object.values(orders[currentTable]).filter(i => i.displayName === name).reduce((s, i) => s + i.qty, 0);
     btn.classList.add('has-count');
     btn.querySelector('.item-count').textContent = total;
+    writeAudit('order_add', { table: currentTable, itemName: name, price, qtyDelta: 1 });
     pendingSide = { mainName: name, pairId, mainKey };
     try { openSidePicker(name); } catch(e) { alert('Ошибка: ' + e.message); }
     renderOrder();
@@ -890,10 +1056,12 @@
       if (!orders[currentTable][name]) {
         orders[currentTable][name] = { price, qty: 0, itemName: name };
       }
+      const _prevStopQtyD = orders[currentTable][name].qty;
       orders[currentTable][name].qty++;
       renderOrder();
       restoreMenuVisual();
       saveOrderToFirebase('🛑');
+      writeAudit('stoplist_change', { itemName: name, before: _prevStopQtyD, after: orders[currentTable][name].qty });
       return;
     }
 
@@ -904,10 +1072,13 @@
       orders[currentTable][name].qty++;
       // Декремент стоп-листа при заказе
       if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+        const _prevStopQtyE = orders['🛑'][name].qty;
         orders['🛑'][name].qty--;
         saveOrderToFirebase('🛑');
         applyStopList();
+        writeAudit('stoplist_change', { itemName: name, before: _prevStopQtyE, after: orders['🛑'][name].qty });
       }
+      writeAudit('order_add', { table: currentTable, itemName: name, price, qtyDelta: 1 });
       renderOrder();
       restoreMenuVisual();
       saveOrderToFirebase(currentTable);
@@ -916,10 +1087,13 @@
 
     // Основное блюдо — декремент стоп-листа + пикер гарнира
     if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+      const _prevStopQtyF = orders['🛑'][name].qty;
       orders['🛑'][name].qty--;
       saveOrderToFirebase('🛑');
       applyStopList();
+      writeAudit('stoplist_change', { itemName: name, before: _prevStopQtyF, after: orders['🛑'][name].qty });
     }
+    writeAudit('order_add', { table: currentTable, itemName: name, price, qtyDelta: 1 });
 
     const pairId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const mainKey = name + '__' + pairId;
@@ -1000,10 +1174,24 @@
 
   function onNotesInput() {
     const val = document.getElementById('notesField').value;
+    if (_notesDebounceTimer === null) {
+      _notesBeforeValue = notes[currentTable] || '';
+      _notesBeforeTable = currentTable;
+    }
     notes[currentTable] = val;
     saveNotesToFirebase(currentTable);
     updateNotesVisual();
     updateTableBadges();
+    clearTimeout(_notesDebounceTimer);
+    _notesDebounceTimer = setTimeout(() => {
+      _notesDebounceTimer = null;
+      const afterVal = notes[_notesBeforeTable] || '';
+      if (_notesBeforeValue !== afterVal) {
+        writeAudit('notes_update', { table: _notesBeforeTable, before: _notesBeforeValue, after: afterVal });
+      }
+      _notesBeforeValue = null;
+      _notesBeforeTable = null;
+    }, 1500);
   }
 
   function updateNotesVisual() {
@@ -1027,9 +1215,11 @@
     const alreadySent = prev[key] || 0;
     // Возвращаем только если удаляем неотправленную единицу
     if (item.qty > alreadySent) {
+      const _prevRbQty = orders['🛑'][baseName].qty;
       orders['🛑'][baseName].qty += 1;
       saveOrderToFirebase('🛑');
       applyStopList();
+      writeAudit('stoplist_change', { itemName: baseName, before: _prevRbQty, after: orders['🛑'][baseName].qty });
     }
   }
 
@@ -1057,13 +1247,21 @@
 
       // Декремент стоп-листа при + (симметрично addItem)
       if (currentTable !== '🛑' && !item.isSide && orders['🛑'] && orders['🛑'][baseName] && orders['🛑'][baseName].qty > 1) {
+        const _prevStopQtyG = orders['🛑'][baseName].qty;
         orders['🛑'][baseName].qty--;
         saveOrderToFirebase('🛑');
         applyStopList();
+        writeAudit('stoplist_change', { itemName: baseName, before: _prevStopQtyG, after: orders['🛑'][baseName].qty });
       } else if (currentTable !== '🛑' && !item.isSide) {
         consumeLinkedGroupQuantity(baseName);
       }
+      const _beforeQtyInc = item.qty;
       item.qty += delta;
+      if (currentTable === '🛑') {
+        writeAudit('stoplist_change', { itemName: baseName, before: _beforeQtyInc, after: item.qty });
+      } else {
+        writeAudit('order_qty_change', { table: currentTable, itemKey: name, itemName: baseName, delta, beforeQty: _beforeQtyInc, afterQty: item.qty });
+      }
       renderOrder();
       restoreMenuVisual();
       saveOrderToFirebase(currentTable);
@@ -1081,6 +1279,8 @@
       rollbackOneToStoplist(name, item);
     }
 
+    const _qtyBeforeDec = item.qty;
+    const _displayNameDec = item.displayName || item.itemName || name;
     item.qty += delta;
 
     if (item.qty <= 0) {
@@ -1095,6 +1295,11 @@
       delete tableOrder[name];
     }
 
+    if (currentTable === '🛑') {
+      writeAudit('stoplist_change', { itemName: _displayNameDec, before: _qtyBeforeDec, after: Math.max(_qtyBeforeDec + delta, 0) });
+    } else {
+      writeAudit('order_qty_change', { table: currentTable, itemKey: name, itemName: _displayNameDec, delta, beforeQty: _qtyBeforeDec, afterQty: Math.max(_qtyBeforeDec + delta, 0) });
+    }
     renderOrder();
     restoreMenuVisual();
     saveOrderToFirebase(currentTable);
@@ -1219,6 +1424,14 @@
       ? (lang === 'ru' ? 'Очистить стоп-лист?' : 'Clear the stop list?')
       : (lang === 'ru' ? 'Стол ' + currentTable + ' рассчитан? Заказ будет очищен.' : 'Table ' + currentTable + ' checked out? Order will be cleared.');
     if (!confirm(message)) return;
+    const _beforeClearOrder   = JSON.parse(JSON.stringify(orders[currentTable]   || {}));
+    const _beforeClearNotes   = notes[currentTable]    || '';
+    const _beforeClearSentQty = JSON.parse(JSON.stringify(sentQty[currentTable] || {}));
+    if (currentTable === '🛑') {
+      writeAudit('stoplist_clear', { beforeStoplist: _beforeClearOrder });
+    } else {
+      writeAudit('order_clear', { table: currentTable, beforeOrder: _beforeClearOrder, beforeNotes: _beforeClearNotes, beforeSentQty: _beforeClearSentQty });
+    }
     clearMenuVisual();
     orders[currentTable] = {};
     sentQty[currentTable] = {};
@@ -1306,6 +1519,12 @@
       }
     });
     if (!hasNew) { alert(lang === 'ru' ? 'Нет новых позиций для отправки' : 'No new items to send'); return; }
+    const _auditLines = keys.map(n => {
+      const it = tableOrder[n];
+      const nq = it.qty - (prev[n] || 0);
+      return nq > 0 ? { name: it.displayName || it.itemName || n, qty: nq } : null;
+    }).filter(Boolean);
+    writeAudit('send_to_keeper', { table: currentTable, linesSummary: _auditLines, total });
     keys.forEach(name => { prev[name] = tableOrder[name].qty; });
     saveSentQtyToFirebase(currentTable);
     document.getElementById('sentTable').textContent = (lang==='ru'?'СТОЛ ':'TABLE ') + currentTable;
@@ -1329,6 +1548,7 @@
   // =============================================
   function clearStopList() {
     if (!confirm(lang === 'ru' ? 'Очистить весь стоп-лист?' : 'Clear the entire stop list?')) return;
+    writeAudit('stoplist_clear', { beforeStoplist: JSON.parse(JSON.stringify(orders['🛑'] || {})) });
     orders['🛑'] = {};
     saveOrderToFirebase('🛑');
     applyStopList();
@@ -1527,20 +1747,30 @@
     if (currentWineId) {
       const existing = allWines[currentWineId];
       if (existing && existing.createdAt) wineData.createdAt = existing.createdAt;
+      if (!isActive && existing && existing.isActive !== false) {
+        writeAudit('wine_disable', { wineId: currentWineId, wineName: name, before: existing || null, after: wineData });
+      } else if (isActive && existing && existing.isActive === false) {
+        writeAudit('wine_reactivate', { wineId: currentWineId, wineName: name, before: existing || null, after: wineData });
+      } else {
+        writeAudit('wine_update', { wineId: currentWineId, wineName: name, before: existing || null, after: wineData });
+      }
       db.ref('wines/' + currentWineId).update(wineData);
     } else {
       wineData.createdAt = now;
       const newRef = db.ref('wines').push();
       currentWineId = newRef.key;
       newRef.set(wineData);
+      writeAudit('wine_create', { wineId: currentWineId, wineName: name, before: null, after: wineData });
     }
   }
 
   function wineAdminDisable() {
     if (!currentWineId) return;
     if (!confirm(lang === 'ru' ? 'Отключить вино?' : 'Disable this wine?')) return;
+    const _wineExisting = allWines[currentWineId];
     db.ref('wines/' + currentWineId).update({ isActive: false, updatedAt: Date.now() });
     document.getElementById('wineAdminActive').checked = false;
+    writeAudit('wine_disable', { wineId: currentWineId, wineName: _wineExisting ? _wineExisting.name : '', before: _wineExisting || null, after: Object.assign({}, _wineExisting, { isActive: false }) });
   }
 
   function initWinesLongPress() {
@@ -2060,21 +2290,34 @@
     if (currentMenuItemAdminId) {
       const prev = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId];
       if (prev && prev.createdAt) data.createdAt = prev.createdAt;
+      if (!data.isActive && prev && prev.isActive !== false) {
+        writeAudit('menu_item_disable', { sectionKey: currentMenuItemAdminSection, itemId: currentMenuItemAdminId, itemName: name, before: prev || null, after: data });
+      } else if (data.isActive && prev && prev.isActive === false) {
+        writeAudit('menu_item_reactivate', { sectionKey: currentMenuItemAdminSection, itemId: currentMenuItemAdminId, itemName: name, before: prev || null, after: data });
+      } else {
+        if (isGroup && data.variants && JSON.stringify((prev || {}).variants || null) !== JSON.stringify(data.variants)) {
+          writeAudit('menu_item_variants_update', { sectionKey: currentMenuItemAdminSection, itemId: currentMenuItemAdminId, itemName: name, beforeVariants: (prev || {}).variants || null, afterVariants: data.variants });
+        }
+        writeAudit('menu_item_update', { sectionKey: currentMenuItemAdminSection, itemId: currentMenuItemAdminId, itemName: name, before: prev || null, after: data });
+      }
       db.ref('menuSections/' + currentMenuItemAdminSection + '/items/' + currentMenuItemAdminId).update(data);
     } else {
       data.createdAt = now;
       const ref = db.ref('menuSections/' + currentMenuItemAdminSection + '/items').push();
       currentMenuItemAdminId = ref.key;
       ref.set(data);
+      writeAudit('menu_item_create', { sectionKey: currentMenuItemAdminSection, itemId: currentMenuItemAdminId, itemName: name, before: null, after: data });
     }
   }
 
   function disableMenuItemAdmin() {
     if (!currentMenuItemAdminId || !currentMenuItemAdminSection) return;
     if (!confirm(lang === 'ru' ? 'Отключить позицию?' : 'Disable this item?')) return;
+    const _miaPrev = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId];
     db.ref('menuSections/' + currentMenuItemAdminSection + '/items/' + currentMenuItemAdminId)
       .update({ isActive: false, updatedAt: Date.now() });
     document.getElementById('miaActive').checked = false;
+    writeAudit('menu_item_disable', { sectionKey: currentMenuItemAdminSection, itemId: currentMenuItemAdminId, itemName: _miaPrev ? _miaPrev.name : '', before: _miaPrev || null, after: Object.assign({}, _miaPrev, { isActive: false }) });
   }
 
   function syncSoftGroupItemsIfMissing() {
@@ -2263,6 +2506,7 @@
       });
 
     applyLang();
+    initDeviceIdentity();
     initWinesLongPress();
     initWineAdminYear();
     loadWines();
