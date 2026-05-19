@@ -315,7 +315,10 @@
     const wrap   = document.getElementById('deviceBadgeWrap');
     const nameEl = document.getElementById('deviceBadgeName');
     if (nameEl) nameEl.textContent = deviceName || '...';
-    if (wrap)   wrap.style.display = deviceName ? 'flex' : 'none';
+    if (wrap) {
+      wrap.style.display = deviceName ? 'flex' : 'none';
+      wrap.title = deviceName ? deviceName + ' · tap to rename' : 'Tap to rename device';
+    }
   }
 
   function logAppOpen(existingDevice) {

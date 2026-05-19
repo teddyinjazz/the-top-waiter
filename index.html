@@ -15,14 +15,14 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 </script>
-<link rel="stylesheet" href="styles.css?v=device-audit-1">
+<link rel="stylesheet" href="styles.css?v=compact-badge-1">
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-logo">the <span>TOP</span></div>
   <button id="langBtn" onclick="toggleLang()" style="background:#1e302d;border:1px solid rgba(42,157,143,0.4);color:#3dbfaf;padding:3px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;flex-shrink:0;letter-spacing:1px">EN</button>
-  <div id="deviceBadgeWrap" onclick="openDeviceRenameModal()" title="Tap to rename device" style="display:none;cursor:pointer;background:#1e302d;border:1px solid rgba(42,157,143,0.3);color:#7ab3ac;padding:3px 8px;border-radius:4px;font-size:9px;letter-spacing:0.5px;align-items:center;gap:4px;flex-shrink:0;white-space:nowrap;user-select:none">DEVICE:&nbsp;<span id="deviceBadgeName" style="color:#3dbfaf"></span></div>
+  <div id="deviceBadgeWrap" onclick="openDeviceRenameModal()" title="Tap to rename device" style="display:none;cursor:pointer;background:#1e302d;border:1px solid rgba(42,157,143,0.3);color:#7ab3ac;padding:3px 6px;border-radius:4px;font-size:9px;letter-spacing:0.3px;align-items:center;gap:2px;flex-shrink:0;white-space:nowrap;user-select:none;max-width:72px;min-width:0;overflow:hidden">📱<span id="deviceBadgeName" style="color:#3dbfaf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1"></span></div>
   <div class="table-scroll-wrap">
     <div class="table-row">
       <span class="table-label" data-ru="СТОЛ:" data-en="TABLE:">СТОЛ:</span>
@@ -424,7 +424,7 @@
   </div>
 </div>
 
-<script src="app.js?v=device-audit-1"></script>
+<script src="app.js?v=compact-badge-1"></script>
 
 <!-- Device naming modal (first use) -->
 <div id="deviceNameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:99999;align-items:center;justify-content:center;">
