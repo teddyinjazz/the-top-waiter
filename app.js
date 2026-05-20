@@ -271,15 +271,17 @@
   function writeAudit(action, payload) {
     try {
       db.ref('auditLog').push({
-        deviceId:   deviceId   || '',
-        deviceName: deviceName || '',
+        deviceId:   deviceId   || 'unknown_device',
+        deviceName: deviceName || 'Unnamed device',
         action,
         table:      currentTable || null,
         payload:    payload || {},
         createdAt:  Date.now(),
+      }).catch(e => {
+        console.warn('[audit] write failed:', action, e);
       });
     } catch(e) {
-      console.warn('[audit] write failed:', e);
+      console.warn('[audit] write failed:', action, e);
     }
   }
 
