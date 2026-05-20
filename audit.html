@@ -46,12 +46,27 @@ body { background: #0e1a17; color: #e8f4f2; font-family: 'DM Mono', monospace, '
   cursor: pointer; letter-spacing: 0.5px; flex-shrink: 0;
 }
 .btn-clear-filters:hover { border-color: #2a9d8f; color: #3dbfaf; }
+.btn-test-write {
+  background: #1a2e2b; border: 1px solid rgba(42,157,143,0.3); border-radius: 4px;
+  color: #7ab3ac; font-family: inherit; font-size: 11px; padding: 5px 12px;
+  cursor: pointer; letter-spacing: 0.5px; flex-shrink: 0;
+}
+.btn-test-write:hover { border-color: #2a9d8f; color: #3dbfaf; }
+.btn-test-write:disabled { opacity: 0.5; cursor: default; }
 
 .event-list { padding: 6px 8px; }
 .empty-state {
   text-align: center; padding: 60px 20px; color: #7ab3ac;
   font-size: 11px; letter-spacing: 1px;
 }
+
+.error-block {
+  background: rgba(231,111,81,0.08); border: 1px solid rgba(231,111,81,0.35);
+  border-radius: 6px; margin: 20px 12px; padding: 16px 18px;
+}
+.error-title  { color: #e76f51; font-size: 13px; font-weight: 500; margin-bottom: 10px; letter-spacing: 0.5px; }
+.error-detail { color: #c0d8d4; font-size: 11px; margin-bottom: 4px; }
+.error-hint   { color: #e9c46a; font-size: 10px; margin-top: 10px; letter-spacing: 0.3px; line-height: 1.5; }
 
 .event-row {
   border: 1px solid rgba(42,157,143,0.12); border-radius: 5px;
@@ -93,6 +108,7 @@ body { background: #0e1a17; color: #e8f4f2; font-family: 'DM Mono', monospace, '
 .action-stoplist_change   { background: rgba(180,30,30,0.12); color: #ff8080; border: 1px solid rgba(180,30,30,0.3); }
 .action-stoplist_clear    { background: rgba(180,30,30,0.18); color: #ff6060; border: 1px solid rgba(180,30,30,0.4); }
 .action-notes_update      { background: rgba(122,179,172,0.10); color: #7ab3ac; border: 1px solid rgba(122,179,172,0.2); }
+.action-audit_test        { background: rgba(42,157,143,0.10); color: #2a9d8f; border: 1px solid rgba(42,157,143,0.25); }
 
 .event-detail {
   background: #0e1a17; border-top: 1px solid rgba(42,157,143,0.1);
@@ -117,7 +133,7 @@ body { background: #0e1a17; color: #e8f4f2; font-family: 'DM Mono', monospace, '
     <div class="topbar-logo">the <span>TOP</span></div>
     <div class="topbar-sub">Audit Log</div>
   </div>
-  <div id="statusText" style="font-size:10px;color:#7ab3ac;letter-spacing:0.5px">Loading...</div>
+  <div id="statusText" style="font-size:10px;color:#7ab3ac;letter-spacing:0.5px">Loading audit log...</div>
 </div>
 
 <div class="controls">
@@ -126,6 +142,8 @@ body { background: #0e1a17; color: #e8f4f2; font-family: 'DM Mono', monospace, '
   <input id="filterTable"   placeholder="Filter: table" />
   <input id="filterSearch"  placeholder="Search all fields..." />
   <button class="btn-clear-filters" onclick="clearFilters()">✕ Clear</button>
+  <button class="btn-test-write" id="testWriteBtn" onclick="writeTestEvent()">Write test event</button>
+  <div id="testWriteNotice" style="display:none;background:rgba(231,111,81,0.10);border:1px solid rgba(231,111,81,0.3);border-radius:4px;padding:6px 10px;font-size:10px;color:#e76f51;letter-spacing:0.3px;flex-basis:100%"></div>
 </div>
 
 <div class="event-list" id="eventList"></div>
@@ -155,6 +173,7 @@ const ACTION_LABELS = {
   stoplist_change:           { ru: 'Стоп-лист изменён',           en: 'Stop list changed' },
   stoplist_clear:            { ru: 'Стоп-лист очищен',            en: 'Stop list cleared' },
   notes_update:              { ru: 'Заметки обновлены',           en: 'Notes updated' },
+  audit_test:                { ru: 'Тест записи',                  en: 'Test event' },
 };
 
 function getActionLabel(action) {
@@ -212,6 +231,8 @@ function getPayloadSummary(action, payload) {
           : 'cleared';
       case 'notes_update':
         return 'Table ' + payload.table;
+      case 'audit_test':
+        return payload.source || 'audit.html';
       default:
         return JSON.stringify(payload).slice(0, 80);
     }
@@ -284,17 +305,66 @@ function clearFilters() {
   renderEvents();
 }
 
-// Real-time Firebase listener — latest 500 events, shown newest first
+function writeTestEvent() {
+  const btn    = document.getElementById('testWriteBtn');
+  const notice = document.getElementById('testWriteNotice');
+  if (btn) { btn.disabled = true; btn.textContent = 'Writing...'; }
+  if (notice) notice.style.display = 'none';
+  db.ref('auditLog').push({
+    deviceId:   'audit_page',
+    deviceName: 'Audit page',
+    action:     'audit_test',
+    table:      null,
+    payload:    { source: 'audit.html', url: location.href },
+    createdAt:  Date.now(),
+  }).then(() => {
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Test written'; }
+    setTimeout(() => { if (btn) btn.textContent = 'Write test event'; }, 3000);
+  }).catch(err => {
+    const code = err.code || 'UNKNOWN';
+    const msg  = err.message || String(err);
+    console.error('[audit.html] test write failed:', code, msg);
+    if (btn) { btn.disabled = false; btn.textContent = '✗ ' + code; }
+    if (notice) {
+      notice.textContent = code === 'PERMISSION_DENIED'
+        ? 'Firebase permission denied writing /auditLog — check database rules. ' + msg
+        : 'Write error · ' + code + ': ' + msg;
+      notice.style.display = 'block';
+    }
+  });
+}
+
+// Real-time Firebase listener — reads /auditLog, latest 500 events, shown newest first
 db.ref('auditLog').orderByChild('createdAt').limitToLast(500).on('value', snapshot => {
   const data = snapshot.val() || {};
   allEvents = Object.entries(data)
     .map(([key, e]) => ({ ...e, _key: key }))
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  document.getElementById('statusText').textContent =
-    allEvents.length + ' event' + (allEvents.length !== 1 ? 's' : '') + ' · live';
+  const st = document.getElementById('statusText');
+  st.style.color = '#7ab3ac';
+  st.textContent = allEvents.length === 0
+    ? 'Connected · no events'
+    : allEvents.length + ' event' + (allEvents.length !== 1 ? 's' : '') + ' · live';
   renderEvents();
 }, err => {
-  document.getElementById('statusText').textContent = 'Error: ' + err.message;
+  const code = err.code || 'UNKNOWN';
+  const msg  = err.message || String(err);
+  console.error('[audit.html] Firebase read error on /auditLog:', code, msg);
+  const st = document.getElementById('statusText');
+  st.style.color = '#e76f51';
+  st.textContent = '⚠ Firebase error · ' + code;
+  document.getElementById('eventList').innerHTML =
+    '<div class="error-block">' +
+    '<div class="error-title">⚠ Firebase read error — path: /auditLog</div>' +
+    '<div class="error-detail"><b>Code:</b> ' + escH(code) + '</div>' +
+    '<div class="error-detail"><b>Message:</b> ' + escH(msg) + '</div>' +
+    (code === 'PERMISSION_DENIED'
+      ? '<div class="error-hint">Firebase permission denied for /auditLog — check your database security rules. ' +
+        'Read access is required for this path.</div>'
+      : '') +
+    '</div>';
+  document.getElementById('statusBar').textContent =
+    'Firebase error · ' + code + ' · path: /auditLog';
 });
 
 // Filter inputs
