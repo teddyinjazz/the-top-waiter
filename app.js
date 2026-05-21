@@ -1139,12 +1139,18 @@
     const list = document.getElementById('sideList');
     list.innerHTML = '';
     SIDES.forEach(side => {
+      const stopped = isEffectivelyStopped(side.name);
       const displayPrice = isFree ? (lang === 'ru' ? 'Бесплатно' : 'Included') : '€' + side.price;
       const btn = document.createElement('button');
-      btn.style.cssText = "background:#1e302d;border:1px solid #2a9d8f;border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500";
       const enNames={Рис:'Rice',Овощи:'Vegetables',Спагетти:'Spaghetti',Салат:'Salad',Спаржа:'Asparagus',Пюре:'Mashed potato','Жареный картофель':'Roast potato','Картофель фри':'French fries'};
-      btn.innerHTML = `<span style="color:#ffffff;font-size:14px">${lang==='ru'?side.name:enNames[side.name]||side.name}</span><span style="color:${isFree?'#3dbfaf':'#e9c46a'};font-size:13px;font-weight:bold">${displayPrice}</span>`;
-      btn.onclick = () => selectSide(side.name, isFree ? 0 : side.price);
+      if (stopped) {
+        btn.style.cssText = "background:#1a1e1e;border:1px solid rgba(180,30,30,0.5);border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:not-allowed;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500;opacity:0.45";
+        btn.innerHTML = `<span style="color:#9ab3ac;font-size:14px">${lang==='ru'?side.name:enNames[side.name]||side.name}</span><span style="color:#ff6b6b;font-size:9px;letter-spacing:1px">${lang==='ru'?'СТОП':'STOP'}</span>`;
+      } else {
+        btn.style.cssText = "background:#1e302d;border:1px solid #2a9d8f;border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500";
+        btn.innerHTML = `<span style="color:#ffffff;font-size:14px">${lang==='ru'?side.name:enNames[side.name]||side.name}</span><span style="color:${isFree?'#3dbfaf':'#e9c46a'};font-size:13px;font-weight:bold">${displayPrice}</span>`;
+        btn.onclick = () => selectSide(side.name, isFree ? 0 : side.price);
+      }
       list.appendChild(btn);
     });
 
@@ -1153,6 +1159,11 @@
   }
 
   function selectSide(sideName, price) {
+    if (isEffectivelyStopped(sideName)) {
+      pendingSide = null;
+      document.getElementById('sideOverlay').style.cssText = 'display:none';
+      return;
+    }
     document.getElementById('sideOverlay').style.cssText = 'display:none';
     if (!orders[currentTable]) orders[currentTable] = {};
     const baseKey = price === 0 ? sideName + ' (вкл.)' : sideName + ' (гарнир)';
