@@ -1625,7 +1625,7 @@
         const price = w.price || 0;
         const meta = [w.year, w.country, w.grape].filter(Boolean).join(' · ');
         const descHtml = meta ? `<div class="item-desc">${escapeHtml(String(meta))}</div>` : '';
-        html += `<button class="item-btn" onclick="addItem(this,'${safeName}',${price})"><div class="item-name">${escapeHtml(w.name || '')}</div>${descHtml}<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
+        html += `<button class="item-btn" data-wine-id="${escapeHtml(w.id)}" onclick="addItem(this,'${safeName}',${price})"><div class="item-name">${escapeHtml(w.name || '')}</div>${descHtml}<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
       });
     });
     container.innerHTML = html || (lang === 'ru'
@@ -1807,6 +1807,29 @@
     header.addEventListener('pointerleave', cancel);
     header.addEventListener('pointercancel', cancel);
     header.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Delegated long-press on individual wine cards
+    const winesList = document.getElementById('winesList');
+    if (!winesList) return;
+    let wlpTimer = null, wlpFired = false;
+    winesList.addEventListener('pointerdown', e => {
+      const btn = e.target.closest('.item-btn[data-wine-id]');
+      if (!btn) return;
+      wlpFired = false;
+      wlpTimer = setTimeout(() => {
+        wlpFired = true;
+        const wineId = btn.dataset.wineId;
+        if (wineId) { openWineAdmin(); wineAdminSelect(wineId); }
+      }, 1200);
+    });
+    winesList.addEventListener('pointerup', () => { clearTimeout(wlpTimer); wlpTimer = null; });
+    const wlpCancel = () => { clearTimeout(wlpTimer); wlpTimer = null; };
+    winesList.addEventListener('pointerleave', wlpCancel);
+    winesList.addEventListener('pointercancel', wlpCancel);
+    winesList.addEventListener('contextmenu', e => { if (e.target.closest('.item-btn')) e.preventDefault(); });
+    winesList.addEventListener('click', e => {
+      if (wlpFired) { wlpFired = false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
   }
 
   // =============================================
