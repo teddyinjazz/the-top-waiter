@@ -1145,10 +1145,10 @@
       const btn = document.createElement('button');
       const enNames={Рис:'Rice',Овощи:'Vegetables',Спагетти:'Spaghetti',Салат:'Salad',Спаржа:'Asparagus',Пюре:'Mashed potato','Жареный картофель':'Roast potato','Картофель фри':'French fries'};
       if (stopped) {
-        btn.style.cssText = "background:#1a1e1e;border:1px solid rgba(180,30,30,0.5);border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:not-allowed;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500;opacity:0.45";
+        btn.style.cssText = "background:#1a1e1e;border:1px solid rgba(180,30,30,0.5);border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:not-allowed;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500;opacity:0.45;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation";
         btn.innerHTML = `<span style="color:#9ab3ac;font-size:14px">${lang==='ru'?side.name:enNames[side.name]||side.name}</span><span style="color:#ff6b6b;font-size:9px;letter-spacing:1px">${lang==='ru'?'СТОП':'STOP'}</span>`;
       } else {
-        btn.style.cssText = "background:#1e302d;border:1px solid #2a9d8f;border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500";
+        btn.style.cssText = "background:#1e302d;border:1px solid #2a9d8f;border-radius:5px;padding:12px 14px;color:#e8f4f2;font-family:'DM Mono',monospace;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;font-weight:500;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation";
         btn.innerHTML = `<span style="color:#ffffff;font-size:14px">${lang==='ru'?side.name:enNames[side.name]||side.name}</span><span style="color:${isFree?'#3dbfaf':'#e9c46a'};font-size:13px;font-weight:bold">${displayPrice}</span>`;
         btn.onclick = () => selectSide(side.name, isFree ? 0 : side.price);
       }
@@ -1625,7 +1625,7 @@
         const price = w.price || 0;
         const meta = [w.year, w.country, w.grape].filter(Boolean).join(' · ');
         const descHtml = meta ? `<div class="item-desc">${escapeHtml(String(meta))}</div>` : '';
-        html += `<button class="item-btn" onclick="addItem(this,'${safeName}',${price})"><div class="item-name">${escapeHtml(w.name || '')}</div>${descHtml}<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
+        html += `<button class="item-btn" data-wine-id="${escapeHtml(w.id)}" onclick="addItem(this,'${safeName}',${price})"><div class="item-name">${escapeHtml(w.name || '')}</div>${descHtml}<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
       });
     });
     container.innerHTML = html || (lang === 'ru'
@@ -1807,6 +1807,29 @@
     header.addEventListener('pointerleave', cancel);
     header.addEventListener('pointercancel', cancel);
     header.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Delegated long-press on individual wine cards
+    const winesList = document.getElementById('winesList');
+    if (!winesList) return;
+    let wlpTimer = null, wlpFired = false;
+    winesList.addEventListener('pointerdown', e => {
+      const btn = e.target.closest('.item-btn[data-wine-id]');
+      if (!btn) return;
+      wlpFired = false;
+      wlpTimer = setTimeout(() => {
+        wlpFired = true;
+        const wineId = btn.dataset.wineId;
+        if (wineId) { openWineAdmin(); wineAdminSelect(wineId); }
+      }, 1200);
+    });
+    winesList.addEventListener('pointerup', () => { clearTimeout(wlpTimer); wlpTimer = null; });
+    const wlpCancel = () => { clearTimeout(wlpTimer); wlpTimer = null; };
+    winesList.addEventListener('pointerleave', wlpCancel);
+    winesList.addEventListener('pointercancel', wlpCancel);
+    winesList.addEventListener('contextmenu', e => { if (e.target.closest('.item-btn')) e.preventDefault(); });
+    winesList.addEventListener('click', e => {
+      if (wlpFired) { wlpFired = false; e.stopPropagation(); e.preventDefault(); }
+    }, true);
   }
 
   // =============================================
@@ -2832,4 +2855,9 @@
       logoArea.addEventListener('pointercancel', logoCancel);
       logoArea.addEventListener('contextmenu', e => e.preventDefault());
     }
+
+    const sideListEl = document.getElementById('sideList');
+    if (sideListEl) sideListEl.addEventListener('contextmenu', e => e.preventDefault());
+    const varOptionsEl = document.getElementById('varOptions');
+    if (varOptionsEl) varOptionsEl.addEventListener('contextmenu', e => e.preventDefault());
   });
