@@ -1655,6 +1655,7 @@
   let currentWineId = null;
   let wineAdminColor = 'other';
   let wineAdminStyle = 'still';
+  let wineLongPressInitialized = false;
 
   function initWineAdminYear() {
     const sel = document.getElementById('wineAdminYear');
@@ -1807,29 +1808,67 @@
     header.addEventListener('pointerleave', cancel);
     header.addEventListener('pointercancel', cancel);
     header.addEventListener('contextmenu', e => e.preventDefault());
+  }
 
-    // Delegated long-press on individual wine cards
+  function initWineItemLongPress() {
+    if (wineLongPressInitialized) return;
+    wineLongPressInitialized = true;
     const winesList = document.getElementById('winesList');
     if (!winesList) return;
+
     let wlpTimer = null, wlpFired = false;
-    winesList.addEventListener('pointerdown', e => {
+    let _wlpStartX = 0, _wlpStartY = 0;
+
+    // Touch path — used on iOS Safari because pointercancel fires in scroll
+    // containers before the long-press timer can complete.
+    winesList.addEventListener('touchstart', e => {
       const btn = e.target.closest('.item-btn[data-wine-id]');
-      if (!btn) return;
+      if (!btn) { clearTimeout(wlpTimer); return; }
+      const wineId = btn.dataset.wineId;
+      _wlpStartX = e.touches[0].clientX;
+      _wlpStartY = e.touches[0].clientY;
       wlpFired = false;
+      clearTimeout(wlpTimer);
       wlpTimer = setTimeout(() => {
         wlpFired = true;
-        const wineId = btn.dataset.wineId;
         if (wineId) { openWineAdmin(); wineAdminSelect(wineId); }
-      }, 1200);
+      }, 900);
+    }, { passive: true });
+
+    winesList.addEventListener('touchmove', e => {
+      if (!wlpTimer) return;
+      const dx = e.touches[0].clientX - _wlpStartX;
+      const dy = e.touches[0].clientY - _wlpStartY;
+      if (Math.sqrt(dx * dx + dy * dy) > 10) { clearTimeout(wlpTimer); wlpTimer = null; }
+    }, { passive: true });
+
+    winesList.addEventListener('touchend', () => { clearTimeout(wlpTimer); wlpTimer = null; }, { passive: true });
+    winesList.addEventListener('touchcancel', () => { clearTimeout(wlpTimer); wlpTimer = null; }, { passive: true });
+
+    // Pointer path — mouse / stylus only (touch handled above to avoid
+    // double-firing and to bypass pointercancel from scroll recognition).
+    winesList.addEventListener('pointerdown', e => {
+      if (e.pointerType === 'touch') return;
+      const btn = e.target.closest('.item-btn[data-wine-id]');
+      if (!btn) return;
+      const wineId = btn.dataset.wineId;
+      wlpFired = false;
+      clearTimeout(wlpTimer);
+      wlpTimer = setTimeout(() => {
+        wlpFired = true;
+        if (wineId) { openWineAdmin(); wineAdminSelect(wineId); }
+      }, 900);
     });
-    winesList.addEventListener('pointerup', () => { clearTimeout(wlpTimer); wlpTimer = null; });
-    const wlpCancel = () => { clearTimeout(wlpTimer); wlpTimer = null; };
-    winesList.addEventListener('pointerleave', wlpCancel);
-    winesList.addEventListener('pointercancel', wlpCancel);
-    winesList.addEventListener('contextmenu', e => { if (e.target.closest('.item-btn')) e.preventDefault(); });
+    winesList.addEventListener('pointerup', e => { if (e.pointerType === 'touch') return; clearTimeout(wlpTimer); wlpTimer = null; });
+    winesList.addEventListener('pointerleave', e => { if (e.pointerType === 'touch') return; clearTimeout(wlpTimer); wlpTimer = null; });
+    winesList.addEventListener('pointercancel', e => { if (e.pointerType === 'touch') return; clearTimeout(wlpTimer); wlpTimer = null; });
+
+    // Block add-to-order click after long press (capture phase).
     winesList.addEventListener('click', e => {
       if (wlpFired) { wlpFired = false; e.stopPropagation(); e.preventDefault(); }
     }, true);
+
+    winesList.addEventListener('contextmenu', e => { if (e.target.closest('.item-btn')) e.preventDefault(); });
   }
 
   // =============================================
@@ -2828,6 +2867,7 @@
     applyLang();
     initDeviceIdentity();
     initWinesLongPress();
+    initWineItemLongPress();
     initWineAdminYear();
     loadWines();
     EDITABLE_SECTION_KEYS.forEach(key => {
