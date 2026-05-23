@@ -23,6 +23,10 @@ html, body { font-family: 'DM Mono', monospace; background: #0f1a19; color: #e8f
 .acc-header.open .acc-arrow { transform: rotate(180deg); }
 .acc-body { display: none; padding: 4px 6px 6px; }
 .acc-body.open { display: block; }
+.event-category .acc-header { background: linear-gradient(135deg, rgba(212,175,55,0.18) 0%, rgba(42,157,143,0.12) 100%); border-left: 3px solid #d4af37; }
+.event-category .acc-header:active { background: linear-gradient(135deg, rgba(212,175,55,0.28) 0%, rgba(42,157,143,0.22) 100%); }
+.event-category .acc-title { color: #f5d060; }
+.event-category .acc-arrow { color: #d4af37; }
 .menu-items-area { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .section { margin-bottom: 0; }
 .section-title { font-family: 'Cormorant Garamond', serif; font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #3dbfaf; border-bottom: 1px solid rgba(42,157,143,0.2); padding-bottom: 3px; margin-bottom: 4px; padding: 0 6px 3px; }

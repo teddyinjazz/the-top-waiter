@@ -2126,7 +2126,10 @@
         area.appendChild(section);
       } else {
         const nameEl = section.querySelector('.acc-title');
-        if (nameEl) nameEl.textContent = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
+        if (nameEl) {
+          const baseName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
+          nameEl.textContent = key === 'usyk_fight_night' ? '🥊 ' + baseName : baseName;
+        }
       }
       renderCustomCategoryItems(key);
     });
@@ -2134,18 +2137,16 @@
 
   function createCustomCategorySection(key, cat) {
     const section = document.createElement('div');
-    section.className = 'menu-section custom-cat-section';
+    const isEvent = key === 'usyk_fight_night';
+    section.className = 'menu-section custom-cat-section' + (isEvent ? ' event-category' : '');
     section.id = 'customCat_' + key;
-    const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
-    const imgHtml = cat.imageUrl
-      ? `<img src="${escapeHtml(cat.imageUrl)}" alt="${escapeHtml(dispName)}" style="width:100%;border-radius:6px;margin:4px 0 6px;display:block">`
-      : '';
+    const baseName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
+    const dispName = isEvent ? '🥊 ' + baseName : baseName;
     section.innerHTML =
       `<div class="acc-header" id="${escapeHtml(key)}AccHeader">` +
       `<span class="acc-title">${escapeHtml(dispName)}</span>` +
       `<span class="acc-arrow">▼</span></div>` +
       `<div class="acc-body" id="${escapeHtml(key)}AccBody">` +
-      imgHtml +
       `<div class="items-grid" id="${escapeHtml(key)}List"></div></div>`;
     const header = section.querySelector('.acc-header');
     let hTimer = null, hFired = false;
@@ -2300,7 +2301,6 @@
         nameRu: 'НОЧЬ БОЯ УСИКА',
         nameEn: 'USYK FIGHT NIGHT',
         isActive: true,
-        imageUrl: 'assets/usyk-fight-night-menu.jpg',
         createdAt: now,
         updatedAt: now,
       });
