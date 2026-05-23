@@ -2284,12 +2284,14 @@
       opt.textContent = (lang === 'ru' ? titlesRu[key] : titlesEn[key]) || key;
       sel.appendChild(opt);
     });
-    Object.entries(customCategories).forEach(([key, cat]) => {
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = (lang === 'ru' ? (cat.nameRu || cat.nameEn) : (cat.nameEn || cat.nameRu)) || key;
-      sel.appendChild(opt);
-    });
+    Object.entries(customCategories)
+      .filter(([, cat]) => cat.isActive !== false)
+      .forEach(([key, cat]) => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = (lang === 'ru' ? (cat.nameRu || cat.nameEn) : (cat.nameEn || cat.nameRu)) || key;
+        sel.appendChild(opt);
+      });
     sel.value = currentSection || '';
   }
 
@@ -2310,13 +2312,13 @@
       if (existing && Object.keys(existing).length > 0) return;
       const now = Date.now();
       db.ref('menuSections/usyk_fight_night/items').set({
-        usyk_wings:   { name: 'Крылышки Fight Night', nameRu: 'Крылышки Fight Night',  nameEn: 'Fight Night Wings',   price: 12, isGroup: false, isActive: true, sortOrder: 10, createdAt: now, updatedAt: now },
-        usyk_burger:  { name: 'Бургер Нокаут',        nameRu: 'Бургер Нокаут',         nameEn: 'Knockout Burger',     price: 15, isGroup: false, isActive: true, sortOrder: 20, createdAt: now, updatedAt: now },
-        usyk_ribs:    { name: 'Рёбра Fight Night',    nameRu: 'Рёбра Fight Night',     nameEn: 'Fight Night Ribs',    price: 18, isGroup: false, isActive: true, sortOrder: 30, createdAt: now, updatedAt: now },
-        usyk_steak:   { name: 'Стейк Чемпиона',       nameRu: 'Стейк Чемпиона',        nameEn: 'Champion Steak',      price: 25, isGroup: false, isActive: true, sortOrder: 40, createdAt: now, updatedAt: now },
-        usyk_platter: { name: 'Плато Бойца',          nameRu: 'Плато Бойца',           nameEn: "Fighter's Platter",   price: 30, isGroup: false, isActive: true, sortOrder: 50, createdAt: now, updatedAt: now },
-        usyk_nachos:  { name: 'Начос Ring Side',       nameRu: 'Начос Ring Side',        nameEn: 'Ring Side Nachos',    price: 10, isGroup: false, isActive: true, sortOrder: 60, createdAt: now, updatedAt: now },
-        usyk_dessert: { name: 'Десерт Победителя',    nameRu: 'Десерт Победителя',     nameEn: "Winner's Dessert",    price:  9, isGroup: false, isActive: true, sortOrder: 70, createdAt: now, updatedAt: now },
+        usyk_beef_pork_dumplings: { name: 'Beef & Pork Dumplings',  nameRu: 'Пельмени говядина + свинина', nameEn: 'Beef & Pork Dumplings',  price: 15, isGroup: false, isActive: true, sortOrder: 10, createdAt: now, updatedAt: now },
+        usyk_turkey_dumplings:    { name: 'Turkey Dumplings',        nameRu: 'Пельмени индейка',            nameEn: 'Turkey Dumplings',        price: 15, isGroup: false, isActive: true, sortOrder: 20, createdAt: now, updatedAt: now },
+        usyk_garlic_bread:        { name: 'Crispy Garlic Bread',     nameRu: 'Хрустящий чесночный хлеб',   nameEn: 'Crispy Garlic Bread',     price:  5, isGroup: false, isActive: true, sortOrder: 30, createdAt: now, updatedAt: now },
+        usyk_chicken_wings:       { name: 'Chicken Wings',           nameRu: 'Куриные крылышки',            nameEn: 'Chicken Wings',           price:  7, isGroup: false, isActive: true, sortOrder: 40, createdAt: now, updatedAt: now },
+        usyk_classic_burger:      { name: 'Classic Burger',          nameRu: 'Классический бургер',         nameEn: 'Classic Burger',          price: 14, isGroup: false, isActive: true, sortOrder: 50, createdAt: now, updatedAt: now },
+        usyk_cheeseburger:        { name: 'Classic Cheeseburger',    nameRu: 'Классический чизбургер',      nameEn: 'Classic Cheeseburger',    price: 15, isGroup: false, isActive: true, sortOrder: 60, createdAt: now, updatedAt: now },
+        usyk_cheese_platter:      { name: 'Cheese Platter',          nameRu: 'Сырная тарелка',              nameEn: 'Cheese Platter',          price: 14, isGroup: false, isActive: true, sortOrder: 70, createdAt: now, updatedAt: now },
       });
     });
   }
