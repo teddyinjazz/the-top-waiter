@@ -20,7 +20,7 @@
 <body>
 
 <div class="topbar">
-  <div class="topbar-logo">the <span>TOP</span></div>
+  <div class="topbar-logo" id="appLogoArea">the <span>TOP</span></div>
   <button id="langBtn" onclick="toggleLang()" style="background:#1e302d;border:1px solid rgba(42,157,143,0.4);color:#3dbfaf;padding:3px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;flex-shrink:0;letter-spacing:1px">EN</button>
   <div id="deviceBadgeWrap" onclick="openDeviceRenameModal()" title="Tap to rename device" style="display:none;cursor:pointer;background:#1e302d;border:1px solid rgba(42,157,143,0.3);color:#7ab3ac;padding:3px 6px;border-radius:4px;font-size:9px;letter-spacing:0.3px;align-items:center;gap:2px;flex-shrink:0;white-space:nowrap;user-select:none;max-width:72px;min-width:0;overflow:hidden">📱<span id="deviceBadgeName" style="color:#3dbfaf;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1"></span></div>
   <div class="table-scroll-wrap">
@@ -126,6 +126,9 @@
     <div id="winesList" style="font-size:10px;color:#7ab3ac;padding:10px 5px;text-align:center;letter-spacing:1px">Загрузка...</div>
     </div>
   </div>
+
+  <!-- Custom categories inserted here dynamically by loadCustomCategories() -->
+  <div id="customCategoriesArea"></div>
 
   <div class="section" data-cat="starters">
     <div class="acc-header" id="startersAccHeader">
@@ -411,6 +414,10 @@
         <input class="wine-admin-input" id="miaSortOrder" type="number" min="0" step="10" style="max-width:80px">
       </div>
       <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Категория" data-en="Category">Категория</span>
+        <select class="wine-admin-input" id="miaCategory" style="background:#1e302d;color:#e8f4f2;border:1px solid rgba(42,157,143,0.3);font-family:'DM Mono',monospace;font-size:10px;padding:4px"></select>
+      </div>
+      <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="Актив." data-en="Active">Актив.</span>
         <input type="checkbox" id="miaActive" class="wine-admin-checkbox" checked>
       </div>
@@ -424,7 +431,40 @@
   </div>
 </div>
 
-<script src="app.js?v=side-stop-1"></script>
+<!-- Category Admin Modal (long-press on logo to open) -->
+<div class="menu-item-admin-overlay" id="categoryAdminOverlay">
+  <div class="wine-admin-box">
+    <div class="wine-admin-hdr">
+      <span class="wine-admin-title" data-ru="КАТЕГОРИИ МЕНЮ" data-en="MENU CATEGORIES">КАТЕГОРИИ МЕНЮ</span>
+      <button class="wine-admin-close" onclick="closeCategoryAdmin()">✕</button>
+    </div>
+    <div class="wine-admin-list-hdr" data-ru="КАТЕГОРИИ" data-en="CATEGORIES">КАТЕГОРИИ</div>
+    <div class="wine-admin-list-wrap">
+      <div class="wine-admin-list" id="categoryAdminList"></div>
+    </div>
+    <div class="wine-admin-form-wrap">
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Назв. RU" data-en="RU name">Назв. RU</span>
+        <input class="wine-admin-input" id="catNameRu" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Назв. EN" data-en="EN name">Назв. EN</span>
+        <input class="wine-admin-input" id="catNameEn" type="text">
+      </div>
+      <div class="wine-admin-field">
+        <span class="wine-admin-label" data-ru="Активно" data-en="Active">Активно</span>
+        <input type="checkbox" id="catActive" class="wine-admin-checkbox" checked>
+      </div>
+      <div class="wine-admin-actions">
+        <button class="wine-admin-btn" onclick="categoryAdminNew()" data-ru="+ Новая" data-en="+ New">+ Новая</button>
+        <button class="wine-admin-btn wine-admin-btn-save" onclick="saveCategoryAdmin()" data-ru="Сохранить" data-en="Save">Сохранить</button>
+        <button class="wine-admin-btn" onclick="closeCategoryAdmin()" data-ru="Закрыть" data-en="Close">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js?v=custom-cat-1"></script>
 
 <!-- Device naming modal (first use) -->
 <div id="deviceNameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:99999;align-items:center;justify-content:center;">

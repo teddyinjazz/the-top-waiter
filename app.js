@@ -56,6 +56,7 @@
     renderOrder();
     renderWines(cachedWines);
     EDITABLE_SECTION_KEYS.forEach(key => renderEditableSection(key));
+    renderCustomCategoriesArea();
   }
 
 
@@ -2005,6 +2006,9 @@
   };
   let currentMenuItemAdminSection = null;
   let currentMenuItemAdminId = null;
+  let customCategories = {};
+  const _customCatItemListeners = new Set();
+  let _currentCatAdminKey = null;
 
   function renderEditableSection(sectionKey) {
     const container = document.getElementById(sectionKey + 'List');
@@ -2081,6 +2085,242 @@
     });
   }
 
+  // =============================================
+  // CUSTOM CATEGORIES
+  // =============================================
+  function loadCustomCategories() {
+    db.ref('menuCategories').on('value', snapshot => {
+      customCategories = snapshot.val() || {};
+      renderCustomCategoriesArea();
+      Object.entries(customCategories).forEach(([key]) => {
+        if (!_customCatItemListeners.has(key)) {
+          _customCatItemListeners.add(key);
+          db.ref('menuSections/' + key + '/items').on('value', snap => {
+            editableSections[key] = snap.val() || {};
+            const listEl = document.getElementById(key + 'List');
+            if (listEl) renderCustomCategoryItems(key);
+            renderOrder();
+            if (currentTable !== '🛑') applyStopList();
+            const adminOverlay = document.getElementById('menuItemAdminOverlay');
+            if (adminOverlay && adminOverlay.classList.contains('show') && currentMenuItemAdminSection === key) {
+              renderMenuItemAdminList();
+            }
+          });
+        }
+      });
+    });
+  }
+
+  function renderCustomCategoriesArea() {
+    const area = document.getElementById('customCategoriesArea');
+    if (!area) return;
+    const active = Object.entries(customCategories).filter(([, cat]) => cat.isActive !== false);
+    area.querySelectorAll('.custom-cat-section').forEach(sec => {
+      const key = sec.id.replace('customCat_', '');
+      if (!customCategories[key] || customCategories[key].isActive === false) sec.remove();
+    });
+    active.forEach(([key, cat]) => {
+      let section = document.getElementById('customCat_' + key);
+      if (!section) {
+        section = createCustomCategorySection(key, cat);
+        area.appendChild(section);
+      } else {
+        const nameEl = section.querySelector('.acc-title');
+        if (nameEl) nameEl.textContent = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
+      }
+      renderCustomCategoryItems(key);
+    });
+  }
+
+  function createCustomCategorySection(key, cat) {
+    const section = document.createElement('div');
+    section.className = 'menu-section custom-cat-section';
+    section.id = 'customCat_' + key;
+    const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
+    const imgHtml = cat.imageUrl
+      ? `<img src="${escapeHtml(cat.imageUrl)}" alt="${escapeHtml(dispName)}" style="width:100%;border-radius:6px;margin:4px 0 6px;display:block">`
+      : '';
+    section.innerHTML =
+      `<div class="acc-header" id="${escapeHtml(key)}AccHeader">` +
+      `<span class="acc-title">${escapeHtml(dispName)}</span>` +
+      `<span class="acc-arrow">▼</span></div>` +
+      `<div class="acc-body" id="${escapeHtml(key)}AccBody">` +
+      imgHtml +
+      `<div class="items-grid" id="${escapeHtml(key)}List"></div></div>`;
+    const header = section.querySelector('.acc-header');
+    let hTimer = null, hFired = false;
+    header.addEventListener('pointerdown', () => {
+      hFired = false;
+      hTimer = setTimeout(() => { hFired = true; openMenuItemAdminForSection(key); }, 1200);
+    });
+    header.addEventListener('pointerup', () => {
+      clearTimeout(hTimer); hTimer = null;
+      if (!hFired) toggleAcc(header);
+    });
+    const hCancel = () => { clearTimeout(hTimer); hTimer = null; };
+    header.addEventListener('pointerleave', hCancel);
+    header.addEventListener('pointercancel', hCancel);
+    header.addEventListener('contextmenu', e => e.preventDefault());
+    const listEl = section.querySelector('.items-grid');
+    let lpTimer = null, lpFired = false;
+    listEl.addEventListener('pointerdown', e => {
+      const btn = e.target.closest('.item-btn');
+      if (!btn) return;
+      lpFired = false;
+      lpTimer = setTimeout(() => { lpFired = true; const itemId = btn.dataset.itemId; if (itemId) openMenuItemAdmin(key, itemId); }, 1200);
+    });
+    listEl.addEventListener('pointerup', () => { clearTimeout(lpTimer); lpTimer = null; });
+    const lpCancel = () => { clearTimeout(lpTimer); lpTimer = null; };
+    listEl.addEventListener('pointerleave', lpCancel);
+    listEl.addEventListener('pointercancel', lpCancel);
+    listEl.addEventListener('contextmenu', e => { if (e.target.closest('.item-btn')) e.preventDefault(); });
+    listEl.addEventListener('click', e => { if (lpFired) { lpFired = false; e.stopPropagation(); e.preventDefault(); } }, true);
+    return section;
+  }
+
+  function renderCustomCategoryItems(key) {
+    const container = document.getElementById(key + 'List');
+    if (!container) return;
+    const items = editableSections[key] || {};
+    const activeItems = Object.entries(items)
+      .filter(([, item]) => item.isActive !== false)
+      .sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    if (!activeItems.length) {
+      container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
+        (lang === 'ru' ? 'Нет позиций' : 'No items') + '</div>';
+      restoreMenuVisual();
+      restoreGroupBtns();
+      if (currentTable !== '🛑') applyStopList();
+      return;
+    }
+    container.innerHTML = activeItems.map(([id, item]) => renderEditableMenuItem(key, id, item)).join('');
+    restoreMenuVisual();
+    restoreGroupBtns();
+    if (currentTable !== '🛑') applyStopList();
+  }
+
+  function openCategoryAdmin() {
+    _currentCatAdminKey = null;
+    renderCategoryAdminList();
+    categoryAdminNew();
+    document.getElementById('categoryAdminOverlay').classList.add('show');
+  }
+
+  function closeCategoryAdmin() {
+    document.getElementById('categoryAdminOverlay').classList.remove('show');
+  }
+
+  function renderCategoryAdminList() {
+    const listEl = document.getElementById('categoryAdminList');
+    if (!listEl) return;
+    const entries = Object.entries(customCategories).sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    if (!entries.length) {
+      listEl.innerHTML = '<div style="color:#7ab3ac;font-size:10px;padding:10px 12px">No categories yet</div>';
+      return;
+    }
+    listEl.innerHTML = entries.map(([key, cat]) => {
+      const safeKey = key.replace(/'/g, "\\'");
+      const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
+      return `<div class="wine-admin-row${cat.isActive === false ? ' wine-admin-row-inactive' : ''}" data-id="${escapeHtml(key)}" onclick="categoryAdminSelect('${safeKey}')">` +
+        `<span class="wine-admin-row-name">${escapeHtml(dispName)}</span>` +
+        (cat.isActive === false ? '<span class="wine-admin-row-badge">OFF</span>' : '') +
+        '</div>';
+    }).join('');
+  }
+
+  function categoryAdminNew() {
+    _currentCatAdminKey = null;
+    ['catNameRu', 'catNameEn'].forEach(elId => { const el = document.getElementById(elId); if (el) el.value = ''; });
+    const cb = document.getElementById('catActive');
+    if (cb) cb.checked = true;
+    document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
+  }
+
+  function categoryAdminSelect(key) {
+    const cat = customCategories[key];
+    if (!cat) return;
+    _currentCatAdminKey = key;
+    const ruEl = document.getElementById('catNameRu'); if (ruEl) ruEl.value = cat.nameRu || '';
+    const enEl = document.getElementById('catNameEn'); if (enEl) enEl.value = cat.nameEn || '';
+    const cb = document.getElementById('catActive'); if (cb) cb.checked = cat.isActive !== false;
+    document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r =>
+      r.classList.toggle('selected', r.dataset.id === key));
+  }
+
+  function saveCategoryAdmin() {
+    const nameRu = (document.getElementById('catNameRu').value || '').trim();
+    const nameEn = (document.getElementById('catNameEn').value || '').trim();
+    if (!nameRu && !nameEn) { alert(lang === 'ru' ? 'Укажите название' : 'Enter a category name'); return; }
+    const isActive = document.getElementById('catActive').checked;
+    const now = Date.now();
+    if (_currentCatAdminKey) {
+      const prev = customCategories[_currentCatAdminKey] || {};
+      const updates = { nameRu, nameEn, isActive, updatedAt: now };
+      db.ref('menuCategories/' + _currentCatAdminKey).update(updates);
+      customCategories[_currentCatAdminKey] = Object.assign({}, prev, updates);
+      writeAudit('category_update', { key: _currentCatAdminKey, nameRu, nameEn, isActive, prev });
+    } else {
+      const key = (nameEn || nameRu).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + now;
+      const data = { nameRu, nameEn, isActive, createdAt: now, updatedAt: now };
+      db.ref('menuCategories/' + key).set(data);
+      customCategories[key] = data;
+      _currentCatAdminKey = key;
+      writeAudit('category_create', { key, nameRu, nameEn });
+    }
+    renderCategoryAdminList();
+    renderCustomCategoriesArea();
+  }
+
+  function populateMiaCategorySelect(currentSection) {
+    const sel = document.getElementById('miaCategory');
+    if (!sel) return;
+    sel.innerHTML = '';
+    const titlesRu = EDITABLE_SECTION_TITLES_RU;
+    const titlesEn = EDITABLE_SECTION_TITLES_EN;
+    EDITABLE_SECTION_KEYS.forEach(key => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = (lang === 'ru' ? titlesRu[key] : titlesEn[key]) || key;
+      sel.appendChild(opt);
+    });
+    Object.entries(customCategories).forEach(([key, cat]) => {
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = (lang === 'ru' ? (cat.nameRu || cat.nameEn) : (cat.nameEn || cat.nameRu)) || key;
+      sel.appendChild(opt);
+    });
+    sel.value = currentSection || '';
+  }
+
+  function seedUsykFightNight() {
+    db.ref('menuCategories/usyk_fight_night').once('value', snapshot => {
+      if (snapshot.val()) return;
+      const now = Date.now();
+      db.ref('menuCategories/usyk_fight_night').set({
+        nameRu: 'НОЧЬ БОЯ УСИКА',
+        nameEn: 'USYK FIGHT NIGHT',
+        isActive: true,
+        imageUrl: 'assets/usyk-fight-night-menu.jpg',
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+    db.ref('menuSections/usyk_fight_night/items').once('value', snapshot => {
+      const existing = snapshot.val();
+      if (existing && Object.keys(existing).length > 0) return;
+      const now = Date.now();
+      db.ref('menuSections/usyk_fight_night/items').set({
+        usyk_wings:   { name: 'Крылышки Fight Night', nameRu: 'Крылышки Fight Night',  nameEn: 'Fight Night Wings',   price: 12, isGroup: false, isActive: true, sortOrder: 10, createdAt: now, updatedAt: now },
+        usyk_burger:  { name: 'Бургер Нокаут',        nameRu: 'Бургер Нокаут',         nameEn: 'Knockout Burger',     price: 15, isGroup: false, isActive: true, sortOrder: 20, createdAt: now, updatedAt: now },
+        usyk_ribs:    { name: 'Рёбра Fight Night',    nameRu: 'Рёбра Fight Night',     nameEn: 'Fight Night Ribs',    price: 18, isGroup: false, isActive: true, sortOrder: 30, createdAt: now, updatedAt: now },
+        usyk_steak:   { name: 'Стейк Чемпиона',       nameRu: 'Стейк Чемпиона',        nameEn: 'Champion Steak',      price: 25, isGroup: false, isActive: true, sortOrder: 40, createdAt: now, updatedAt: now },
+        usyk_platter: { name: 'Плато Бойца',          nameRu: 'Плато Бойца',           nameEn: "Fighter's Platter",   price: 30, isGroup: false, isActive: true, sortOrder: 50, createdAt: now, updatedAt: now },
+        usyk_nachos:  { name: 'Начос Ring Side',       nameRu: 'Начос Ring Side',        nameEn: 'Ring Side Nachos',    price: 10, isGroup: false, isActive: true, sortOrder: 60, createdAt: now, updatedAt: now },
+        usyk_dessert: { name: 'Десерт Победителя',    nameRu: 'Десерт Победителя',     nameEn: "Winner's Dessert",    price:  9, isGroup: false, isActive: true, sortOrder: 70, createdAt: now, updatedAt: now },
+      });
+    });
+  }
+
   function seedEditableMenuSectionsIfEmpty() {
     const now = Date.now();
     EDITABLE_SECTION_KEYS.forEach(sectionKey => {
@@ -2151,6 +2391,7 @@
     if (titleEl) titleEl.textContent = titles[sectionKey] || sectionKey.toUpperCase() + ' — ADMIN';
     renderMenuItemAdminList();
     menuItemAdminNew();
+    populateMiaCategorySelect(sectionKey);
     document.getElementById('menuItemAdminOverlay').classList.add('show');
   }
 
@@ -2159,6 +2400,7 @@
     const titles = lang === 'ru' ? EDITABLE_SECTION_TITLES_RU : EDITABLE_SECTION_TITLES_EN;
     const titleEl = document.getElementById('menuItemAdminTitle');
     if (titleEl) titleEl.textContent = titles[sectionKey] || sectionKey.toUpperCase() + ' — ADMIN';
+    populateMiaCategorySelect(sectionKey);
     renderMenuItemAdminList();
     menuItemAdminSelect(itemId);
     document.getElementById('menuItemAdminOverlay').classList.add('show');
@@ -2212,6 +2454,8 @@
     document.getElementById('miaGroupKey').value     = item.groupKey || '';
     document.getElementById('miaSortOrder').value    = item.sortOrder !== undefined ? item.sortOrder : '';
     document.getElementById('miaActive').checked     = item.isActive !== false;
+    const miaCatSel = document.getElementById('miaCategory');
+    if (miaCatSel) miaCatSel.value = currentMenuItemAdminSection;
     document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r =>
       r.classList.toggle('selected', r.dataset.id === id));
     const isGrp = !!item.isGroup;
@@ -2248,6 +2492,8 @@
     document.getElementById('miaActive').checked  = true;
     const varRow = document.getElementById('miaVariantsRow');
     if (varRow) varRow.style.display = 'none';
+    const catSel = document.getElementById('miaCategory');
+    if (catSel && currentMenuItemAdminSection) catSel.value = currentMenuItemAdminSection;
     document.querySelectorAll('#menuItemAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
   }
 
@@ -2303,6 +2549,39 @@
         if (parsedVariants.length > 0) data.variants = parsedVariants;
       }
     }
+    const miaCatEl = document.getElementById('miaCategory');
+    const targetSection = (miaCatEl && miaCatEl.value) ? miaCatEl.value : currentMenuItemAdminSection;
+    if (targetSection && targetSection !== currentMenuItemAdminSection) {
+      let targetId;
+      if (!currentMenuItemAdminId) {
+        targetId = db.ref('menuSections/' + targetSection + '/items').push().key;
+        data.createdAt = now;
+      } else {
+        const targetItems = editableSections[targetSection] || {};
+        targetId = targetItems[currentMenuItemAdminId] ? currentMenuItemAdminId + '_moved_' + now : currentMenuItemAdminId;
+        const prevItem = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId] || {};
+        data.createdAt = prevItem.createdAt || now;
+      }
+      db.ref('menuSections/' + targetSection + '/items/' + targetId).set(data);
+      if (currentMenuItemAdminId) {
+        db.ref('menuSections/' + currentMenuItemAdminSection + '/items/' + currentMenuItemAdminId).update({
+          isActive: false,
+          movedTo: targetSection + '/' + targetId,
+          movedAt: now,
+        });
+      }
+      writeAudit('menu_item_transfer', {
+        fromSection: currentMenuItemAdminSection,
+        toSection: targetSection,
+        itemId: currentMenuItemAdminId,
+        newItemId: targetId,
+        itemName: name,
+      });
+      currentMenuItemAdminSection = targetSection;
+      currentMenuItemAdminId = targetId;
+      return;
+    }
+
     if (currentMenuItemAdminId) {
       const prev = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId];
       if (prev && prev.createdAt) data.createdAt = prev.createdAt;
@@ -2535,4 +2814,20 @@
     syncCoffeeGroupItemsIfMissing();
     syncBeerItemsIntoWaterSectionOnce();
     loadEditableMenuSections();
+    seedUsykFightNight();
+    loadCustomCategories();
+
+    const logoArea = document.getElementById('appLogoArea');
+    if (logoArea) {
+      let logoTimer = null, logoFired = false;
+      logoArea.addEventListener('pointerdown', () => {
+        logoFired = false;
+        logoTimer = setTimeout(() => { logoFired = true; openCategoryAdmin(); }, 1200);
+      });
+      logoArea.addEventListener('pointerup', () => { clearTimeout(logoTimer); logoTimer = null; });
+      const logoCancel = () => { clearTimeout(logoTimer); logoTimer = null; };
+      logoArea.addEventListener('pointerleave', logoCancel);
+      logoArea.addEventListener('pointercancel', logoCancel);
+      logoArea.addEventListener('contextmenu', e => e.preventDefault());
+    }
   });
