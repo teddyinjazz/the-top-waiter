@@ -90,13 +90,14 @@ html, body { font-family: 'DM Mono', monospace; background: #0f1a19; color: #e8f
 .var-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 700; color: #3dbfaf; letter-spacing: 1px; padding: 16px 18px 8px; border-bottom: 1px solid rgba(42,157,143,0.2); }
 .var-subtitle { font-size: 10px; color: #7ab3ac; padding: 6px 18px 10px; letter-spacing: 1px; }
 .var-options { display: flex; flex-direction: column; gap: 0; }
-.var-btn { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; background: transparent; border: none; border-bottom: 1px solid rgba(42,157,143,0.1); cursor: pointer; width: 100%; text-align: left; transition: background 0.1s; }
+.var-btn { display: flex; justify-content: space-between; align-items: center; padding: 15px 18px; background: transparent; border: none; border-bottom: 1px solid rgba(42,157,143,0.1); cursor: pointer; width: 100%; text-align: left; transition: background 0.1s; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
 .var-btn:active { background: #1e302d; }
 .var-btn.stopped { opacity: 0.3; pointer-events: none; }
 .var-btn-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: #e8f4f2; font-weight: 600; }
 .var-btn-price { font-size: 15px; color: #e9c46a; font-weight: 500; }
 .var-btn-count { background: #2a9d8f; color: #fff; font-size: 11px; font-weight: 500; min-width: 22px; height: 22px; border-radius: 11px; display: flex; align-items: center; justify-content: center; padding: 0 6px; margin-left: 8px; }
 .var-cancel { margin: 10px 12px 0; padding: 13px; background: #253b37; border: 1px solid rgba(42,157,143,0.3); border-radius: 8px; color: #7ab3ac; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; width: calc(100% - 24px); text-align: center; }
+input, textarea, select { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; touch-action: auto; }
 .var-cancel:active { background: #1e302d; }
 .item-btn.is-group .item-count { background: #e9c46a; color: #162320; }
 .notes-area { flex-shrink: 0; border-top: 1px solid rgba(42,157,143,0.15); position: relative; height: 50%; min-height: 120px; max-height: 240px; display: flex; flex-direction: column; }
