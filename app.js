@@ -2244,6 +2244,16 @@
     const listEl = document.getElementById('categoryAdminList');
     if (!listEl) return;
     listEl.innerHTML = '';
+
+    // DIAGNOSTIC: always-visible test tap target
+    const testSpan = document.createElement('span');
+    testSpan.id = 'catAdminTestToggle';
+    testSpan.style.cssText = 'display:block;background:#e76f51;color:#fff;font-size:9px;padding:3px 8px;cursor:pointer;margin:4px;border-radius:4px;letter-spacing:1px;';
+    testSpan.textContent = 'TEST TOGGLE — TAP ME';
+    testSpan.setAttribute('onclick', "alert('DIRECT TEST CLICK'); return false;");
+    testSpan.setAttribute('ontouchstart', "alert('DIRECT TEST TOUCH'); return false;");
+    listEl.appendChild(testSpan);
+
     const entries = Object.entries(customCategories).sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
     if (!entries.length) {
       const empty = document.createElement('div');
@@ -2262,21 +2272,36 @@
       nameSpan.className = 'wine-admin-row-name';
       nameSpan.textContent = dispName;
       row.appendChild(nameSpan);
+
+      // DIAGNOSTIC: show first 8 chars of key next to pill
+      const keyDebug = document.createElement('span');
+      keyDebug.style.cssText = 'font-size:7px;color:#7ab3ac;opacity:0.7;flex-shrink:0;';
+      keyDebug.textContent = key.slice(0, 8);
+      row.appendChild(keyDebug);
+
       const pill = document.createElement('span');
       pill.className = 'cat-direct-toggle' + (isActive ? ' cat-direct-toggle-on' : ' cat-direct-toggle-off');
       pill.setAttribute('role', 'button');
       pill.setAttribute('tabindex', '0');
       pill.dataset.catKey = key;
       pill.textContent = isActive ? 'ON' : 'OFF';
-      const _pillHandler = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-        hardToggleCategoryActive(key);
-        return false;
-      };
-      pill.onclick = _pillHandler;
-      pill.ontouchstart = _pillHandler;
+
+      if (key === 'usyk_fight_night') {
+        // DIAGNOSTIC: literal inline attributes for USYK row — no DOM property
+        pill.setAttribute('onclick', "alert('USYK CLICK INLINE'); return false;");
+        pill.setAttribute('ontouchstart', "alert('USYK TOUCH INLINE'); return false;");
+      } else {
+        const _pillHandler = function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+          hardToggleCategoryActive(key);
+          return false;
+        };
+        pill.onclick = _pillHandler;
+        pill.ontouchstart = _pillHandler;
+      }
+
       row.appendChild(pill);
       row.onclick = () => categoryAdminSelect(key);
       listEl.appendChild(row);
@@ -2831,8 +2856,10 @@
   // INIT
   // =============================================
   window.addEventListener('DOMContentLoaded', () => {
-    window.APP_BUILD = 'category-toggle-inline-1';
+    window.APP_BUILD = 'category-toggle-diagnostic-1';
     console.log('APP_BUILD', window.APP_BUILD);
+    const _bm = document.getElementById('catAdminBuildMarker');
+    if (_bm) _bm.textContent = window.APP_BUILD;
 
     const firstBtn = document.querySelector('.table-btn');
     if (firstBtn) currentTable = firstBtn.textContent.trim();
