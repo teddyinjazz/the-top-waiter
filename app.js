@@ -1656,8 +1656,6 @@
   let wineAdminColor = 'other';
   let wineAdminStyle = 'still';
   let wineLongPressInitialized = false;
-  let _lastCategoryToggleAt = 0;
-  let _lastCategoryToggleKey = null;
 
   function initWineAdminYear() {
     const sel = document.getElementById('wineAdminYear');
@@ -2037,7 +2035,6 @@
   let currentMenuItemAdminId = null;
   let customCategories = {};
   const _customCatItemListeners = new Set();
-  let _currentCatAdminKey = null;
 
   function renderEditableSection(sectionKey) {
     const container = document.getElementById(sectionKey + 'List');
@@ -2230,9 +2227,8 @@
   }
 
   function openCategoryAdmin() {
-    _currentCatAdminKey = null;
     renderCategoryAdminList();
-    categoryAdminNew();
+    hideCatCreateForm();
     document.getElementById('categoryAdminOverlay').classList.add('show');
   }
 
@@ -2244,16 +2240,6 @@
     const listEl = document.getElementById('categoryAdminList');
     if (!listEl) return;
     listEl.innerHTML = '';
-
-    // DIAGNOSTIC: always-visible test tap target
-    const testSpan = document.createElement('span');
-    testSpan.id = 'catAdminTestToggle';
-    testSpan.style.cssText = 'display:block;background:#e76f51;color:#fff;font-size:9px;padding:3px 8px;cursor:pointer;margin:4px;border-radius:4px;letter-spacing:1px;';
-    testSpan.textContent = 'TEST TOGGLE — TAP ME';
-    testSpan.setAttribute('onclick', "alert('DIRECT TEST CLICK'); return false;");
-    testSpan.setAttribute('ontouchstart', "alert('DIRECT TEST TOUCH'); return false;");
-    listEl.appendChild(testSpan);
-
     const entries = Object.entries(customCategories).sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
     if (!entries.length) {
       const empty = document.createElement('div');
@@ -2265,155 +2251,94 @@
     entries.forEach(([key, cat]) => {
       const isActive = cat.isActive !== false;
       const row = document.createElement('div');
-      row.className = 'wine-admin-row' + (isActive ? '' : ' wine-admin-row-inactive');
+      row.className = 'wine-admin-row cat-admin-row';
       row.dataset.id = key;
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'cat-active-checkbox';
+      cb.dataset.catKey = key;
+      cb.checked = isActive;
+      cb.addEventListener('change', function() {
+        updateCategoryActive(key, this.checked);
+      });
+      row.appendChild(cb);
+
       const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
       const nameSpan = document.createElement('span');
       nameSpan.className = 'wine-admin-row-name';
       nameSpan.textContent = dispName;
       row.appendChild(nameSpan);
 
-      // DIAGNOSTIC: show first 8 chars of key next to pill
-      const keyDebug = document.createElement('span');
-      keyDebug.style.cssText = 'font-size:7px;color:#7ab3ac;opacity:0.7;flex-shrink:0;';
-      keyDebug.textContent = key.slice(0, 8);
-      row.appendChild(keyDebug);
-
-      const pill = document.createElement('span');
-      pill.className = 'cat-direct-toggle' + (isActive ? ' cat-direct-toggle-on' : ' cat-direct-toggle-off');
-      pill.setAttribute('role', 'button');
-      pill.setAttribute('tabindex', '0');
-      pill.dataset.catKey = key;
-      pill.textContent = isActive ? 'ON' : 'OFF';
-
-      if (key === 'usyk_fight_night') {
-        // DIAGNOSTIC: literal inline attributes for USYK row — no DOM property
-        pill.setAttribute('onclick', "alert('USYK CLICK INLINE'); return false;");
-        pill.setAttribute('ontouchstart', "alert('USYK TOUCH INLINE'); return false;");
-      } else {
-        const _pillHandler = function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-          hardToggleCategoryActive(key);
-          return false;
-        };
-        pill.onclick = _pillHandler;
-        pill.ontouchstart = _pillHandler;
-      }
-
-      row.appendChild(pill);
-      row.onclick = () => categoryAdminSelect(key);
       listEl.appendChild(row);
     });
   }
 
-  function hardToggleCategoryActive(categoryKey) {
-    const _now = Date.now();
-    if (_lastCategoryToggleKey === categoryKey && _now - _lastCategoryToggleAt < 700) return;
-    _lastCategoryToggleKey = categoryKey;
-    _lastCategoryToggleAt = _now;
-
-    alert(lang === 'ru' ? 'Переключаю категорию...' : 'Toggling category...');
-
-    const cat = customCategories && customCategories[categoryKey];
+  function updateCategoryActive(categoryKey, isActive) {
+    const cat = customCategories[categoryKey];
     if (!cat) {
       alert(lang === 'ru' ? 'Категория не найдена' : 'Category not found');
       return;
     }
-    const nextActive = cat.isActive === false;
+    const prev = Object.assign({}, cat);
+    const now = Date.now();
     const update = {
       nameRu:    cat.nameRu   || cat.name || categoryKey,
       nameEn:    cat.nameEn   || cat.nameRu || cat.name || categoryKey,
       isCustom:  cat.isCustom !== false,
       sortOrder: cat.sortOrder || 999,
-      isActive:  nextActive,
-      updatedAt: _now,
+      isActive:  !!isActive,
+      updatedAt: now,
     };
     if (cat.createdAt) update.createdAt = cat.createdAt;
+    customCategories[categoryKey] = Object.assign({}, cat, update);
     db.ref('menuCategories/' + categoryKey).update(update)
       .then(() => {
         if (typeof writeAudit === 'function') {
-          writeAudit('category_update', { categoryKey, before: cat, after: update, source: 'hard_direct_toggle' });
+          writeAudit('category_update', { categoryKey, before: prev, after: update, source: 'category_admin_active_checkbox' });
         }
-        const msg = nextActive
-          ? (lang === 'ru' ? 'Категория включена' : 'Category enabled')
-          : (lang === 'ru' ? 'Категория выключена' : 'Category disabled');
-        alert(msg);
+        renderCustomCategoriesArea();
       })
       .catch(err => {
-        console.warn('Category hard toggle failed', err);
-        alert((lang === 'ru' ? 'Ошибка сохранения категории: ' : 'Category save error: ') + (err.message || err));
+        customCategories[categoryKey] = prev;
+        const el = document.querySelector('.cat-active-checkbox[data-cat-key="' + categoryKey + '"]');
+        if (el) el.checked = !isActive;
+        alert((lang === 'ru' ? 'Ошибка сохранения: ' : 'Save error: ') + (err.message || err));
       });
   }
-  window.hardToggleCategoryActive = hardToggleCategoryActive;
 
-  function initCategoryAdminDirectToggle() {
-    const listEl = document.getElementById('categoryAdminList');
-    if (!listEl) return;
-    listEl.addEventListener('pointerdown', function(e) {
-      if (!e.target.closest('.cat-direct-toggle')) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-    }, true);
-    listEl.addEventListener('click', function(e) {
-      const pill = e.target.closest('.cat-direct-toggle');
-      if (!pill) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      hardToggleCategoryActive(pill.dataset.catKey);
-    }, true);
+  function hideCatCreateForm() {
+    const form = document.getElementById('catCreateForm');
+    if (form) form.style.display = 'none';
   }
 
   function categoryAdminNew() {
-    _currentCatAdminKey = null;
     ['catNameRu', 'catNameEn'].forEach(elId => { const el = document.getElementById(elId); if (el) el.value = ''; });
     const cb = document.getElementById('catActive');
     if (cb) cb.checked = true;
-    document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
-  }
-
-  function categoryAdminSelect(key) {
-    const cat = customCategories[key];
-    if (!cat) { console.warn('[categoryAdmin] key not found in customCategories:', key); return; }
-    _currentCatAdminKey = key;
-    const ruEl = document.getElementById('catNameRu'); if (ruEl) ruEl.value = cat.nameRu || cat.name || key || '';
-    const enEl = document.getElementById('catNameEn'); if (enEl) enEl.value = cat.nameEn || cat.nameRu || cat.name || key || '';
-    const cb = document.getElementById('catActive'); if (cb) cb.checked = cat.isActive !== false;
-    document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r =>
-      r.classList.toggle('selected', r.dataset.id === key));
+    const form = document.getElementById('catCreateForm');
+    if (form) form.style.display = '';
   }
 
   function saveCategoryAdmin() {
-    console.warn("saveCategoryAdmin called");
-    let nameRu = (document.getElementById('catNameRu').value || '').trim();
-    let nameEn = (document.getElementById('catNameEn').value || '').trim();
-    if (_currentCatAdminKey && customCategories[_currentCatAdminKey]) {
-      const existing = customCategories[_currentCatAdminKey];
-      nameRu = nameRu || existing.nameRu || existing.name || _currentCatAdminKey;
-      nameEn = nameEn || existing.nameEn || existing.nameRu || existing.name || _currentCatAdminKey;
+    const nameRuInput = (document.getElementById('catNameRu').value || '').trim();
+    const nameEnInput = (document.getElementById('catNameEn').value || '').trim();
+    if (!nameRuInput && !nameEnInput) {
+      alert(lang === 'ru' ? 'Укажите название' : 'Enter a category name');
+      return;
     }
-    if (!nameRu && !nameEn) { alert(lang === 'ru' ? 'Укажите название' : 'Enter a category name'); return; }
     const isActive = document.getElementById('catActive').checked;
     const now = Date.now();
-    if (_currentCatAdminKey) {
-      const prev = customCategories[_currentCatAdminKey] || {};
-      const updates = { nameRu, nameEn, isActive, updatedAt: now };
-      db.ref('menuCategories/' + _currentCatAdminKey).update(updates);
-      customCategories[_currentCatAdminKey] = Object.assign({}, prev, updates);
-      writeAudit('category_update', { categoryKey: _currentCatAdminKey, before: prev, after: updates });
-    } else {
-      const key = (nameEn || nameRu).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + now;
-      const data = { nameRu, nameEn, isActive, createdAt: now, updatedAt: now };
-      db.ref('menuCategories/' + key).set(data);
-      customCategories[key] = data;
-      _currentCatAdminKey = key;
-      writeAudit('category_create', { categoryKey: key, nameRu, nameEn });
+    const key = (nameEnInput || nameRuInput).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + now;
+    const data = { nameRu: nameRuInput, nameEn: nameEnInput, isActive, createdAt: now, updatedAt: now };
+    db.ref('menuCategories/' + key).set(data);
+    customCategories[key] = data;
+    if (typeof writeAudit === 'function') {
+      writeAudit('category_create', { categoryKey: key, nameRu: nameRuInput, nameEn: nameEnInput });
     }
     renderCategoryAdminList();
     renderCustomCategoriesArea();
+    hideCatCreateForm();
   }
 
   function populateMiaCategorySelect(currentSection) {
@@ -2856,11 +2781,6 @@
   // INIT
   // =============================================
   window.addEventListener('DOMContentLoaded', () => {
-    window.APP_BUILD = 'category-toggle-diagnostic-1';
-    console.log('APP_BUILD', window.APP_BUILD);
-    const _bm = document.getElementById('catAdminBuildMarker');
-    if (_bm) _bm.textContent = window.APP_BUILD;
-
     const firstBtn = document.querySelector('.table-btn');
     if (firstBtn) currentTable = firstBtn.textContent.trim();
 
@@ -2968,7 +2888,6 @@
     loadEditableMenuSections();
     seedUsykFightNight();
     loadCustomCategories();
-    initCategoryAdminDirectToggle();
 
     const logoArea = document.getElementById('appLogoArea');
     if (logoArea) {
