@@ -2241,19 +2241,33 @@
   function renderCategoryAdminList() {
     const listEl = document.getElementById('categoryAdminList');
     if (!listEl) return;
+    listEl.innerHTML = '';
     const entries = Object.entries(customCategories).sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
     if (!entries.length) {
-      listEl.innerHTML = '<div style="color:#7ab3ac;font-size:10px;padding:10px 12px">No categories yet</div>';
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:#7ab3ac;font-size:10px;padding:10px 12px';
+      empty.textContent = lang === 'ru' ? 'Нет категорий' : 'No categories yet';
+      listEl.appendChild(empty);
       return;
     }
-    listEl.innerHTML = entries.map(([key, cat]) => {
-      const safeKey = key.replace(/'/g, "\\'");
+    entries.forEach(([key, cat]) => {
+      const row = document.createElement('div');
+      row.className = 'wine-admin-row' + (cat.isActive === false ? ' wine-admin-row-inactive' : '');
+      row.dataset.id = key;
       const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
-      return `<div class="wine-admin-row${cat.isActive === false ? ' wine-admin-row-inactive' : ''}" data-id="${escapeHtml(key)}" onclick="categoryAdminSelect('${safeKey}')">` +
-        `<span class="wine-admin-row-name">${escapeHtml(dispName)}</span>` +
-        (cat.isActive === false ? '<span class="wine-admin-row-badge">OFF</span>' : '') +
-        '</div>';
-    }).join('');
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'wine-admin-row-name';
+      nameSpan.textContent = dispName;
+      row.appendChild(nameSpan);
+      if (cat.isActive === false) {
+        const badge = document.createElement('span');
+        badge.className = 'wine-admin-row-badge';
+        badge.textContent = 'OFF';
+        row.appendChild(badge);
+      }
+      row.onclick = () => categoryAdminSelect(key);
+      listEl.appendChild(row);
+    });
   }
 
   function categoryAdminNew() {
@@ -2266,7 +2280,7 @@
 
   function categoryAdminSelect(key) {
     const cat = customCategories[key];
-    if (!cat) return;
+    if (!cat) { console.warn('[categoryAdmin] key not found in customCategories:', key); return; }
     _currentCatAdminKey = key;
     const ruEl = document.getElementById('catNameRu'); if (ruEl) ruEl.value = cat.nameRu || cat.name || key || '';
     const enEl = document.getElementById('catNameEn'); if (enEl) enEl.value = cat.nameEn || cat.nameRu || cat.name || key || '';
