@@ -266,6 +266,10 @@
 
   const STOPLIST_KEY = 'stoplist';
 
+  function isStopListTable() {
+    return currentTable === '🛑';
+  }
+
   // =============================================
   // AUDIT LOGGER
   // =============================================
@@ -1287,11 +1291,13 @@
 
     // Защита от уменьшения ниже уже отправленного + rollback в стоп-лист
     if (delta < 0) {
-      const prev = sentQty[currentTable] || {};
-      const alreadySent = prev[name] || 0;
-      if (item.qty <= alreadySent) {
-        alert(lang === 'ru' ? 'Эта позиция уже отправлена в KEEPER' : 'This item has already been sent to KEEPER');
-        return;
+      if (!isStopListTable()) {
+        const prev = sentQty[currentTable] || {};
+        const alreadySent = prev[name] || 0;
+        if (item.qty <= alreadySent) {
+          alert(lang === 'ru' ? 'Эта позиция уже отправлена в KEEPER' : 'This item has already been sent to KEEPER');
+          return;
+        }
       }
       rollbackOneToStoplist(name, item);
     }
@@ -1340,7 +1346,9 @@
         : '<div class="empty-order"><div class="empty-order-icon">🍽</div>Tap an item<br>from the menu</div>';
       document.getElementById('totalNum').textContent = '0.00';
       document.getElementById('orderCountBadge').textContent = lang === 'ru' ? '0 поз.' : '0 items';
-      document.getElementById('sendBtn').disabled = true;
+      const _sb0 = document.getElementById('sendBtn');
+      _sb0.disabled = true;
+      _sb0.classList.toggle('btn-send-muted', isStopListTable());
       return;
     }
 
@@ -1411,7 +1419,12 @@
     list.innerHTML = html;
     document.getElementById('totalNum').textContent = total.toFixed(2);
     document.getElementById('orderCountBadge').textContent = lang === 'ru' ? count + ' поз.' : count + ' items';
-    document.getElementById('sendBtn').disabled = false;
+    const _sb = document.getElementById('sendBtn');
+    _sb.disabled = isStopListTable();
+    _sb.classList.toggle('btn-send-muted', isStopListTable());
+    _sb.title = isStopListTable()
+      ? (lang === 'ru' ? 'Недоступно для стоп-листа' : 'Disabled for stop-list table')
+      : '';
   }
 
   // =============================================
@@ -1467,6 +1480,7 @@
   let sentOverlayOpen = false;
 
   function sendOrder() {
+    if (isStopListTable()) return;
     const tableOrder = orders[currentTable] || {};
     const keys = Object.keys(tableOrder);
     if (!keys.length) return;

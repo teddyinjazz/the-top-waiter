@@ -72,6 +72,7 @@ html, body { font-family: 'DM Mono', monospace; background: #0f1a19; color: #e8f
 .btn-send { background: #2a9d8f; color: #fff; }
 .btn-send:active { background: #3dbfaf; }
 .btn-send:disabled { background: #253b37; color: #7ab3ac; }
+.btn-send-muted { opacity: 0.35 !important; cursor: default !important; pointer-events: none !important; }
 .empty-order { text-align: center; padding: 30px 10px; color: #7ab3ac; font-size: 10px; letter-spacing: 1px; }
 .empty-order-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.3; }
 .sent-overlay { display: none; position: fixed; inset: 0; background: rgba(10,20,18,0.92); z-index: 9999; align-items: center; pointer-events: none; justify-content: center; }
