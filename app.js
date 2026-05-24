@@ -2268,16 +2268,21 @@
     const cat = customCategories[key];
     if (!cat) return;
     _currentCatAdminKey = key;
-    const ruEl = document.getElementById('catNameRu'); if (ruEl) ruEl.value = cat.nameRu || '';
-    const enEl = document.getElementById('catNameEn'); if (enEl) enEl.value = cat.nameEn || '';
+    const ruEl = document.getElementById('catNameRu'); if (ruEl) ruEl.value = cat.nameRu || cat.name || key || '';
+    const enEl = document.getElementById('catNameEn'); if (enEl) enEl.value = cat.nameEn || cat.nameRu || cat.name || key || '';
     const cb = document.getElementById('catActive'); if (cb) cb.checked = cat.isActive !== false;
     document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r =>
       r.classList.toggle('selected', r.dataset.id === key));
   }
 
   function saveCategoryAdmin() {
-    const nameRu = (document.getElementById('catNameRu').value || '').trim();
-    const nameEn = (document.getElementById('catNameEn').value || '').trim();
+    let nameRu = (document.getElementById('catNameRu').value || '').trim();
+    let nameEn = (document.getElementById('catNameEn').value || '').trim();
+    if (_currentCatAdminKey && customCategories[_currentCatAdminKey]) {
+      const existing = customCategories[_currentCatAdminKey];
+      nameRu = nameRu || existing.nameRu || existing.name || _currentCatAdminKey;
+      nameEn = nameEn || existing.nameEn || existing.nameRu || existing.name || _currentCatAdminKey;
+    }
     if (!nameRu && !nameEn) { alert(lang === 'ru' ? 'Укажите название' : 'Enter a category name'); return; }
     const isActive = document.getElementById('catActive').checked;
     const now = Date.now();
@@ -2286,14 +2291,14 @@
       const updates = { nameRu, nameEn, isActive, updatedAt: now };
       db.ref('menuCategories/' + _currentCatAdminKey).update(updates);
       customCategories[_currentCatAdminKey] = Object.assign({}, prev, updates);
-      writeAudit('category_update', { key: _currentCatAdminKey, nameRu, nameEn, isActive, prev });
+      writeAudit('category_update', { categoryKey: _currentCatAdminKey, before: prev, after: updates });
     } else {
       const key = (nameEn || nameRu).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + now;
       const data = { nameRu, nameEn, isActive, createdAt: now, updatedAt: now };
       db.ref('menuCategories/' + key).set(data);
       customCategories[key] = data;
       _currentCatAdminKey = key;
-      writeAudit('category_create', { key, nameRu, nameEn });
+      writeAudit('category_create', { categoryKey: key, nameRu, nameEn });
     }
     renderCategoryAdminList();
     renderCustomCategoriesArea();
