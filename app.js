@@ -2055,7 +2055,7 @@
         return true;
       })
       .sort(([, a], [, b]) => {
-        if (sectionKey === 'cocktails' || sectionKey === 'spirits' || sectionKey === 'soft') {
+        if (sectionKey === 'cocktails' || sectionKey === 'spirits' || sectionKey === 'soft' || sectionKey === 'pasta') {
           const nameA = (lang === 'ru' ? a.nameRu || a.name : a.nameEn || a.name) || '';
           const nameB = (lang === 'ru' ? b.nameRu || b.name : b.nameEn || b.name) || '';
           return nameA.localeCompare(nameB, lang === 'ru' ? 'ru' : 'en');
