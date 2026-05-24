@@ -2056,9 +2056,10 @@
       })
       .sort(([, a], [, b]) => {
         if (sectionKey === 'cocktails' || sectionKey === 'spirits' || sectionKey === 'soft' || sectionKey === 'pasta') {
-          const nameA = (lang === 'ru' ? a.nameRu || a.name : a.nameEn || a.name) || '';
-          const nameB = (lang === 'ru' ? b.nameRu || b.name : b.nameEn || b.name) || '';
-          return nameA.localeCompare(nameB, lang === 'ru' ? 'ru' : 'en');
+          const locale = lang === 'ru' ? 'ru' : 'en';
+          const nameA = (lang === 'ru' ? a.nameRu || a.name || a.nameEn : a.nameEn || a.nameRu || a.name) || '';
+          const nameB = (lang === 'ru' ? b.nameRu || b.name || b.nameEn : b.nameEn || b.nameRu || b.name) || '';
+          return nameA.localeCompare(nameB, locale, { sensitivity: 'base', numeric: true });
         }
         return (a.sortOrder || 0) - (b.sortOrder || 0);
       });
