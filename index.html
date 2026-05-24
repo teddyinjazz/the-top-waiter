@@ -436,7 +436,6 @@
   <div class="wine-admin-box">
     <div class="wine-admin-hdr">
       <span class="wine-admin-title" data-ru="КАТЕГОРИИ МЕНЮ" data-en="MENU CATEGORIES">КАТЕГОРИИ МЕНЮ</span>
-      <span id="catAdminBuildMarker" style="font-size:8px;color:#e76f51;padding:2px 5px;border:1px solid #e76f51;border-radius:3px;letter-spacing:0.5px;"></span>
       <button type="button" class="wine-admin-close" onclick="closeCategoryAdmin()">✕</button>
     </div>
     <div class="wine-admin-list-hdr" data-ru="КАТЕГОРИИ" data-en="CATEGORIES">КАТЕГОРИИ</div>
@@ -444,6 +443,7 @@
       <div class="wine-admin-list" id="categoryAdminList"></div>
     </div>
     <div class="wine-admin-form-wrap">
+      <div id="catAdminModeLabel" style="font-size:9px;letter-spacing:1px;color:#7ab3ac;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(42,157,143,0.15);">НОВАЯ КАТЕГОРИЯ</div>
       <div class="wine-admin-field">
         <span class="wine-admin-label" data-ru="Назв. RU" data-en="RU name">Назв. RU</span>
         <input class="wine-admin-input" id="catNameRu" type="text">
@@ -465,7 +465,7 @@
   </div>
 </div>
 
-<script src="app.js?v=cat-toggle-diagnostic-1"></script>
+<script src="app.js?v=cat-edit-flow-1"></script>
 
 <!-- Device naming modal (first use) -->
 <div id="deviceNameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:99999;align-items:center;justify-content:center;">
