@@ -2251,23 +2251,45 @@
       return;
     }
     entries.forEach(([key, cat]) => {
+      const isActive = cat.isActive !== false;
       const row = document.createElement('div');
-      row.className = 'wine-admin-row' + (cat.isActive === false ? ' wine-admin-row-inactive' : '');
+      row.className = 'wine-admin-row' + (isActive ? '' : ' wine-admin-row-inactive');
       row.dataset.id = key;
       const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
       const nameSpan = document.createElement('span');
       nameSpan.className = 'wine-admin-row-name';
       nameSpan.textContent = dispName;
       row.appendChild(nameSpan);
-      if (cat.isActive === false) {
-        const badge = document.createElement('span');
-        badge.className = 'wine-admin-row-badge';
-        badge.textContent = 'OFF';
-        row.appendChild(badge);
-      }
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'cat-toggle-btn' + (isActive ? ' cat-toggle-on' : ' cat-toggle-off');
+      toggleBtn.textContent = isActive ? 'ON' : 'OFF';
+      toggleBtn.onclick = e => { e.stopPropagation(); toggleCategoryActive(key); };
+      row.appendChild(toggleBtn);
       row.onclick = () => categoryAdminSelect(key);
       listEl.appendChild(row);
     });
+  }
+
+  function toggleCategoryActive(categoryKey) {
+    const cat = customCategories[categoryKey];
+    if (!cat) { console.warn('[categoryAdmin] toggleCategoryActive: key not found:', categoryKey); return; }
+    const nextActive = cat.isActive === false;
+    const now = Date.now();
+    const update = {
+      nameRu:    cat.nameRu   || cat.name || categoryKey,
+      nameEn:    cat.nameEn   || cat.nameRu || cat.name || categoryKey,
+      isCustom:  cat.isCustom !== false,
+      sortOrder: cat.sortOrder || 999,
+      isActive:  nextActive,
+      updatedAt: now,
+    };
+    if (cat.createdAt) update.createdAt = cat.createdAt;
+    const prev = Object.assign({}, cat);
+    db.ref('menuCategories/' + categoryKey).update(update);
+    customCategories[categoryKey] = Object.assign({}, cat, update);
+    writeAudit('category_update', { categoryKey, before: prev, after: update, source: 'category_admin_direct_toggle' });
+    renderCategoryAdminList();
+    renderCustomCategoriesArea();
   }
 
   function categoryAdminNew() {

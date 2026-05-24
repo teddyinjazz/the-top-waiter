@@ -126,6 +126,9 @@ input, textarea, select { -webkit-user-select: text; user-select: text; -webkit-
 .wine-admin-row-name { flex: 1; font-family: 'Cormorant Garamond', serif; font-size: 13px; color: #e8f4f2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wine-admin-row-price { font-size: 11px; color: #e9c46a; flex-shrink: 0; }
 .wine-admin-row-badge { font-size: 8px; letter-spacing: 1px; color: #e76f51; border: 1px solid rgba(231,111,81,0.35); border-radius: 3px; padding: 1px 4px; flex-shrink: 0; }
+.cat-toggle-btn { flex-shrink: 0; border: none; border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; padding: 3px 7px; cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: all 0.12s; }
+.cat-toggle-on  { background: #2a9d8f; color: #fff; }
+.cat-toggle-off { background: #253b37; color: #e76f51; border: 1px solid rgba(231,111,81,0.4); }
 .wine-admin-form-wrap { padding: 10px 12px 14px; }
 .wine-admin-field { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
 .wine-admin-label { font-size: 9px; letter-spacing: 1px; color: #7ab3ac; text-transform: uppercase; min-width: 48px; flex-shrink: 0; }
