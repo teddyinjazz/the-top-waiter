@@ -1656,6 +1656,8 @@
   let wineAdminColor = 'other';
   let wineAdminStyle = 'still';
   let wineLongPressInitialized = false;
+  let _lastCategoryToggleAt = 0;
+  let _lastCategoryToggleKey = null;
 
   function initWineAdminYear() {
     const sel = document.getElementById('wineAdminYear');
@@ -2262,8 +2264,19 @@
       row.appendChild(nameSpan);
       const pill = document.createElement('span');
       pill.className = 'cat-direct-toggle' + (isActive ? ' cat-direct-toggle-on' : ' cat-direct-toggle-off');
+      pill.setAttribute('role', 'button');
+      pill.setAttribute('tabindex', '0');
       pill.dataset.catKey = key;
       pill.textContent = isActive ? 'ON' : 'OFF';
+      const _pillHandler = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        hardToggleCategoryActive(key);
+        return false;
+      };
+      pill.onclick = _pillHandler;
+      pill.ontouchstart = _pillHandler;
       row.appendChild(pill);
       row.onclick = () => categoryAdminSelect(key);
       listEl.appendChild(row);
@@ -2271,6 +2284,13 @@
   }
 
   function hardToggleCategoryActive(categoryKey) {
+    const _now = Date.now();
+    if (_lastCategoryToggleKey === categoryKey && _now - _lastCategoryToggleAt < 700) return;
+    _lastCategoryToggleKey = categoryKey;
+    _lastCategoryToggleAt = _now;
+
+    alert(lang === 'ru' ? 'Переключаю категорию...' : 'Toggling category...');
+
     const cat = customCategories && customCategories[categoryKey];
     if (!cat) {
       alert(lang === 'ru' ? 'Категория не найдена' : 'Category not found');
@@ -2283,7 +2303,7 @@
       isCustom:  cat.isCustom !== false,
       sortOrder: cat.sortOrder || 999,
       isActive:  nextActive,
-      updatedAt: Date.now(),
+      updatedAt: _now,
     };
     if (cat.createdAt) update.createdAt = cat.createdAt;
     db.ref('menuCategories/' + categoryKey).update(update)
@@ -2291,12 +2311,17 @@
         if (typeof writeAudit === 'function') {
           writeAudit('category_update', { categoryKey, before: cat, after: update, source: 'hard_direct_toggle' });
         }
+        const msg = nextActive
+          ? (lang === 'ru' ? 'Категория включена' : 'Category enabled')
+          : (lang === 'ru' ? 'Категория выключена' : 'Category disabled');
+        alert(msg);
       })
       .catch(err => {
         console.warn('Category hard toggle failed', err);
         alert((lang === 'ru' ? 'Ошибка сохранения категории: ' : 'Category save error: ') + (err.message || err));
       });
   }
+  window.hardToggleCategoryActive = hardToggleCategoryActive;
 
   function initCategoryAdminDirectToggle() {
     const listEl = document.getElementById('categoryAdminList');
@@ -2337,6 +2362,7 @@
   }
 
   function saveCategoryAdmin() {
+    console.warn("saveCategoryAdmin called");
     let nameRu = (document.getElementById('catNameRu').value || '').trim();
     let nameEn = (document.getElementById('catNameEn').value || '').trim();
     if (_currentCatAdminKey && customCategories[_currentCatAdminKey]) {
@@ -2805,6 +2831,9 @@
   // INIT
   // =============================================
   window.addEventListener('DOMContentLoaded', () => {
+    window.APP_BUILD = 'category-toggle-inline-1';
+    console.log('APP_BUILD', window.APP_BUILD);
+
     const firstBtn = document.querySelector('.table-btn');
     if (firstBtn) currentTable = firstBtn.textContent.trim();
 
