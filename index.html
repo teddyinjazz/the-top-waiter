@@ -436,7 +436,7 @@
   <div class="wine-admin-box">
     <div class="wine-admin-hdr">
       <span class="wine-admin-title" data-ru="КАТЕГОРИИ МЕНЮ" data-en="MENU CATEGORIES">КАТЕГОРИИ МЕНЮ</span>
-      <button class="wine-admin-close" onclick="closeCategoryAdmin()">✕</button>
+      <button type="button" class="wine-admin-close" onclick="closeCategoryAdmin()">✕</button>
     </div>
     <div class="wine-admin-list-hdr" data-ru="КАТЕГОРИИ" data-en="CATEGORIES">КАТЕГОРИИ</div>
     <div class="wine-admin-list-wrap">
@@ -456,15 +456,15 @@
         <input type="checkbox" id="catActive" class="wine-admin-checkbox" checked>
       </div>
       <div class="wine-admin-actions">
-        <button class="wine-admin-btn" onclick="categoryAdminNew()" data-ru="+ Новая" data-en="+ New">+ Новая</button>
-        <button class="wine-admin-btn wine-admin-btn-save" onclick="saveCategoryAdmin()" data-ru="Сохранить" data-en="Save">Сохранить</button>
-        <button class="wine-admin-btn" onclick="closeCategoryAdmin()" data-ru="Закрыть" data-en="Close">Закрыть</button>
+        <button type="button" class="wine-admin-btn" onclick="categoryAdminNew()" data-ru="+ Новая" data-en="+ New">+ Новая</button>
+        <button type="button" class="wine-admin-btn wine-admin-btn-save" onclick="saveCategoryAdmin()" data-ru="Сохранить" data-en="Save">Сохранить</button>
+        <button type="button" class="wine-admin-btn" onclick="closeCategoryAdmin()" data-ru="Закрыть" data-en="Close">Закрыть</button>
       </div>
     </div>
   </div>
 </div>
 
-<script src="app.js?v=cat-toggle-1"></script>
+<script src="app.js?v=cat-toggle-2"></script>
 
 <!-- Device naming modal (first use) -->
 <div id="deviceNameModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.97);z-index:99999;align-items:center;justify-content:center;">

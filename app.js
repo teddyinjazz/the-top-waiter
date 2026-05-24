@@ -2261,9 +2261,11 @@
       nameSpan.textContent = dispName;
       row.appendChild(nameSpan);
       const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
       toggleBtn.className = 'cat-toggle-btn' + (isActive ? ' cat-toggle-on' : ' cat-toggle-off');
       toggleBtn.textContent = isActive ? 'ON' : 'OFF';
-      toggleBtn.onclick = e => { e.stopPropagation(); toggleCategoryActive(key); };
+      toggleBtn.addEventListener('pointerdown', e => { e.stopPropagation(); });
+      toggleBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); toggleCategoryActive(key); });
       row.appendChild(toggleBtn);
       row.onclick = () => categoryAdminSelect(key);
       listEl.appendChild(row);
