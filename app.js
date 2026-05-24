@@ -2035,8 +2035,6 @@
   let currentMenuItemAdminId = null;
   let customCategories = {};
   const _customCatItemListeners = new Set();
-  let _currentCatAdminKey = null;
-  let _currentCatAdminMode = 'new';
 
   function renderEditableSection(sectionKey) {
     const container = document.getElementById(sectionKey + 'List');
@@ -2230,7 +2228,7 @@
 
   function openCategoryAdmin() {
     renderCategoryAdminList();
-    categoryAdminNew();
+    hideCatCreateForm();
     document.getElementById('categoryAdminOverlay').classList.add('show');
   }
 
@@ -2253,8 +2251,18 @@
     entries.forEach(([key, cat]) => {
       const isActive = cat.isActive !== false;
       const row = document.createElement('div');
-      row.className = 'wine-admin-row' + (isActive ? '' : ' wine-admin-row-inactive');
+      row.className = 'wine-admin-row cat-admin-row';
       row.dataset.id = key;
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'cat-active-checkbox';
+      cb.dataset.catKey = key;
+      cb.checked = isActive;
+      cb.addEventListener('change', function() {
+        updateCategoryActive(key, this.checked);
+      });
+      row.appendChild(cb);
 
       const dispName = lang === 'ru' ? (cat.nameRu || cat.nameEn || key) : (cat.nameEn || cat.nameRu || key);
       const nameSpan = document.createElement('span');
@@ -2262,101 +2270,75 @@
       nameSpan.textContent = dispName;
       row.appendChild(nameSpan);
 
-      const statusSpan = document.createElement('span');
-      statusSpan.className = 'cat-status-text' + (isActive ? ' cat-status-active' : ' cat-status-inactive');
-      statusSpan.textContent = isActive
-        ? (lang === 'ru' ? 'Активна' : 'Active')
-        : (lang === 'ru' ? 'Неактивна' : 'Inactive');
-      row.appendChild(statusSpan);
-
-      const editBtn = document.createElement('button');
-      editBtn.type = 'button';
-      editBtn.className = 'cat-edit-btn';
-      editBtn.dataset.catKey = key;
-      editBtn.textContent = lang === 'ru' ? 'Ред.' : 'Edit';
-      editBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        editExistingCategory(key);
-      });
-      row.appendChild(editBtn);
-
       listEl.appendChild(row);
     });
   }
 
-  function categoryAdminNew() {
-    _currentCatAdminMode = 'new';
-    _currentCatAdminKey = null;
-    ['catNameRu', 'catNameEn'].forEach(elId => { const el = document.getElementById(elId); if (el) el.value = ''; });
-    const cb = document.getElementById('catActive');
-    if (cb) cb.checked = true;
-    const modeLabel = document.getElementById('catAdminModeLabel');
-    if (modeLabel) modeLabel.textContent = lang === 'ru' ? 'НОВАЯ КАТЕГОРИЯ' : 'NEW CATEGORY';
-    document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r => r.classList.remove('selected'));
-  }
-
-  function editExistingCategory(categoryKey) {
+  function updateCategoryActive(categoryKey, isActive) {
     const cat = customCategories[categoryKey];
     if (!cat) {
       alert(lang === 'ru' ? 'Категория не найдена' : 'Category not found');
       return;
     }
-    _currentCatAdminMode = 'edit';
-    _currentCatAdminKey = categoryKey;
-    const ruEl = document.getElementById('catNameRu');
-    if (ruEl) ruEl.value = cat.nameRu || cat.name || categoryKey;
-    const enEl = document.getElementById('catNameEn');
-    if (enEl) enEl.value = cat.nameEn || cat.nameRu || cat.name || categoryKey;
+    const prev = Object.assign({}, cat);
+    const now = Date.now();
+    const update = {
+      nameRu:    cat.nameRu   || cat.name || categoryKey,
+      nameEn:    cat.nameEn   || cat.nameRu || cat.name || categoryKey,
+      isCustom:  cat.isCustom !== false,
+      sortOrder: cat.sortOrder || 999,
+      isActive:  !!isActive,
+      updatedAt: now,
+    };
+    if (cat.createdAt) update.createdAt = cat.createdAt;
+    customCategories[categoryKey] = Object.assign({}, cat, update);
+    db.ref('menuCategories/' + categoryKey).update(update)
+      .then(() => {
+        if (typeof writeAudit === 'function') {
+          writeAudit('category_update', { categoryKey, before: prev, after: update, source: 'category_admin_active_checkbox' });
+        }
+        renderCustomCategoriesArea();
+      })
+      .catch(err => {
+        customCategories[categoryKey] = prev;
+        const el = document.querySelector('.cat-active-checkbox[data-cat-key="' + categoryKey + '"]');
+        if (el) el.checked = !isActive;
+        alert((lang === 'ru' ? 'Ошибка сохранения: ' : 'Save error: ') + (err.message || err));
+      });
+  }
+
+  function hideCatCreateForm() {
+    const form = document.getElementById('catCreateForm');
+    if (form) form.style.display = 'none';
+  }
+
+  function categoryAdminNew() {
+    ['catNameRu', 'catNameEn'].forEach(elId => { const el = document.getElementById(elId); if (el) el.value = ''; });
     const cb = document.getElementById('catActive');
-    if (cb) cb.checked = cat.isActive !== false;
-    const modeLabel = document.getElementById('catAdminModeLabel');
-    if (modeLabel) modeLabel.textContent = lang === 'ru' ? 'РЕДАКТИРОВАНИЕ КАТЕГОРИИ' : 'EDITING CATEGORY';
-    document.querySelectorAll('#categoryAdminList .wine-admin-row').forEach(r =>
-      r.classList.toggle('selected', r.dataset.id === categoryKey));
+    if (cb) cb.checked = true;
+    const form = document.getElementById('catCreateForm');
+    if (form) form.style.display = '';
   }
 
   function saveCategoryAdmin() {
     const nameRuInput = (document.getElementById('catNameRu').value || '').trim();
     const nameEnInput = (document.getElementById('catNameEn').value || '').trim();
+    if (!nameRuInput && !nameEnInput) {
+      alert(lang === 'ru' ? 'Укажите название' : 'Enter a category name');
+      return;
+    }
     const isActive = document.getElementById('catActive').checked;
     const now = Date.now();
-
-    if (_currentCatAdminMode === 'edit' && _currentCatAdminKey && customCategories[_currentCatAdminKey]) {
-      const existing = customCategories[_currentCatAdminKey];
-      const prev = Object.assign({}, existing);
-      const nameRu = nameRuInput || existing.nameRu || existing.name || _currentCatAdminKey;
-      const nameEn = nameEnInput || existing.nameEn || existing.nameRu || existing.name || _currentCatAdminKey;
-      const updates = {
-        nameRu,
-        nameEn,
-        isCustom:  existing.isCustom !== false,
-        sortOrder: existing.sortOrder || 999,
-        isActive,
-        updatedAt: now,
-      };
-      if (existing.createdAt) updates.createdAt = existing.createdAt;
-      db.ref('menuCategories/' + _currentCatAdminKey).update(updates);
-      customCategories[_currentCatAdminKey] = Object.assign({}, existing, updates);
-      if (typeof writeAudit === 'function') {
-        writeAudit('category_update', { categoryKey: _currentCatAdminKey, before: prev, after: updates, source: 'category_admin_edit' });
-      }
-    } else {
-      if (!nameRuInput && !nameEnInput) {
-        alert(lang === 'ru' ? 'Укажите название' : 'Enter a category name');
-        return;
-      }
-      const key = (nameEnInput || nameRuInput).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + now;
-      const data = { nameRu: nameRuInput, nameEn: nameEnInput, isActive, createdAt: now, updatedAt: now };
-      db.ref('menuCategories/' + key).set(data);
-      customCategories[key] = data;
-      _currentCatAdminKey = key;
-      _currentCatAdminMode = 'edit';
-      if (typeof writeAudit === 'function') {
-        writeAudit('category_create', { categoryKey: key, nameRu: nameRuInput, nameEn: nameEnInput });
-      }
+    const key = (nameEnInput || nameRuInput).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + now;
+    const data = { nameRu: nameRuInput, nameEn: nameEnInput, isActive, createdAt: now, updatedAt: now };
+    db.ref('menuCategories/' + key).set(data);
+    customCategories[key] = data;
+    if (typeof writeAudit === 'function') {
+      writeAudit('category_create', { categoryKey: key, nameRu: nameRuInput, nameEn: nameEnInput });
     }
     renderCategoryAdminList();
     renderCustomCategoriesArea();
+    hideCatCreateForm();
   }
 
   function populateMiaCategorySelect(currentSection) {
