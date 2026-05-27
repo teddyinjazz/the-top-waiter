@@ -835,7 +835,7 @@
           ${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}
         </span>`;
       btn.onclick = () => {
-        addItemByVariant(v.name, v.price);
+        addItemByVariant(v.name, v.price, label);
         // Обновляем счётчик в popup
         const newQty = (orders[currentTable] && orders[currentTable][v.name])
           ? orders[currentTable][v.name].qty : 0;
@@ -880,7 +880,7 @@
         varBtn.className = 'var-btn' + (isStopped ? ' stopped' : '');
         varBtn.innerHTML = `<span class="var-btn-name">${label}</span><span style="display:flex;align-items:center;gap:6px"><span class="var-btn-price">€${v.price}</span>${isStopped ? `<span style="color:#ff6b6b;font-size:10px;letter-spacing:1px">${lang === 'ru' ? 'СТОП' : 'STOP'}</span>` : ''}${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}</span>`;
         varBtn.onclick = () => {
-          addItemByVariant(v.name, v.price);
+          addItemByVariant(v.name, v.price, label);
           const newQty = (orders[currentTable] && orders[currentTable][v.name]) ? orders[currentTable][v.name].qty : 0;
           const countEl = varBtn.querySelector('.var-btn-count');
           if (newQty > 0) {
@@ -911,13 +911,13 @@
     if (e.target === document.getElementById('varOverlay')) closeVarPopup();
   }
 
-  function addItemByVariant(name, price) {
+  function addItemByVariant(name, price, dispName) {
     // Создаём фиктивный btn-объект для совместимости с addItem
     const fakeBtn = {
       classList: { add: () => {}, contains: () => false },
       querySelector: () => ({ textContent: '' }),
     };
-    addItem(fakeBtn, name, price);
+    addItem(fakeBtn, name, price, dispName);
   }
 
   function updateGroupBtn(groupKey, btn) {
@@ -989,7 +989,7 @@
   // =============================================
   // ADD ITEM
   // =============================================
-  function addItem(btn, name, price) {
+  function addItem(btn, name, price, dispName) {
     if (!orders[currentTable]) orders[currentTable] = {};
 
     // Программная защита стоп-листа (дублирует CSS-мьют)
@@ -1002,7 +1002,7 @@
     // Стоп-лист — та же логика что обычный стол
     if (currentTable === '🛑') {
       if (!orders[currentTable][name]) {
-        orders[currentTable][name] = { price, qty: 0, itemName: name };
+        orders[currentTable][name] = { price, qty: 0, itemName: name, ...(dispName ? { displayName: dispName } : {}) };
       }
       const _prevStopQtyA = orders[currentTable][name].qty;
       orders[currentTable][name].qty++;
@@ -1017,7 +1017,7 @@
     // Обычная позиция
     if (!MAIN_COURSE_ITEMS.includes(name)) {
       if (!orders[currentTable][name]) {
-        orders[currentTable][name] = { price, qty: 0, itemName: name };
+        orders[currentTable][name] = { price, qty: 0, itemName: name, ...(dispName ? { displayName: dispName } : {}) };
       }
       orders[currentTable][name].qty++;
       // Декремент стоп-листа при заказе
@@ -1048,7 +1048,7 @@
     }
     const pairId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const mainKey = name + '__' + pairId;
-    orders[currentTable][mainKey] = { price, qty: 1, itemName: name, pairId, displayName: name };
+    orders[currentTable][mainKey] = { price, qty: 1, itemName: name, pairId, displayName: dispName || name };
     const total = Object.values(orders[currentTable]).filter(i => i.displayName === name).reduce((s, i) => s + i.qty, 0);
     btn.classList.add('has-count');
     btn.querySelector('.item-count').textContent = total;
@@ -2104,7 +2104,8 @@
     } else {
       const price = item.price || 0;
       const safeName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      return `<button class="item-btn" data-item-id="${safeId}" onclick="addItem(this,'${safeName}',${price})">` +
+      const safeDisp = dispName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      return `<button class="item-btn" data-item-id="${safeId}" onclick="addItem(this,'${safeName}',${price},'${safeDisp}')">` +
         `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
         `<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
     }
