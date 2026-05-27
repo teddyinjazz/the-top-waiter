@@ -5,7 +5,8 @@
   // =============================================
   let deviceId   = localStorage.getItem('deviceId')   || null;
   let deviceName = localStorage.getItem('deviceName') || null;
-  let _appOpenLogged    = false;
+  let _appOpenLogged        = false;
+  let _deviceModalFromGuard = false;
   let _notesDebounceTimer = null;
   let _notesBeforeValue   = null;
   let _notesBeforeTable   = null;
@@ -355,11 +356,27 @@
     });
   }
 
+  function requireDeviceIdentity(actionName) {
+    if (deviceId && deviceName) return true;
+    _deviceModalFromGuard = true;
+    showDeviceNameModal();
+    return false;
+  }
+
   function showDeviceNameModal() {
     const modal = document.getElementById('deviceNameModal');
     if (modal) modal.style.display = 'flex';
     const input = document.getElementById('deviceNameInput');
     if (input) setTimeout(() => input.focus(), 120);
+  }
+
+  function cancelDeviceNameModal() {
+    const modal = document.getElementById('deviceNameModal');
+    if (modal) modal.style.display = 'none';
+    if (_deviceModalFromGuard) {
+      alert(lang === 'ru' ? 'Действие не выполнено: нужно имя устройства.' : 'Action cancelled: device name is required.');
+    }
+    _deviceModalFromGuard = false;
   }
 
   function saveDeviceName() {
@@ -369,11 +386,16 @@
       alert(lang === 'ru' ? 'Введите имя устройства' : 'Enter device name');
       return;
     }
+    if (val.length > 60) {
+      alert(lang === 'ru' ? 'Максимум 60 символов' : 'Maximum 60 characters');
+      return;
+    }
     deviceName = val;
     localStorage.setItem('deviceName', deviceName);
     if (!localStorage.getItem('deviceFirstSeen')) {
       localStorage.setItem('deviceFirstSeen', String(Date.now()));
     }
+    _deviceModalFromGuard = false;
     updateDeviceRecord();
     updateDeviceBadge();
     const modal = document.getElementById('deviceNameModal');
@@ -1039,6 +1061,7 @@
   // ADD ITEM
   // =============================================
   function addItem(btn, name, price, dispName) {
+    if (!requireDeviceIdentity('order_add')) return;
     if (!orders[currentTable]) orders[currentTable] = {};
 
     // Программная защита стоп-листа (дублирует CSS-мьют)
@@ -1109,6 +1132,7 @@
   }
 
   function addItemByName(name, price) {
+    if (!requireDeviceIdentity('order_add')) return;
     if (!orders[currentTable]) orders[currentTable] = {};
 
     if (currentTable === '🛑') {
@@ -1243,6 +1267,7 @@
   }
 
   function onNotesInput() {
+    if (!requireDeviceIdentity('notes_edit')) return;
     const val = document.getElementById('notesField').value;
     if (_notesDebounceTimer === null) {
       _notesBeforeValue = notes[currentTable] || '';
@@ -1297,6 +1322,7 @@
   // CHANGE QTY
   // =============================================
   function changeQty(name, delta) {
+    if (!requireDeviceIdentity('qty_change')) return;
     const tableOrder = orders[currentTable];
     if (!tableOrder || !tableOrder[name]) return;
 
@@ -1499,6 +1525,7 @@
   }
 
   function clearOrder() {
+    if (!requireDeviceIdentity('order_clear')) return;
     const message = currentTable === '🛑'
       ? (lang === 'ru' ? 'Очистить стоп-лист?' : 'Clear the stop list?')
       : (lang === 'ru' ? 'Стол ' + currentTable + ' рассчитан? Заказ будет очищен.' : 'Table ' + currentTable + ' checked out? Order will be cleared.');
@@ -1529,6 +1556,7 @@
   let sentOverlayOpen = false;
 
   function sendOrder() {
+    if (!requireDeviceIdentity('send_to_keeper')) return;
     if (isStopListTable()) return;
     const tableOrder = orders[currentTable] || {};
     const keys = Object.keys(tableOrder);
@@ -1627,6 +1655,7 @@
   // STOPLIST
   // =============================================
   function clearStopList() {
+    if (!requireDeviceIdentity('stoplist_clear')) return;
     if (!confirm(lang === 'ru' ? 'Очистить весь стоп-лист?' : 'Clear the entire stop list?')) return;
     writeAudit('stoplist_clear', { beforeStoplist: JSON.parse(JSON.stringify(orders['🛑'] || {})) });
     orders['🛑'] = {};
@@ -1805,6 +1834,7 @@
   }
 
   function wineAdminSave() {
+    if (!requireDeviceIdentity('wine_admin_save')) return;
     const name = (document.getElementById('wineAdminName').value || '').trim();
     const price = parseFloat(document.getElementById('wineAdminPrice').value);
     if (!name) {
@@ -1847,6 +1877,7 @@
   }
 
   function wineAdminDisable() {
+    if (!requireDeviceIdentity('wine_admin_disable')) return;
     if (!currentWineId) return;
     if (!confirm(lang === 'ru' ? 'Отключить вино?' : 'Disable this wine?')) return;
     const _wineExisting = allWines[currentWineId];
@@ -2357,6 +2388,7 @@
   }
 
   function updateCategoryActive(categoryKey, isActive) {
+    if (!requireDeviceIdentity('category_update')) return;
     const cat = customCategories[categoryKey];
     if (!cat) {
       alert(lang === 'ru' ? 'Категория не найдена' : 'Category not found');
@@ -2403,6 +2435,7 @@
   }
 
   function saveCategoryAdmin() {
+    if (!requireDeviceIdentity('category_create')) return;
     const nameRuInput = (document.getElementById('catNameRu').value || '').trim();
     const nameEnInput = (document.getElementById('catNameEn').value || '').trim();
     if (!nameRuInput && !nameEnInput) {
@@ -2748,6 +2781,7 @@
   }
 
   function saveMenuItemAdmin() {
+    if (!requireDeviceIdentity('menu_item_save')) return;
     if (!currentMenuItemAdminSection) return;
     const name = (document.getElementById('miaName').value || '').trim();
     if (!name) { alert(lang === 'ru' ? 'Укажите внутреннее название' : 'Internal order name is required'); return; }
@@ -2856,6 +2890,7 @@
   }
 
   function disableMenuItemAdmin() {
+    if (!requireDeviceIdentity('menu_item_disable')) return;
     if (!currentMenuItemAdminId || !currentMenuItemAdminSection) return;
     if (!confirm(lang === 'ru' ? 'Отключить позицию?' : 'Disable this item?')) return;
     const _miaPrev = (editableSections[currentMenuItemAdminSection] || {})[currentMenuItemAdminId];
