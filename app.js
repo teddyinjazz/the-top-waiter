@@ -251,6 +251,14 @@
     'Вареники вишня':     'Varenyky cherry',
     'Вареники капуста':   'Varenyky cabbage',
     'Вареники картофель': 'Varenyky potato',
+    'Пельмени говядина + свинина': 'Beef & Pork Dumplings',
+    'Пельмени индейка':            'Turkey Dumplings',
+    'beef_pork_dumplings':         'Beef & Pork Dumplings',
+    'turkey_dumplings':            'Turkey Dumplings',
+    'Ризотто грибы':   'Mushroom Risotto',
+    'Ризотто креветки': 'Shrimp Risotto',
+    'risotto_mushrooms': 'Mushroom Risotto',
+    'risotto_shrimps':   'Shrimp Risotto',
   };
 
   function displayName(name) {
@@ -753,6 +761,20 @@
         { ru: 'Вареники вишня',     en: 'Varenyky cherry',  name: 'varenyky_cherry',   price: 13 },
         { ru: 'Вареники капуста',   en: 'Varenyky cabbage', name: 'varenyky_cabbage',  price: 13 },
         { ru: 'Вареники картофель', en: 'Varenyky potato',  name: 'varenyky_potato',   price: 13 },
+      ]
+    },
+    'Пельмени': {
+      ru: 'Пельмени', en: 'Dumplings',
+      variants: [
+        { ru: 'Пельмени говядина + свинина', en: 'Beef & Pork Dumplings', name: 'beef_pork_dumplings', price: 15 },
+        { ru: 'Пельмени индейка',            en: 'Turkey Dumplings',       name: 'turkey_dumplings',    price: 15 },
+      ]
+    },
+    'Ризотто': {
+      ru: 'Ризотто', en: 'Risotto',
+      variants: [
+        { ru: 'Ризотто грибы',    en: 'Mushroom Risotto', name: 'risotto_mushrooms', price: 15 },
+        { ru: 'Ризотто креветки', en: 'Shrimp Risotto',   name: 'risotto_shrimps',   price: 18 },
       ]
     },
   };
@@ -1937,6 +1959,8 @@
       mushroom_risotto: { name: 'Ризотто с грибами',      nameRu: 'Ризотто грибы 🌿', nameEn: 'Mushroom risotto 🌿', price: 15, isGroup: false, isActive: true, sortOrder: 30 },
       shrimp_risotto:   { name: 'Ризотто с креветками',   nameRu: 'Ризотто креветки', nameEn: 'Shrimp risotto',    price: 18, isGroup: false, isActive: true, sortOrder: 40 },
       varenyky_group:   { name: 'Вареники', nameRu: 'Вареники', nameEn: 'Varenyky', descRu: 'вишня / капуста / картофель', descEn: 'cherry / cabbage / potato', price: 13, isGroup: true, groupKey: 'Вареники', isActive: true, sortOrder: 50, variants: [{ ru: 'Вареники вишня', en: 'Varenyky cherry', name: 'varenyky_cherry', price: 13 }, { ru: 'Вареники капуста', en: 'Varenyky cabbage', name: 'varenyky_cabbage', price: 13 }, { ru: 'Вареники картофель', en: 'Varenyky potato', name: 'varenyky_potato', price: 13 }] },
+      dumplings_group:  { name: 'dumplings_group', nameRu: 'Пельмени', nameEn: 'Dumplings', descRu: 'говядина + свинина / индейка', descEn: 'beef + pork / turkey', price: 15, isGroup: true, groupKey: 'Пельмени', isActive: true, sortOrder: 60, variants: [{ ru: 'Пельмени говядина + свинина', en: 'Beef & Pork Dumplings', name: 'beef_pork_dumplings', price: 15 }, { ru: 'Пельмени индейка', en: 'Turkey Dumplings', name: 'turkey_dumplings', price: 15 }] },
+      risotto_group:    { name: 'risotto_group', nameRu: 'Ризотто', nameEn: 'Risotto', descRu: 'грибы / креветки', descEn: 'mushrooms / shrimps', price: 15, isGroup: true, groupKey: 'Ризотто', isActive: true, sortOrder: 70, variants: [{ ru: 'Ризотто грибы', en: 'Mushroom Risotto', name: 'risotto_mushrooms', price: 15 }, { ru: 'Ризотто креветки', en: 'Shrimp Risotto', name: 'risotto_shrimps', price: 18 }] },
     },
     mains: {
       befstroganov:  { name: 'Бефстроганов',     nameRu: 'Бефстроганов',  nameEn: 'Beef Stroganoff',           descRu: 'Black Angus, грибы',            descEn: 'Black Angus, mushrooms',         price: 18, needsSide: true, isGroup: false, isActive: true, sortOrder: 10  },
@@ -2070,6 +2094,9 @@
     const softActiveGroupKeys = sectionKey === 'soft'
       ? new Set(Object.values(items).filter(i => i.isGroup && i.isActive !== false).map(i => i.groupKey))
       : null;
+    const pastaActiveGroupKeys = sectionKey === 'pasta'
+      ? new Set(Object.values(items).filter(i => i.isGroup && i.isActive !== false).map(i => i.groupKey))
+      : null;
     const activeItems = Object.entries(items)
       .filter(([, item]) => item.isActive !== false)
       .filter(([, item]) => !(sectionKey === 'soft' && item.groupKey === 'Вода'))
@@ -2079,6 +2106,12 @@
         if (softActiveGroupKeys.has('Милкшейк') && item.name && item.name.startsWith('Милкшейк ')) return false;
         if (softActiveGroupKeys.has('Лимонад')      && item.name && item.name.startsWith('Лимонад '))    return false;
         if (softActiveGroupKeys.has('Lipton Ice Tea') && item.name && item.name.startsWith('Lipton Ice Tea')) return false;
+        return true;
+      })
+      .filter(([, item]) => {
+        if (sectionKey !== 'pasta' || item.isGroup) return true;
+        if (pastaActiveGroupKeys.has('Пельмени') && item.nameRu && item.nameRu.startsWith('Пельмени ')) return false;
+        if (pastaActiveGroupKeys.has('Ризотто')  && item.nameRu && item.nameRu.startsWith('Ризотто '))  return false;
         return true;
       })
       .sort(([, a], [, b]) => {
@@ -2442,6 +2475,52 @@
           { ru: 'Вареники вишня',     en: 'Varenyky cherry',  name: 'varenyky_cherry',   price: 13 },
           { ru: 'Вареники капуста',   en: 'Varenyky cabbage', name: 'varenyky_cabbage',  price: 13 },
           { ru: 'Вареники картофель', en: 'Varenyky potato',  name: 'varenyky_potato',   price: 13 },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+  }
+
+  function seedDumplingsAndRisottoToPasta() {
+    const now = Date.now();
+    db.ref('menuSections/pasta/items/dumplings_group').once('value', snapshot => {
+      if (snapshot.val()) return;
+      db.ref('menuSections/pasta/items/dumplings_group').set({
+        name: 'dumplings_group',
+        nameRu: 'Пельмени',
+        nameEn: 'Dumplings',
+        descRu: 'говядина + свинина / индейка',
+        descEn: 'beef + pork / turkey',
+        price: 15,
+        isGroup: true,
+        groupKey: 'Пельмени',
+        isActive: true,
+        sortOrder: 60,
+        variants: [
+          { ru: 'Пельмени говядина + свинина', en: 'Beef & Pork Dumplings', name: 'beef_pork_dumplings', price: 15 },
+          { ru: 'Пельмени индейка',            en: 'Turkey Dumplings',       name: 'turkey_dumplings',    price: 15 },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+    db.ref('menuSections/pasta/items/risotto_group').once('value', snapshot => {
+      if (snapshot.val()) return;
+      db.ref('menuSections/pasta/items/risotto_group').set({
+        name: 'risotto_group',
+        nameRu: 'Ризотто',
+        nameEn: 'Risotto',
+        descRu: 'грибы / креветки',
+        descEn: 'mushrooms / shrimps',
+        price: 15,
+        isGroup: true,
+        groupKey: 'Ризотто',
+        isActive: true,
+        sortOrder: 70,
+        variants: [
+          { ru: 'Ризотто грибы',    en: 'Mushroom Risotto', name: 'risotto_mushrooms', price: 15 },
+          { ru: 'Ризотто креветки', en: 'Shrimp Risotto',   name: 'risotto_shrimps',   price: 18 },
         ],
         createdAt: now,
         updatedAt: now,
@@ -2945,6 +3024,7 @@
     loadEditableMenuSections();
     seedUsykFightNight();
     seedVarenykyToPasta();
+    seedDumplingsAndRisottoToPasta();
     loadCustomCategories();
 
     const logoArea = document.getElementById('appLogoArea');
