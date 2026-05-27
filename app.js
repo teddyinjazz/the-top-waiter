@@ -259,6 +259,9 @@
     'Ризотто креветки': 'Shrimp Risotto',
     'risotto_mushrooms': 'Mushroom Risotto',
     'risotto_shrimps':   'Shrimp Risotto',
+    'Морепродукты':  'Seafood Pasta',
+    'carbonara':     'Carbonara',
+    'seafood_pasta': 'Seafood Pasta',
   };
 
   function displayName(name) {
@@ -753,6 +756,13 @@
         { ru: 'Зелёный',      en: 'Green tea',   name: 'Чай зелёный',      price: 2.5 },
         { ru: 'Ромашка',      en: 'Chamomile',   name: 'Чай ромашка',      price: 2.5 },
         { ru: 'Корка лимона', en: 'Lemon peel',  name: 'Чай корка лимона', price: 2.5 },
+      ]
+    },
+    'Паста': {
+      ru: 'Паста', en: 'Pasta',
+      variants: [
+        { ru: 'Карбонара',    en: 'Carbonara',    name: 'carbonara',     price: 18 },
+        { ru: 'Морепродукты', en: 'Seafood Pasta', name: 'seafood_pasta', price: 18 },
       ]
     },
     'Вареники': {
@@ -1961,6 +1971,7 @@
       varenyky_group:   { name: 'Вареники', nameRu: 'Вареники', nameEn: 'Varenyky', descRu: 'вишня / капуста / картофель', descEn: 'cherry / cabbage / potato', price: 13, isGroup: true, groupKey: 'Вареники', isActive: true, sortOrder: 50, variants: [{ ru: 'Вареники вишня', en: 'Varenyky cherry', name: 'varenyky_cherry', price: 13 }, { ru: 'Вареники капуста', en: 'Varenyky cabbage', name: 'varenyky_cabbage', price: 13 }, { ru: 'Вареники картофель', en: 'Varenyky potato', name: 'varenyky_potato', price: 13 }] },
       dumplings_group:  { name: 'dumplings_group', nameRu: 'Пельмени', nameEn: 'Dumplings', descRu: 'говядина + свинина / индейка', descEn: 'beef + pork / turkey', price: 15, isGroup: true, groupKey: 'Пельмени', isActive: true, sortOrder: 60, variants: [{ ru: 'Пельмени говядина + свинина', en: 'Beef & Pork Dumplings', name: 'beef_pork_dumplings', price: 15 }, { ru: 'Пельмени индейка', en: 'Turkey Dumplings', name: 'turkey_dumplings', price: 15 }] },
       risotto_group:    { name: 'risotto_group', nameRu: 'Ризотто', nameEn: 'Risotto', descRu: 'грибы / креветки', descEn: 'mushrooms / shrimps', price: 15, isGroup: true, groupKey: 'Ризотто', isActive: true, sortOrder: 70, variants: [{ ru: 'Ризотто грибы', en: 'Mushroom Risotto', name: 'risotto_mushrooms', price: 15 }, { ru: 'Ризотто креветки', en: 'Shrimp Risotto', name: 'risotto_shrimps', price: 18 }] },
+      pasta_group:      { name: 'pasta_group', nameRu: 'Паста', nameEn: 'Pasta', descRu: 'карбонара / морепродукты', descEn: 'carbonara / seafood', price: 18, isGroup: true, groupKey: 'Паста', isActive: true, sortOrder: 80, variants: [{ ru: 'Карбонара', en: 'Carbonara', name: 'carbonara', price: 18 }, { ru: 'Морепродукты', en: 'Seafood Pasta', name: 'seafood_pasta', price: 18 }] },
     },
     mains: {
       befstroganov:  { name: 'Бефстроганов',     nameRu: 'Бефстроганов',  nameEn: 'Beef Stroganoff',           descRu: 'Black Angus, грибы',            descEn: 'Black Angus, mushrooms',         price: 18, needsSide: true, isGroup: false, isActive: true, sortOrder: 10  },
@@ -2112,6 +2123,7 @@
         if (sectionKey !== 'pasta' || item.isGroup) return true;
         if (pastaActiveGroupKeys.has('Пельмени') && item.nameRu && item.nameRu.startsWith('Пельмени ')) return false;
         if (pastaActiveGroupKeys.has('Ризотто')  && item.nameRu && item.nameRu.startsWith('Ризотто '))  return false;
+        if (pastaActiveGroupKeys.has('Паста') && item.nameRu && (item.nameRu.startsWith('Карбонара') || item.nameRu.startsWith('Морепродукты'))) return false;
         return true;
       })
       .sort(([, a], [, b]) => {
@@ -2521,6 +2533,31 @@
         variants: [
           { ru: 'Ризотто грибы',    en: 'Mushroom Risotto', name: 'risotto_mushrooms', price: 15 },
           { ru: 'Ризотто креветки', en: 'Shrimp Risotto',   name: 'risotto_shrimps',   price: 18 },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+  }
+
+  function seedPastaGroupToPasta() {
+    db.ref('menuSections/pasta/items/pasta_group').once('value', snapshot => {
+      if (snapshot.val()) return;
+      const now = Date.now();
+      db.ref('menuSections/pasta/items/pasta_group').set({
+        name: 'pasta_group',
+        nameRu: 'Паста',
+        nameEn: 'Pasta',
+        descRu: 'карбонара / морепродукты',
+        descEn: 'carbonara / seafood',
+        price: 18,
+        isGroup: true,
+        groupKey: 'Паста',
+        isActive: true,
+        sortOrder: 80,
+        variants: [
+          { ru: 'Карбонара',    en: 'Carbonara',    name: 'carbonara',     price: 18 },
+          { ru: 'Морепродукты', en: 'Seafood Pasta', name: 'seafood_pasta', price: 18 },
         ],
         createdAt: now,
         updatedAt: now,
@@ -3025,6 +3062,7 @@
     seedUsykFightNight();
     seedVarenykyToPasta();
     seedDumplingsAndRisottoToPasta();
+    seedPastaGroupToPasta();
     loadCustomCategories();
 
     const logoArea = document.getElementById('appLogoArea');
