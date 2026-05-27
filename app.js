@@ -248,6 +248,9 @@
     'Чай зелёный':      'Green tea',
     'Чай ромашка':      'Chamomile tea',
     'Чай корка лимона': 'Lemon peel tea',
+    'Вареники вишня':     'Varenyky cherry',
+    'Вареники капуста':   'Varenyky cabbage',
+    'Вареники картофель': 'Varenyky potato',
   };
 
   function displayName(name) {
@@ -742,6 +745,14 @@
         { ru: 'Зелёный',      en: 'Green tea',   name: 'Чай зелёный',      price: 2.5 },
         { ru: 'Ромашка',      en: 'Chamomile',   name: 'Чай ромашка',      price: 2.5 },
         { ru: 'Корка лимона', en: 'Lemon peel',  name: 'Чай корка лимона', price: 2.5 },
+      ]
+    },
+    'Вареники': {
+      ru: 'Вареники', en: 'Varenyky',
+      variants: [
+        { ru: 'Вареники вишня',     en: 'Varenyky cherry',  name: 'varenyky_cherry',   price: 13 },
+        { ru: 'Вареники капуста',   en: 'Varenyky cabbage', name: 'varenyky_cabbage',  price: 13 },
+        { ru: 'Вареники картофель', en: 'Varenyky potato',  name: 'varenyky_potato',   price: 13 },
       ]
     },
   };
@@ -1925,6 +1936,7 @@
       carbonara:        { name: 'Карбонара',              nameRu: 'Карбонара',        nameEn: 'Carbonara',         descRu: 'панчетта, бекон',          descEn: 'pancetta, bacon',            price: 18, isGroup: false, isActive: true, sortOrder: 20 },
       mushroom_risotto: { name: 'Ризотто с грибами',      nameRu: 'Ризотто грибы 🌿', nameEn: 'Mushroom risotto 🌿', price: 15, isGroup: false, isActive: true, sortOrder: 30 },
       shrimp_risotto:   { name: 'Ризотто с креветками',   nameRu: 'Ризотто креветки', nameEn: 'Shrimp risotto',    price: 18, isGroup: false, isActive: true, sortOrder: 40 },
+      varenyky_group:   { name: 'Вареники', nameRu: 'Вареники', nameEn: 'Varenyky', descRu: 'вишня / капуста / картофель', descEn: 'cherry / cabbage / potato', price: 13, isGroup: true, groupKey: 'Вареники', isActive: true, sortOrder: 50, variants: [{ ru: 'Вареники вишня', en: 'Varenyky cherry', name: 'varenyky_cherry', price: 13 }, { ru: 'Вареники капуста', en: 'Varenyky cabbage', name: 'varenyky_cabbage', price: 13 }, { ru: 'Вареники картофель', en: 'Varenyky potato', name: 'varenyky_potato', price: 13 }] },
     },
     mains: {
       befstroganov:  { name: 'Бефстроганов',     nameRu: 'Бефстроганов',  nameEn: 'Beef Stroganoff',           descRu: 'Black Angus, грибы',            descEn: 'Black Angus, mushrooms',         price: 18, needsSide: true, isGroup: false, isActive: true, sortOrder: 10  },
@@ -2407,6 +2419,32 @@
         usyk_classic_burger:      { name: 'Classic Burger',          nameRu: 'Классический бургер',         nameEn: 'Classic Burger',          price: 14, isGroup: false, isActive: true, sortOrder: 50, createdAt: now, updatedAt: now },
         usyk_cheeseburger:        { name: 'Classic Cheeseburger',    nameRu: 'Классический чизбургер',      nameEn: 'Classic Cheeseburger',    price: 15, isGroup: false, isActive: true, sortOrder: 60, createdAt: now, updatedAt: now },
         usyk_cheese_platter:      { name: 'Cheese Platter',          nameRu: 'Сырная тарелка',              nameEn: 'Cheese Platter',          price: 14, isGroup: false, isActive: true, sortOrder: 70, createdAt: now, updatedAt: now },
+      });
+    });
+  }
+
+  function seedVarenykyToPasta() {
+    db.ref('menuSections/pasta/items/varenyky_group').once('value', snapshot => {
+      if (snapshot.val()) return;
+      const now = Date.now();
+      db.ref('menuSections/pasta/items/varenyky_group').set({
+        name: 'Вареники',
+        nameRu: 'Вареники',
+        nameEn: 'Varenyky',
+        descRu: 'вишня / капуста / картофель',
+        descEn: 'cherry / cabbage / potato',
+        price: 13,
+        isGroup: true,
+        groupKey: 'Вареники',
+        isActive: true,
+        sortOrder: 50,
+        variants: [
+          { ru: 'Вареники вишня',     en: 'Varenyky cherry',  name: 'varenyky_cherry',   price: 13 },
+          { ru: 'Вареники капуста',   en: 'Varenyky cabbage', name: 'varenyky_cabbage',  price: 13 },
+          { ru: 'Вареники картофель', en: 'Varenyky potato',  name: 'varenyky_potato',   price: 13 },
+        ],
+        createdAt: now,
+        updatedAt: now,
       });
     });
   }
@@ -2906,6 +2944,7 @@
     syncBeerItemsIntoWaterSectionOnce();
     loadEditableMenuSections();
     seedUsykFightNight();
+    seedVarenykyToPasta();
     loadCustomCategories();
 
     const logoArea = document.getElementById('appLogoArea');
