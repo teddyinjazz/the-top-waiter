@@ -1629,7 +1629,8 @@
       if (!groups[g]) groups[g] = [];
       groups[g].push(w);
     });
-    Object.values(groups).forEach(arr => arr.sort((a, b) => (a.name || '').localeCompare(b.name || '')));
+    const wineLocale = lang === 'ru' ? 'ru' : 'en';
+    Object.values(groups).forEach(arr => arr.sort((a, b) => (a.name || '').localeCompare(b.name || '', wineLocale, { sensitivity: 'base', numeric: true })));
     let html = '';
     WINE_GROUP_ORDER.forEach(g => {
       if (!groups[g] || !groups[g].length) return;
@@ -2069,13 +2070,10 @@
         return true;
       })
       .sort(([, a], [, b]) => {
-        if (sectionKey === 'cocktails' || sectionKey === 'spirits' || sectionKey === 'soft' || sectionKey === 'pasta') {
-          const locale = lang === 'ru' ? 'ru' : 'en';
-          const nameA = (lang === 'ru' ? a.nameRu || a.name || a.nameEn : a.nameEn || a.nameRu || a.name) || '';
-          const nameB = (lang === 'ru' ? b.nameRu || b.name || b.nameEn : b.nameEn || b.nameRu || b.name) || '';
-          return nameA.localeCompare(nameB, locale, { sensitivity: 'base', numeric: true });
-        }
-        return (a.sortOrder || 0) - (b.sortOrder || 0);
+        const locale = lang === 'ru' ? 'ru' : 'en';
+        const nameA = (lang === 'ru' ? a.nameRu || a.name || a.nameEn : a.nameEn || a.nameRu || a.name) || '';
+        const nameB = (lang === 'ru' ? b.nameRu || b.name || b.nameEn : b.nameEn || b.nameRu || b.name) || '';
+        return nameA.localeCompare(nameB, locale, { sensitivity: 'base', numeric: true });
       });
     if (!activeItems.length) {
       container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
@@ -2226,7 +2224,12 @@
     const items = editableSections[key] || {};
     const activeItems = Object.entries(items)
       .filter(([, item]) => item.isActive !== false)
-      .sort(([, a], [, b]) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      .sort(([, a], [, b]) => {
+        const locale = lang === 'ru' ? 'ru' : 'en';
+        const nameA = (lang === 'ru' ? a.nameRu || a.name || a.nameEn : a.nameEn || a.nameRu || a.name) || '';
+        const nameB = (lang === 'ru' ? b.nameRu || b.name || b.nameEn : b.nameEn || b.nameRu || b.name) || '';
+        return nameA.localeCompare(nameB, locale, { sensitivity: 'base', numeric: true });
+      });
     if (!activeItems.length) {
       container.innerHTML = '<div style="color:#7ab3ac;font-size:10px;text-align:center;padding:10px">' +
         (lang === 'ru' ? 'Нет позиций' : 'No items') + '</div>';
