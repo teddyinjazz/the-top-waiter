@@ -1049,7 +1049,7 @@
     const pairId = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
     const mainKey = name + '__' + pairId;
     orders[currentTable][mainKey] = { price, qty: 1, itemName: name, pairId, displayName: dispName || name };
-    const total = Object.values(orders[currentTable]).filter(i => i.displayName === name).reduce((s, i) => s + i.qty, 0);
+    const total = Object.values(orders[currentTable]).filter(i => i.itemName === name && i.pairId).reduce((s, i) => s + i.qty, 0);
     btn.classList.add('has-count');
     btn.querySelector('.item-count').textContent = total;
     writeAudit('order_add', { table: currentTable, itemName: name, price, qtyDelta: 1 });
