@@ -843,7 +843,7 @@
   }
 
   function getOrderSortValue(item, key, orderIndex) {
-    const name = item.displayName || item.itemName || key;
+    const name = item.itemName || key;
     return orderIndex[name] !== undefined ? orderIndex[name] : 999999;
   }
 
@@ -863,10 +863,12 @@
     opts.innerHTML = '';
     const tableOrder = orders[currentTable] || {};
 
+    const groupDisp = lang === 'ru' ? group.ru : group.en;
     group.variants.forEach(v => {
       const isStopped = currentTable !== '🛑' && isEffectivelyStopped(v.name);
       const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
       const label = lang === 'ru' ? v.ru : v.en;
+      const fullDispName = (groupDisp && label.toLowerCase().includes(groupDisp.toLowerCase())) ? label : (groupDisp + ' ' + label);
 
       const btn = document.createElement('button');
       btn.className = 'var-btn' + (isStopped ? ' stopped' : '');
@@ -878,7 +880,7 @@
           ${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}
         </span>`;
       btn.onclick = () => {
-        addItemByVariant(v.name, v.price, label);
+        addItemByVariant(v.name, v.price, fullDispName);
         // Обновляем счётчик в popup
         const newQty = (orders[currentTable] && orders[currentTable][v.name])
           ? orders[currentTable][v.name].qty : 0;
@@ -915,15 +917,19 @@
       const opts = document.getElementById('varOptions');
       opts.innerHTML = '';
       const tableOrder = orders[currentTable] || {};
+      const grpDisp = lang === 'ru'
+        ? (grp ? grp.ru : (item.nameRu || item.name || groupKey))
+        : (grp ? grp.en : (item.nameEn || item.name || groupKey));
       variantsArr.forEach(v => {
         const isStopped = currentTable !== '🛑' && isEffectivelyStopped(v.name);
         const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
         const label = lang === 'ru' ? v.ru : v.en;
+        const fullDispName = (grpDisp && label.toLowerCase().includes(grpDisp.toLowerCase())) ? label : (grpDisp + ' ' + label);
         const varBtn = document.createElement('button');
         varBtn.className = 'var-btn' + (isStopped ? ' stopped' : '');
         varBtn.innerHTML = `<span class="var-btn-name">${label}</span><span style="display:flex;align-items:center;gap:6px"><span class="var-btn-price">€${v.price}</span>${isStopped ? `<span style="color:#ff6b6b;font-size:10px;letter-spacing:1px">${lang === 'ru' ? 'СТОП' : 'STOP'}</span>` : ''}${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}</span>`;
         varBtn.onclick = () => {
-          addItemByVariant(v.name, v.price, label);
+          addItemByVariant(v.name, v.price, fullDispName);
           const newQty = (orders[currentTable] && orders[currentTable][v.name]) ? orders[currentTable][v.name].qty : 0;
           const countEl = varBtn.querySelector('.var-btn-count');
           if (newQty > 0) {
@@ -1413,7 +1419,7 @@
         console.group('[ORDER SORT DEBUG] sortKeys for current order:');
         present.forEach(function(n) {
           var item = tableOrder[n] || {};
-          var lookupName = item.displayName || item.itemName || n;
+          var lookupName = item.itemName || n;
           console.log(n, '→ sortKey:', menuIndex[lookupName] !== undefined ? menuIndex[lookupName] : 999999, '(index key: "' + lookupName + '")');
         });
         console.groupEnd();
