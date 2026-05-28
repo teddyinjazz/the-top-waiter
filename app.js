@@ -2147,6 +2147,23 @@
   let customCategories = {};
   const _customCatItemListeners = new Set();
 
+  function getEditableOrderDisplayName(item) {
+    const visibleName = lang === 'ru'
+      ? (item.nameRu || item.name || item.nameEn || '')
+      : (item.nameEn || item.nameRu || item.name || '');
+    const visibleDesc = lang === 'ru'
+      ? (item.descRu || item.desc || item.descEn || '')
+      : (item.descEn || item.descRu || item.desc || '');
+    const normalizedName = visibleName.trim().toLowerCase();
+    const needsDescription =
+      normalizedName.includes('брускетта') ||
+      normalizedName.includes('bruschetta');
+    if (needsDescription && visibleDesc && !visibleName.includes(visibleDesc)) {
+      return (visibleName + ' ' + visibleDesc).trim();
+    }
+    return visibleName;
+  }
+
   function renderEditableSection(sectionKey) {
     const container = document.getElementById(sectionKey + 'List');
     if (!container) return;
@@ -2219,7 +2236,8 @@
     } else {
       const price = item.price || 0;
       const safeName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      const safeDisp = dispName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      const orderDisplayName = getEditableOrderDisplayName(item);
+      const safeDisp = orderDisplayName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
       return `<button class="item-btn" data-item-id="${safeId}" onclick="addItem(this,'${safeName}',${price},'${safeDisp}')">` +
         `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
         `<div class="item-footer"><span class="item-price">€${price}</span><span class="item-count">0</span></div></button>`;
