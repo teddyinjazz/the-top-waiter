@@ -263,6 +263,10 @@
     'Морепродукты':  'Seafood Pasta',
     'carbonara':     'Carbonara',
     'seafood_pasta': 'Seafood Pasta',
+    'Пина Колада алкогольная':    'Pina Colada alcoholic',
+    'Пина Колада безалкогольная': 'Pina Colada non-alcoholic',
+    'pina_colada_alcoholic':      'Pina Colada alcoholic',
+    'pina_colada_non_alcoholic':  'Pina Colada non-alcoholic',
   };
 
   function displayName(name) {
@@ -807,6 +811,13 @@
       variants: [
         { ru: 'Ризотто грибы',    en: 'Mushroom Risotto', name: 'risotto_mushrooms', price: 15 },
         { ru: 'Ризотто креветки', en: 'Shrimp Risotto',   name: 'risotto_shrimps',   price: 18 },
+      ]
+    },
+    'Pina Colada': {
+      ru: 'Пина Колада', en: 'Pina Colada',
+      variants: [
+        { ru: 'Пина Колада алкогольная',   en: 'Pina Colada alcoholic',     name: 'pina_colada_alcoholic',     price: 15 },
+        { ru: 'Пина Колада безалкогольная', en: 'Pina Colada non-alcoholic', name: 'pina_colada_non_alcoholic', price: 12 },
       ]
     },
   };
@@ -2121,6 +2132,7 @@
       mango_caipirinha:     { name: 'Mango Caipirinha',     nameRu: 'Mango Caipirinha',     nameEn: 'Mango Caipirinha',     descRu: 'Fresh Mango, Cachaca, Brown Sugar, Lime',           descEn: 'Fresh Mango, Cachaca, Brown Sugar, Lime',           price: 10, isGroup: false, isActive: true, sortOrder: 170 },
       porn_star:            { name: 'Porn Star',            nameRu: 'Porn Star',            nameEn: 'Porn Star',            price: 10, isGroup: false, isActive: true, sortOrder: 180 },
       sangria:              { name: 'Сангрия',              nameRu: 'Сангрия',              nameEn: 'Sangria',              priceLabelRu: 'белая / красная · 0.5 / 1 л', priceLabelEn: 'white / red · 0.5 / 1 l', isGroup: true, groupKey: 'Сангрия', isActive: true, sortOrder: 190 },
+      pina_colada:          { name: 'Pina Colada',          nameRu: 'Пина Колада',          nameEn: 'Pina Colada',          priceLabelRu: 'алко €15 / без €12', priceLabelEn: 'alcoholic €15 / non-alcoholic €12', isGroup: true, groupKey: 'Pina Colada', isActive: true, sortOrder: 195 },
     },
   };
 
@@ -2177,14 +2189,23 @@
       if (currentTable !== '🛑') applyStopList();
       return;
     }
-    container.innerHTML = activeItems.map(([id, item]) => renderEditableMenuItem(sectionKey, id, item)).join('');
+    const visNameCount = {};
+    activeItems.forEach(([, item]) => {
+      if (item.isGroup) return;
+      const n = (lang === 'ru' ? item.nameRu || item.name || item.nameEn : item.nameEn || item.nameRu || item.name) || '';
+      visNameCount[n] = (visNameCount[n] || 0) + 1;
+    });
+    const dupNames = new Set(Object.keys(visNameCount).filter(n => visNameCount[n] > 1));
+    container.innerHTML = activeItems.map(([id, item]) => renderEditableMenuItem(sectionKey, id, item, dupNames)).join('');
     restoreMenuVisual();
     restoreGroupBtns();
     if (currentTable !== '🛑') applyStopList();
   }
 
-  function renderEditableMenuItem(sectionKey, id, item) {
-    const dispName = lang === 'ru' ? (item.nameRu || item.name || '') : (item.nameEn || item.name || '');
+  function renderEditableMenuItem(sectionKey, id, item, dupNames) {
+    const visName = lang === 'ru' ? (item.nameRu || item.name || item.nameEn || '') : (item.nameEn || item.nameRu || item.name || '');
+    const visDesc = lang === 'ru' ? (item.descRu || item.desc || item.descEn || '') : (item.descEn || item.descRu || item.desc || '');
+    const dispName = (dupNames && dupNames.has(visName) && visDesc) ? (visName + ' ' + visDesc) : visName;
     const descStr  = lang === 'ru' ? (item.descRu || '') : (item.descEn || '');
     const descHtml = descStr ? `<div class="item-desc">${escapeHtml(descStr)}</div>` : '';
     const safeId   = escapeHtml(id);
@@ -2333,7 +2354,14 @@
       if (currentTable !== '🛑') applyStopList();
       return;
     }
-    container.innerHTML = activeItems.map(([id, item]) => renderEditableMenuItem(key, id, item)).join('');
+    const ccVisNameCount = {};
+    activeItems.forEach(([, item]) => {
+      if (item.isGroup) return;
+      const n = (lang === 'ru' ? item.nameRu || item.name || item.nameEn : item.nameEn || item.nameRu || item.name) || '';
+      ccVisNameCount[n] = (ccVisNameCount[n] || 0) + 1;
+    });
+    const ccDupNames = new Set(Object.keys(ccVisNameCount).filter(n => ccVisNameCount[n] > 1));
+    container.innerHTML = activeItems.map(([id, item]) => renderEditableMenuItem(key, id, item, ccDupNames)).join('');
     restoreMenuVisual();
     restoreGroupBtns();
     if (currentTable !== '🛑') applyStopList();
@@ -2597,6 +2625,30 @@
         variants: [
           { ru: 'Карбонара',    en: 'Carbonara',    name: 'carbonara',     price: 18 },
           { ru: 'Морепродукты', en: 'Seafood Pasta', name: 'seafood_pasta', price: 18 },
+        ],
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+  }
+
+  function seedPinaColadaToCocktails() {
+    db.ref('menuSections/cocktails/items/pina_colada').once('value', snapshot => {
+      if (snapshot.val()) return;
+      const now = Date.now();
+      db.ref('menuSections/cocktails/items/pina_colada').set({
+        name: 'Pina Colada',
+        nameRu: 'Пина Колада',
+        nameEn: 'Pina Colada',
+        priceLabelRu: 'алко €15 / без €12',
+        priceLabelEn: 'alcoholic €15 / non-alcoholic €12',
+        isGroup: true,
+        groupKey: 'Pina Colada',
+        isActive: true,
+        sortOrder: 195,
+        variants: [
+          { ru: 'Пина Колада алкогольная',    en: 'Pina Colada alcoholic',     name: 'pina_colada_alcoholic',     price: 15 },
+          { ru: 'Пина Колада безалкогольная', en: 'Pina Colada non-alcoholic', name: 'pina_colada_non_alcoholic', price: 12 },
         ],
         createdAt: now,
         updatedAt: now,
@@ -3104,6 +3156,7 @@
     seedVarenykyToPasta();
     seedDumplingsAndRisottoToPasta();
     seedPastaGroupToPasta();
+    seedPinaColadaToCocktails();
     loadCustomCategories();
 
     const logoArea = document.getElementById('appLogoArea');
