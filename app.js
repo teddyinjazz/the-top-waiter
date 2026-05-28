@@ -2194,6 +2194,23 @@
       })
       .sort(([, a], [, b]) => {
         const locale = lang === 'ru' ? 'ru' : 'en';
+        if (sectionKey === 'mains') {
+          const sideCheck = item => {
+            if (item.needsSide === true) return false;
+            if (item.isSide === true) return true;
+            const n = ((lang === 'ru'
+              ? item.nameRu || item.name || item.nameEn
+              : item.nameEn || item.nameRu || item.name) || '').trim().toLowerCase();
+            return [
+              'жар. картофель', 'жареный картофель', 'картофель фри',
+              'овощи', 'пюре', 'рис', 'салат', 'спаржа', 'спагетти',
+              'roast potato', 'french fries', 'fries', 'fried potatoes',
+              'vegetables', 'mashed potato', 'rice', 'salad', 'asparagus', 'spaghetti',
+            ].some(s => n.includes(s));
+          };
+          const aIsSide = sideCheck(a), bIsSide = sideCheck(b);
+          if (aIsSide !== bIsSide) return aIsSide ? 1 : -1;
+        }
         const nameA = (lang === 'ru' ? a.nameRu || a.name || a.nameEn : a.nameEn || a.nameRu || a.name) || '';
         const nameB = (lang === 'ru' ? b.nameRu || b.name || b.nameEn : b.nameEn || b.nameRu || b.name) || '';
         return nameA.localeCompare(nameB, locale, { sensitivity: 'base', numeric: true });
