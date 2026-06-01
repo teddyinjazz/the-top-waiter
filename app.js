@@ -1450,7 +1450,11 @@
     // Возвращаем только если удаляем неотправленную единицу
     if (item.qty > alreadySent) {
       const _prevRbQty = orders['🛑'][baseName].qty;
-      orders['🛑'][baseName].qty += 1;
+      // Derived items are capped at state 2; uncapped increment would create invalid state 3.
+      const isDerivedItem = findDerivedLinkByDerivedName(baseName) !== null;
+      orders['🛑'][baseName].qty = isDerivedItem
+        ? Math.min(2, _prevRbQty + 1)
+        : _prevRbQty + 1;
       saveOrderToFirebase('🛑');
       applyStopList();
       writeAudit('stoplist_change', { itemName: baseName, before: _prevRbQty, after: orders['🛑'][baseName].qty });
