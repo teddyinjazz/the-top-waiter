@@ -586,9 +586,11 @@
     return normalizeDerivedState(entry.qty);
   }
 
-  function getMotherQty(motherName) {
-    const entry = orders['🛑'] && orders['🛑'][motherName];
-    return entry ? (entry.qty || 0) : 0;
+  function getMotherStopEntry(motherName) {
+    const stoplist = orders['🛑'];
+    if (!stoplist) return null;
+    const entry = stoplist[motherName];
+    return (entry !== undefined && entry !== null) ? entry : null;
   }
 
   function findDerivedLinkByDerivedName(name) {
@@ -604,8 +606,10 @@
     if (!link) return null; // not a derived item — caller uses standard logic
     const state = getDerivedState(name);
     if (state > 0) return false; // qty 1 or 2 → one or two portions available
-    // state 0 (or absent): check mother
-    return getMotherQty(link.motherNames[0]) <= 1;
+    // state 0 (absent or explicit 0): check mother
+    const motherEntry = getMotherStopEntry(link.motherNames[0]);
+    if (!motherEntry) return false; // mother absent = unlimited = conversion allowed
+    return (motherEntry.qty == null ? 0 : motherEntry.qty) <= 1;
   }
 
   // Consumes derived stock for one derived portion.
@@ -630,14 +634,36 @@
     }
 
     // state 0: attempt mother conversion — one portion served, one residual created
-    const motherName = link.motherNames[0];
-    const motherQty  = getMotherQty(motherName);
-    if (motherQty <= 1) return false; // mother absent or last unit — cannot split
+    const motherName  = link.motherNames[0];
+    const motherEntry = getMotherStopEntry(motherName);
+
+    if (!motherEntry) {
+      // Mother absent = unlimited/not stop-list controlled.
+      // Allow conversion; create derived residual = 1; do not touch mother entry.
+      if (!orders['🛑']) orders['🛑'] = {};
+      if (!orders['🛑'][derivedName]) {
+        orders['🛑'][derivedName] = { price, qty: 1, itemName: derivedName };
+      } else {
+        orders['🛑'][derivedName].qty = 1;
+      }
+      saveOrderToFirebase('🛑');
+      applyStopList();
+      writeAudit('derived_stock_conversion', {
+        motherName, derivedName,
+        motherBefore: null, motherAfter: null,
+        derivedBefore: 0, derivedAfter: 1,
+        ratio: link.ratio, reason: 'derived_order_from_unlimited_mother',
+      });
+      return true;
+    }
+
+    const motherQty   = motherEntry.qty == null ? 0 : motherEntry.qty;
+    if (motherQty <= 1) return false; // mother qty 0 or 1 — cannot convert
 
     const motherBefore = motherQty;
     const motherAfter  = motherQty - 1;
 
-    orders['🛑'][motherName].qty = motherAfter; // never goes below 1 (checked above)
+    orders['🛑'][motherName].qty = motherAfter; // entry confirmed to exist, safe to write
     if (!orders['🛑'][derivedName]) {
       orders['🛑'][derivedName] = { price, qty: 1, itemName: derivedName };
     } else {
@@ -647,14 +673,10 @@
     saveOrderToFirebase('🛑');
     applyStopList();
     writeAudit('derived_stock_conversion', {
-      motherName,
-      derivedName,
-      motherBefore,
-      motherAfter,
-      derivedBefore: 0,
-      derivedAfter: 1,
-      ratio: link.ratio,
-      reason: 'derived_order_from_mother',
+      motherName, derivedName,
+      motherBefore, motherAfter,
+      derivedBefore: 0, derivedAfter: 1,
+      ratio: link.ratio, reason: 'derived_order_from_mother',
     });
     return true;
   }
