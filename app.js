@@ -1212,11 +1212,14 @@
 
     // Стоп-лист — та же логика что обычный стол
     if (currentTable === '🛑') {
-      if (!orders[currentTable][name]) {
+      const _wasAbsent = !orders[currentTable][name];
+      const _prevStopQtyA = _wasAbsent ? null : orders[currentTable][name].qty;
+      if (_wasAbsent) {
+        // First tap: create entry at qty=0 (explicitly stopped). NOT qty=1.
         orders[currentTable][name] = { price, qty: 0, itemName: name, ...(dispName ? { displayName: dispName } : {}) };
+      } else {
+        orders[currentTable][name].qty++;
       }
-      const _prevStopQtyA = orders[currentTable][name].qty;
-      orders[currentTable][name].qty++;
       btn.classList.add('has-count');
       btn.querySelector('.item-count').textContent = orders[currentTable][name].qty;
       saveOrderToFirebase('🛑');
@@ -1549,7 +1552,12 @@
 
     if (item.qty <= 0) {
       if (currentTable === '🛑') {
-        item.qty = 0; // keep entry at 0 — stop-list zero is a valid "no stock" state
+        if (item.qty < 0) {
+          // Was at 0, minus pressed → remove entry entirely (item returns to absent/unlimited)
+          delete tableOrder[name];
+        } else {
+          item.qty = 0; // was at 1, now 0 → explicit "stopped" state, keep entry
+        }
       } else {
         if (item.pairId && !item.isSide) {
           const sk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && tableOrder[k].isSide);
