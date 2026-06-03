@@ -626,17 +626,32 @@
     const state = getDerivedState(derivedName);
 
     if (state > 0) {
-      // Consume one portion: 2→1 or 1→0
       const before = orders['🛑'][derivedName].qty;
-      orders['🛑'][derivedName].qty = before - 1;
-      saveOrderToFirebase('🛑');
-      applyStopList();
-      writeAudit('derived_stock_consumed', {
-        derivedName,
-        derivedBefore: before,
-        derivedAfter: before - 1,
-        reason: 'derived_order_from_stock',
-      });
+      if (state === 1) {
+        // Last residual consumed: remove entry entirely.
+        // qty=0 is reserved for manual stops set on table 13.
+        // Absent means availability re-derives from mother on next order.
+        delete orders['🛑'][derivedName];
+        saveOrderToFirebase('🛑');
+        applyStopList();
+        writeAudit('derived_stock_consumed', {
+          derivedName,
+          derivedBefore: before,
+          derivedAfter: null,
+          reason: 'derived_residual_final_consumed',
+        });
+      } else {
+        // state === 2: decrement normally (2→1, residual still tracked)
+        orders['🛑'][derivedName].qty = before - 1;
+        saveOrderToFirebase('🛑');
+        applyStopList();
+        writeAudit('derived_stock_consumed', {
+          derivedName,
+          derivedBefore: before,
+          derivedAfter: before - 1,
+          reason: 'derived_order_from_stock',
+        });
+      }
       return true;
     }
 
