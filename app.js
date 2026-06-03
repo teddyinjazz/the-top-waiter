@@ -529,10 +529,10 @@
   // =============================================
   // СТОП-ЛИСТ
   // Источник данных — orders['🛑'], хранится как обычный стол
-  // Мьют при qty <= 1 (последняя порция уже в стопе)
+  // Мьют при qty <= 0 (нет доступных порций)
   // =============================================
   function isInStoplist(name) {
-    return !!(orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty <= 1);
+    return !!(orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty <= 0);
   }
 
   function getGroupKeyForVariantName(name) {
@@ -560,7 +560,7 @@
     const groupKey = getGroupKeyForVariantName(name);
     if (!groupKey || !VOLUME_LINKED_GROUPS.has(groupKey)) return;
     const siblings = getVariantNamesForGroup(groupKey);
-    const sibling = siblings.find(n => n !== name && orders['🛑'] && orders['🛑'][n] && orders['🛑'][n].qty > 1);
+    const sibling = siblings.find(n => n !== name && orders['🛑'] && orders['🛑'][n] && orders['🛑'][n].qty > 0);
     if (sibling) {
       const _prevSibQty = orders['🛑'][sibling].qty;
       orders['🛑'][sibling].qty--;
@@ -586,9 +586,11 @@
     return normalizeDerivedState(entry.qty);
   }
 
-  function getMotherQty(motherName) {
-    const entry = orders['🛑'] && orders['🛑'][motherName];
-    return entry ? (entry.qty || 0) : 0;
+  function getMotherStopEntry(motherName) {
+    const stoplist = orders['🛑'];
+    if (!stoplist) return null;
+    const entry = stoplist[motherName];
+    return (entry !== undefined && entry !== null) ? entry : null;
   }
 
   function findDerivedLinkByDerivedName(name) {
@@ -603,60 +605,78 @@
     const link = findDerivedLinkByDerivedName(name);
     if (!link) return null; // not a derived item — caller uses standard logic
     const state = getDerivedState(name);
-    if (state === 2) return false; // residual portion available
-    if (state === 1) return true;  // explicitly unavailable
-    // state 0: availability depends solely on mother
-    return getMotherQty(link.motherNames[0]) <= 1;
+    if (state > 0) return false; // qty 1 or 2 → one or two portions available
+    // state 0 (absent or explicit 0): check mother
+    const motherEntry = getMotherStopEntry(link.motherNames[0]);
+    if (!motherEntry) return false; // mother absent = unlimited = conversion allowed
+    return (motherEntry.qty == null ? 0 : motherEntry.qty) <= 1;
   }
 
   // Consumes derived stock for one derived portion.
   // Returns true (allowed) or false (blocked).
-  // Never writes derived values outside {absent, 1, 2}.
+  // Never writes derived values outside {absent, 0, 1, 2}.
   function consumeDerivedStock(derivedName, price, link) {
     const state = getDerivedState(derivedName);
 
-    if (state === 1) return false;
-
-    if (state === 2) {
+    if (state > 0) {
+      // Consume one portion: 2→1 or 1→0
       const before = orders['🛑'][derivedName].qty;
-      orders['🛑'][derivedName].qty = 1;
+      orders['🛑'][derivedName].qty = before - 1;
       saveOrderToFirebase('🛑');
       applyStopList();
-      writeAudit('derived_stock_residual_consumed', {
+      writeAudit('derived_stock_consumed', {
         derivedName,
         derivedBefore: before,
-        derivedAfter: 1,
-        reason: 'derived_order_from_residual',
+        derivedAfter: before - 1,
+        reason: 'derived_order_from_stock',
       });
       return true;
     }
 
-    // state 0: attempt mother conversion
-    const motherName = link.motherNames[0];
-    const motherQty  = getMotherQty(motherName);
-    if (motherQty <= 1) return false; // mother absent or last unit — cannot split
+    // state 0: attempt mother conversion — one portion served, one residual created
+    const motherName  = link.motherNames[0];
+    const motherEntry = getMotherStopEntry(motherName);
+
+    if (!motherEntry) {
+      // Mother absent = unlimited/not stop-list controlled.
+      // Allow conversion; create derived residual = 1; do not touch mother entry.
+      if (!orders['🛑']) orders['🛑'] = {};
+      if (!orders['🛑'][derivedName]) {
+        orders['🛑'][derivedName] = { price, qty: 1, itemName: derivedName };
+      } else {
+        orders['🛑'][derivedName].qty = 1;
+      }
+      saveOrderToFirebase('🛑');
+      applyStopList();
+      writeAudit('derived_stock_conversion', {
+        motherName, derivedName,
+        motherBefore: null, motherAfter: null,
+        derivedBefore: 0, derivedAfter: 1,
+        ratio: link.ratio, reason: 'derived_order_from_unlimited_mother',
+      });
+      return true;
+    }
+
+    const motherQty   = motherEntry.qty == null ? 0 : motherEntry.qty;
+    if (motherQty <= 1) return false; // mother qty 0 or 1 — cannot convert
 
     const motherBefore = motherQty;
     const motherAfter  = motherQty - 1;
 
-    orders['🛑'][motherName].qty = motherAfter; // never goes below 1 (checked above)
+    orders['🛑'][motherName].qty = motherAfter; // entry confirmed to exist, safe to write
     if (!orders['🛑'][derivedName]) {
-      orders['🛑'][derivedName] = { price, qty: 2, itemName: derivedName };
+      orders['🛑'][derivedName] = { price, qty: 1, itemName: derivedName };
     } else {
-      orders['🛑'][derivedName].qty = 2;
+      orders['🛑'][derivedName].qty = 1;
     }
 
     saveOrderToFirebase('🛑');
     applyStopList();
     writeAudit('derived_stock_conversion', {
-      motherName,
-      derivedName,
-      motherBefore,
-      motherAfter,
-      derivedBefore: 0,
-      derivedAfter: 2,
-      ratio: link.ratio,
-      reason: 'derived_order_from_mother',
+      motherName, derivedName,
+      motherBefore, motherAfter,
+      derivedBefore: 0, derivedAfter: 1,
+      ratio: link.ratio, reason: 'derived_order_from_mother',
     });
     return true;
   }
@@ -1219,7 +1239,7 @@
           if (orders[currentTable][name].qty <= 0) delete orders[currentTable][name];
           return;
         }
-      } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+      } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 0) {
         const _prevStopQtyB = orders['🛑'][name].qty;
         orders['🛑'][name].qty--;
         saveOrderToFirebase('🛑');
@@ -1240,7 +1260,7 @@
     const _dsLinkMain = findDerivedLinkByDerivedName(name);
     if (_dsLinkMain) {
       if (!consumeDerivedStock(name, price, _dsLinkMain)) return;
-    } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+    } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 0) {
       const _prevStopQtyC = orders['🛑'][name].qty;
       orders['🛑'][name].qty--;
       saveOrderToFirebase('🛑');
@@ -1290,7 +1310,7 @@
           if (orders[currentTable][name].qty <= 0) delete orders[currentTable][name];
           return;
         }
-      } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+      } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 0) {
         const _prevStopQtyE = orders['🛑'][name].qty;
         orders['🛑'][name].qty--;
         saveOrderToFirebase('🛑');
@@ -1308,7 +1328,7 @@
     const _dsLinkMainB = findDerivedLinkByDerivedName(name);
     if (_dsLinkMainB) {
       if (!consumeDerivedStock(name, price, _dsLinkMainB)) return;
-    } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 1) {
+    } else if (orders['🛑'] && orders['🛑'][name] && orders['🛑'][name].qty > 0) {
       const _prevStopQtyF = orders['🛑'][name].qty;
       orders['🛑'][name].qty--;
       saveOrderToFirebase('🛑');
@@ -1488,7 +1508,7 @@
       const _dsLinkCQ = !item.isSide ? findDerivedLinkByDerivedName(baseName) : null;
       if (currentTable !== '🛑' && _dsLinkCQ) {
         consumeDerivedStock(baseName, item.price, _dsLinkCQ);
-      } else if (currentTable !== '🛑' && !item.isSide && orders['🛑'] && orders['🛑'][baseName] && orders['🛑'][baseName].qty > 1) {
+      } else if (currentTable !== '🛑' && !item.isSide && orders['🛑'] && orders['🛑'][baseName] && orders['🛑'][baseName].qty > 0) {
         const _prevStopQtyG = orders['🛑'][baseName].qty;
         orders['🛑'][baseName].qty--;
         saveOrderToFirebase('🛑');
@@ -1528,15 +1548,19 @@
     item.qty += delta;
 
     if (item.qty <= 0) {
-      if (item.pairId && !item.isSide) {
-        const sk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && tableOrder[k].isSide);
-        if (sk) delete tableOrder[sk];
+      if (currentTable === '🛑') {
+        item.qty = 0; // keep entry at 0 — stop-list zero is a valid "no stock" state
+      } else {
+        if (item.pairId && !item.isSide) {
+          const sk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && tableOrder[k].isSide);
+          if (sk) delete tableOrder[sk];
+        }
+        if (item.pairId && item.isSide) {
+          const mk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && !tableOrder[k].isSide);
+          if (mk) delete tableOrder[mk];
+        }
+        delete tableOrder[name];
       }
-      if (item.pairId && item.isSide) {
-        const mk = Object.keys(tableOrder).find(k => tableOrder[k].pairId === item.pairId && !tableOrder[k].isSide);
-        if (mk) delete tableOrder[mk];
-      }
-      delete tableOrder[name];
     }
 
     if (currentTable === '🛑') {
@@ -3214,6 +3238,51 @@
   }
 
   // =============================================
+  // ONE-TIME MIGRATION: stoplist 0-based semantics
+  // Marker: /stoplistMeta/migrations/zeroBasedV1
+  // Old: qty 1 = stop. New: qty 0 = stop.
+  // Transform: 1→0, >1→(qty-1), 0→0.
+  // =============================================
+  function runStoplistZeroBasedMigrationIfNeeded() {
+    db.ref('stoplistMeta/migrations/zeroBasedV1').transaction(
+      current => {
+        if (current === true) return; // already applied — abort (return undefined)
+        return true; // claim marker atomically
+      },
+      (error, committed) => {
+        if (error) { console.warn('[Migration] stoplist_zero_based_v1: transaction error', error); return; }
+        if (!committed) { console.log('[Migration] stoplist_zero_based_v1: already applied, skipping'); return; }
+
+        const stoplistData = orders['🛑'] || {};
+        const before = {}, after = {};
+        let transformedCount = 0, skippedInvalid = 0;
+        const newStoplistData = {};
+
+        Object.entries(stoplistData).forEach(([key, item]) => {
+          if (!item || typeof item.qty !== 'number') { skippedInvalid++; return; }
+          const oldQty = item.qty;
+          before[key] = oldQty;
+          const newQty = oldQty <= 0 ? 0 : (oldQty === 1 ? 0 : oldQty - 1);
+          after[key] = newQty;
+          if (newQty !== oldQty) transformedCount++;
+          newStoplistData[key] = Object.assign({}, item, { qty: newQty });
+        });
+
+        db.ref('orders/' + STOPLIST_KEY).set({ json: JSON.stringify(newStoplistData) });
+        db.ref('stoplistMeta/migrations/zeroBasedV1Timestamp').set(Date.now());
+        writeAudit('stoplist_migration_zero_based_v1', {
+          before, after, transformedCount, skippedInvalid, rule: '1->0, >1 subtract 1',
+        });
+
+        orders['🛑'] = newStoplistData;
+        renderOrder();
+        if (currentTable !== '🛑') applyStopList();
+        console.log('[Migration] stoplist_zero_based_v1: applied,', transformedCount, 'entries transformed,', skippedInvalid, 'skipped');
+      }
+    );
+  }
+
+  // =============================================
   // INIT
   // =============================================
   window.addEventListener('DOMContentLoaded', () => {
@@ -3241,6 +3310,7 @@
         if (!ordersLoaded) {
           orders = data;
           ordersLoaded = true;
+          runStoplistZeroBasedMigrationIfNeeded();
           renderOrder();
           restoreMenuVisual();
           if (currentTable !== '🛑') applyStopList();
