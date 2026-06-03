@@ -611,9 +611,19 @@
   function isDerivedEffectivelyStopped(name) {
     const link = findDerivedLinkByDerivedName(name);
     if (!link) return null; // not a derived item — caller uses standard logic
-    const state = getDerivedState(name);
-    if (state > 0) return false; // qty 1 or 2 → one or two portions available
-    // state 0 (absent or explicit 0): check mother
+
+    const stoplist = orders['🛑'];
+    const hasDerivedEntry = !!(stoplist &&
+      Object.prototype.hasOwnProperty.call(stoplist, name));
+
+    if (hasDerivedEntry) {
+      const qty = stoplist[name] ? stoplist[name].qty : 0;
+      // Explicit entry: qty=0 → hard stop (do not fall through to mother).
+      // qty>0 → own residual available.
+      return !(qty > 0);
+    }
+
+    // Absent: check mother availability
     const motherEntry = getMotherStopEntry(link.motherNames[0]);
     if (!motherEntry) return false; // mother absent = unlimited = conversion allowed
     return (motherEntry.qty == null ? 0 : motherEntry.qty) <= 1;
@@ -621,16 +631,25 @@
 
   // Consumes derived stock for one derived portion.
   // Returns true (allowed) or false (blocked).
-  // Never writes derived values outside {absent, 0, 1, 2}.
+  // Strict absent/0 distinction: absent → check mother; qty=0 → hard stop.
   function consumeDerivedStock(derivedName, price, link) {
-    const state = getDerivedState(derivedName);
+    const stoplist = orders['🛑'];
+    const hasDerivedEntry = !!(stoplist &&
+      Object.prototype.hasOwnProperty.call(stoplist, derivedName));
 
-    if (state > 0) {
-      const before = orders['🛑'][derivedName].qty;
-      if (state === 1) {
-        // Last residual consumed: remove entry entirely.
-        // qty=0 is reserved for manual stops set on table 13.
-        // Absent means availability re-derives from mother on next order.
+    if (hasDerivedEntry) {
+      const qty = stoplist[derivedName] ? stoplist[derivedName].qty : 0;
+
+      if (qty <= 0) {
+        // Explicit manual stop (qty=0): hard block — do not check or consume mother.
+        return false;
+      }
+
+      // Own residual stock (qty >= 1)
+      const before = qty;
+      if (qty === 1) {
+        // Last residual: remove entry so next order re-derives from mother.
+        // qty=0 is reserved for manual stops; absent is the correct post-consumption state.
         delete orders['🛑'][derivedName];
         saveOrderToFirebase('🛑');
         applyStopList();
@@ -641,21 +660,21 @@
           reason: 'derived_residual_final_consumed',
         });
       } else {
-        // state === 2: decrement normally (2→1, residual still tracked)
-        orders['🛑'][derivedName].qty = before - 1;
+        // qty >= 2: decrement (residual still tracked)
+        orders['🛑'][derivedName].qty = qty - 1;
         saveOrderToFirebase('🛑');
         applyStopList();
         writeAudit('derived_stock_consumed', {
           derivedName,
           derivedBefore: before,
-          derivedAfter: before - 1,
+          derivedAfter: qty - 1,
           reason: 'derived_order_from_stock',
         });
       }
       return true;
     }
 
-    // state 0: attempt mother conversion — one portion served, one residual created
+    // Absent: attempt mother conversion — one portion served, one residual created
     const motherName  = link.motherNames[0];
     const motherEntry = getMotherStopEntry(motherName);
 
