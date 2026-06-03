@@ -360,8 +360,15 @@
     });
   }
 
+  function hasDeviceIdentity() {
+    return Boolean(
+      localStorage.getItem('deviceId') &&
+      localStorage.getItem('deviceName')
+    );
+  }
+
   function requireDeviceIdentity(actionName) {
-    if (deviceId && deviceName) return true;
+    if (hasDeviceIdentity()) return true;
     _deviceModalFromGuard = true;
     showDeviceNameModal();
     return false;
@@ -1399,6 +1406,11 @@
   }
 
   function selectSide(sideName, price) {
+    if (!requireDeviceIdentity('order_add')) {
+      document.getElementById('sideOverlay').style.cssText = 'display:none';
+      pendingSide = null;
+      return;
+    }
     if (isEffectivelyStopped(sideName)) {
       pendingSide = null;
       document.getElementById('sideOverlay').style.cssText = 'display:none';
