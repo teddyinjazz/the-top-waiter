@@ -1052,6 +1052,15 @@
   let currentVarGroup = null;
   let currentVarBtn = null;
 
+  function buildVariantDisplayName(parentName, variantName) {
+    const p = (parentName  || '').trim().replace(/\s+/g, ' ');
+    const v = (variantName || '').trim().replace(/\s+/g, ' ');
+    if (!p) return v;
+    if (!v) return p;
+    if (v.toLowerCase().includes(p.toLowerCase())) return v;
+    return p + ' ' + v;
+  }
+
   function openVarPopup(groupKey, btn) {
     const group = VARIANT_GROUPS[groupKey];
     if (!group) return;
@@ -1070,7 +1079,7 @@
       const isStopped = currentTable !== '🛑' && isEffectivelyStopped(v.name);
       const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
       const label = lang === 'ru' ? v.ru : v.en;
-      const fullDispName = (groupDisp && label.toLowerCase().includes(groupDisp.toLowerCase())) ? label : (groupDisp + ' ' + label);
+      const fullDispName = buildVariantDisplayName(groupDisp, label);
 
       const btn = document.createElement('button');
       btn.className = 'var-btn' + (isStopped ? ' stopped' : '');
@@ -1126,7 +1135,7 @@
         const isStopped = currentTable !== '🛑' && isEffectivelyStopped(v.name);
         const qty = tableOrder[v.name] ? tableOrder[v.name].qty : 0;
         const label = lang === 'ru' ? v.ru : v.en;
-        const fullDispName = (grpDisp && label.toLowerCase().includes(grpDisp.toLowerCase())) ? label : (grpDisp + ' ' + label);
+        const fullDispName = buildVariantDisplayName(grpDisp, label);
         const varBtn = document.createElement('button');
         varBtn.className = 'var-btn' + (isStopped ? ' stopped' : '');
         varBtn.innerHTML = `<span class="var-btn-name">${label}</span><span style="display:flex;align-items:center;gap:6px"><span class="var-btn-price">€${v.price}</span>${isStopped ? `<span style="color:#ff6b6b;font-size:10px;letter-spacing:1px">${lang === 'ru' ? 'СТОП' : 'STOP'}</span>` : ''}${qty > 0 ? `<span class="var-btn-count">${qty}</span>` : ''}</span>`;
@@ -2182,6 +2191,10 @@
     soft: 'SOFT DRINKS — ADMIN', coffee: 'COFFEE · TEA — ADMIN',
     kombucha: 'KOMBUCHA — ADMIN', spirits: 'SPIRITS — ADMIN', cocktails: 'COCKTAILS — ADMIN',
   };
+  // Sections whose items carry short/fragment display names that need a parent prefix
+  // in the order panel and Keeper popup. Only list sections where this applies.
+  const EDITABLE_SECTION_ORDER_PREFIX_RU = { burgers: 'Бургер' };
+  const EDITABLE_SECTION_ORDER_PREFIX_EN = { burgers: 'Burger' };
 
   const SECTION_SEEDS = {
     water: {
@@ -2360,7 +2373,7 @@
   let customCategories = {};
   const _customCatItemListeners = new Set();
 
-  function getEditableOrderDisplayName(item) {
+  function getEditableOrderDisplayName(item, sectionKey) {
     const visibleName = lang === 'ru'
       ? (item.nameRu || item.name || item.nameEn || '')
       : (item.nameEn || item.nameRu || item.name || '');
@@ -2371,10 +2384,19 @@
     const needsDescription =
       normalizedName.includes('брускетта') ||
       normalizedName.includes('bruschetta');
+    let baseName;
     if (needsDescription && visibleDesc && !visibleName.includes(visibleDesc)) {
-      return (visibleName + ' ' + visibleDesc).trim();
+      baseName = (visibleName + ' ' + visibleDesc).trim();
+    } else {
+      baseName = visibleName;
     }
-    return visibleName;
+    if (sectionKey) {
+      const sectionPrefix = lang === 'ru'
+        ? (EDITABLE_SECTION_ORDER_PREFIX_RU[sectionKey] || '')
+        : (EDITABLE_SECTION_ORDER_PREFIX_EN[sectionKey] || '');
+      if (sectionPrefix) return buildVariantDisplayName(sectionPrefix, baseName);
+    }
+    return baseName;
   }
 
   function renderEditableSection(sectionKey) {
@@ -2466,7 +2488,7 @@
     } else {
       const price = item.price || 0;
       const safeName = (item.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-      const orderDisplayName = getEditableOrderDisplayName(item);
+      const orderDisplayName = getEditableOrderDisplayName(item, sectionKey);
       const safeDisp = orderDisplayName.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
       return `<button class="item-btn" data-item-id="${safeId}" onclick="addItem(this,'${safeName}',${price},'${safeDisp}')">` +
         `<div class="item-name">${escapeHtml(dispName)}</div>${descHtml}` +
