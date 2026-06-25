@@ -1463,9 +1463,17 @@
     if (!orders[currentTable]) orders[currentTable] = {};
     const baseKey = price === 0 ? sideName + ' (вкл.)' : sideName + ' (гарнир)';
     const key = pendingSide ? baseKey + '__' + pendingSide.pairId : baseKey;
-    if (!orders[currentTable][key]) orders[currentTable][key] = { price, qty: 0, displayName: baseKey };
+    if (!orders[currentTable][key]) orders[currentTable][key] = { price, qty: 0, displayName: baseKey, itemName: sideName };
     orders[currentTable][key].qty++;
     if (pendingSide) { orders[currentTable][key].pairId = pendingSide.pairId; orders[currentTable][key].isSide = true; }
+    if (orders['🛑'] && orders['🛑'][sideName] && orders['🛑'][sideName].qty > 0) {
+      const _prevSideSL = orders['🛑'][sideName].qty;
+      const _parentMainName = pendingSide ? pendingSide.mainName : null;
+      orders['🛑'][sideName].qty--;
+      saveOrderToFirebase('🛑');
+      applyStopList();
+      writeAudit('stoplist_change', { itemName: sideName, before: _prevSideSL, after: orders['🛑'][sideName].qty, parentItemName: _parentMainName, table: currentTable });
+    }
     renderOrder();
     saveOrderToFirebase(currentTable);
     pendingSide = null;
@@ -1520,7 +1528,20 @@
   function rollbackOneToStoplist(key, item) {
     if (currentTable === '🛑') return;
     if (!orders['🛑']) return;
-    if (item.isSide) return;
+    if (item.isSide) {
+      const sideItemName = item.itemName;
+      if (!sideItemName || !orders['🛑'] || !orders['🛑'][sideItemName]) return;
+      const prev = sentQty[currentTable] || {};
+      const alreadySent = prev[key] || 0;
+      if (item.qty > alreadySent) {
+        const _prevRbSide = orders['🛑'][sideItemName].qty;
+        orders['🛑'][sideItemName].qty = _prevRbSide + 1;
+        saveOrderToFirebase('🛑');
+        applyStopList();
+        writeAudit('stoplist_change', { itemName: sideItemName, before: _prevRbSide, after: orders['🛑'][sideItemName].qty });
+      }
+      return;
+    }
     const baseName = item.displayName || item.itemName || key;
     if (!orders['🛑'][baseName]) return;
     const prev = sentQty[currentTable] || {};
@@ -1555,6 +1576,20 @@
       if (currentTable !== '🛑' && !item.isSide && isEffectivelyStopped(baseName)) {
         alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
         return;
+      }
+
+      if (currentTable !== '🛑' && item.isSide && item.itemName) {
+        if (isEffectivelyStopped(item.itemName)) {
+          alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
+          return;
+        }
+        if (orders['🛑'] && orders['🛑'][item.itemName] && orders['🛑'][item.itemName].qty > 0) {
+          const _prevSideSLCQ = orders['🛑'][item.itemName].qty;
+          orders['🛑'][item.itemName].qty--;
+          saveOrderToFirebase('🛑');
+          applyStopList();
+          writeAudit('stoplist_change', { itemName: item.itemName, before: _prevSideSLCQ, after: orders['🛑'][item.itemName].qty });
+        }
       }
 
       if (!item.isSide && MAIN_COURSE_ITEMS.includes(baseName)) {
