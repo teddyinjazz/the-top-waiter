@@ -269,9 +269,50 @@
     'pina_colada_non_alcoholic':  'Pina Colada non-alcoholic',
   };
 
-  function displayName(name) {
+  let _displayNameIndex = null;
+
+  function _buildDisplayNameIndex() {
+    const idx = {};
+    // Seed from ITEM_EN (backward compat, lower priority)
+    Object.keys(ITEM_EN).forEach(k => { idx[k] = { ru: k, en: ITEM_EN[k] }; });
+    // Seed from SECTION_SEEDS (higher priority — overwrites ITEM_EN where conflicts exist)
+    // SECTION_SEEDS and EDITABLE_SECTION_ORDER_PREFIX_RU/EN are defined later in this
+    // DOMContentLoaded callback; safe here because _buildDisplayNameIndex is called lazily.
+    Object.entries(SECTION_SEEDS).forEach(([sk, section]) => {
+      Object.values(section).forEach(item => {
+        const ru = (item.nameRu || item.name || '').trim();
+        const en = (item.nameEn || item.name || '').trim();
+        if (!ru || !en) return;
+        // Index by every known name form (internal, nameRu, nameEn)
+        [item.name, ru, en].filter(Boolean).forEach(k => { if (k) idx[k] = { ru, en }; });
+        // For sections with an order-panel prefix (burgers), pre-compute both composite
+        // forms so cross-language lookup works (e.g. "Бургер Классический" ↔ "Burger Classic").
+        const prefRu = EDITABLE_SECTION_ORDER_PREFIX_RU[sk] || '';
+        const prefEn = EDITABLE_SECTION_ORDER_PREFIX_EN[sk] || '';
+        if (!item.isGroup && prefRu && prefEn) {
+          const ruComp = buildVariantDisplayName(prefRu, ru);
+          const enComp = buildVariantDisplayName(prefEn, en);
+          idx[ruComp] = { ru: ruComp, en: enComp };
+          idx[enComp] = { ru: ruComp, en: enComp };
+        }
+      });
+    });
+    return idx;
+  }
+
+  function displayName(name, item) {
+    if (!name) return '';
+    if (!_displayNameIndex) _displayNameIndex = _buildDisplayNameIndex();
+    const hit = _displayNameIndex[name];
+    if (hit) return lang === 'ru' ? hit.ru : hit.en;
+    // itemName fallback: for composite display names not in the index (e.g. bruschetta
+    // with description appended), look up via the raw internal name.
+    if (item && item.itemName && item.itemName !== name) {
+      const hit2 = _displayNameIndex[item.itemName];
+      if (hit2) return lang === 'ru' ? hit2.ru : hit2.en;
+    }
     if (lang === 'ru') return name;
-    return ITEM_EN[name] || name;
+    return ITEM_EN[name] || (item && item.itemName ? ITEM_EN[item.itemName] : null) || name;
   }
 
   // =============================================
@@ -1745,9 +1786,9 @@
           const sideLine = side.price * side.qty;
           total += sideLine; count += side.qty;
           const safeSide = sideKey.replace(/'/g, "\\'");
-          html += `<div class="order-pair"><div class="order-pair-main"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div><div class="order-pair-side"><div class="oi-name">↳ ${displayName(side.displayName||sideKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',-1)">−</button><span class="oi-qty">${side.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',1)">+</button></div><div class="oi-price" style="color:${side.price===0?'#3dbfaf':'#e9c46a'}">${side.price===0 ? (lang === 'ru' ? 'вкл.' : 'incl.') : '€' + sideLine.toFixed(2)}</div></div></div>`;
+          html += `<div class="order-pair"><div class="order-pair-main"><div class="oi-name">${displayName(main.displayName||mainKey, main)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div><div class="order-pair-side"><div class="oi-name">↳ ${displayName(side.displayName||sideKey, side)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',-1)">−</button><span class="oi-qty">${side.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeSide}',1)">+</button></div><div class="oi-price" style="color:${side.price===0?'#3dbfaf':'#e9c46a'}">${side.price===0 ? (lang === 'ru' ? 'вкл.' : 'incl.') : '€' + sideLine.toFixed(2)}</div></div></div>`;
         } else {
-          html += `<div class="order-item"><div class="oi-name">${displayName(main.displayName||mainKey)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div>`;
+          html += `<div class="order-item"><div class="oi-name">${displayName(main.displayName||mainKey, main)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',-1)">−</button><span class="oi-qty">${main.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeMain}',1)">+</button></div><div class="oi-price">€${mainLine.toFixed(2)}</div></div>`;
         }
       } else {
         const { name } = block;
@@ -1755,7 +1796,7 @@
         const line = item.price * item.qty;
         total += line; count += item.qty;
         const safeName = name.replace(/'/g, "\\'");
-        html += `<div class="order-item"><div class="oi-name">${displayName(item.displayName||name)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',-1)">−</button><span class="oi-qty">${item.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',1)">+</button></div><div class="oi-price">€${line.toFixed(2)}</div></div>`;
+        html += `<div class="order-item"><div class="oi-name">${displayName(item.displayName||name, item)}</div><div class="oi-controls"><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',-1)">−</button><span class="oi-qty">${item.qty}</span><button class="oi-ctrl-btn" onclick="changeQty('${safeName}',1)">+</button></div><div class="oi-price">€${line.toFixed(2)}</div></div>`;
       }
     });
 
@@ -1869,7 +1910,7 @@
             hasNew = true;
             const line = item.price * newQty;
             total += line;
-            lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||mainKey)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+            lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||mainKey, item)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
           }
         }
         if (sideKey && tableOrder[sideKey]) {
@@ -1879,7 +1920,7 @@
             hasNew = true;
             const line = item.price * newQty;
             total += line;
-            lines += `<div style="padding-left:12px;color:#7ab3ac">↳ × ${newQty} &nbsp; ${displayName(item.displayName||sideKey)} &nbsp; <span style="color:${item.price===0?'#3dbfaf':'#e9c46a'}">${item.price===0?(lang==='ru'?'вкл.':'incl.'):'€'+line.toFixed(2)}</span></div>`;
+            lines += `<div style="padding-left:12px;color:#7ab3ac">↳ × ${newQty} &nbsp; ${displayName(item.displayName||sideKey, item)} &nbsp; <span style="color:${item.price===0?'#3dbfaf':'#e9c46a'}">${item.price===0?(lang==='ru'?'вкл.':'incl.'):'€'+line.toFixed(2)}</span></div>`;
           }
         }
       } else {
@@ -1890,7 +1931,7 @@
           hasNew = true;
           const line = item.price * newQty;
           total += line;
-          lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||name)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
+          lines += `<div>× ${newQty} &nbsp; ${displayName(item.displayName||name, item)} &nbsp; <span style="color:#e9c46a">€${line.toFixed(2)}</span></div>`;
         }
       }
     });
