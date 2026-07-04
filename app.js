@@ -307,6 +307,64 @@
     } catch(e) {
       console.warn('[displayName] SECTION_SEEDS index build failed:', e);
     }
+    // Seed from VARIANT_GROUPS (static variant groups: Комбуча, Coral Light, Coral Dark,
+    // Вода, Сырники, Сангрия, Икра красная, etc.) — composite display names like
+    // "Комбуча чёрный чай Бокал 150 мл" ↔ "Kombucha Black Tea Glass 150ml".
+    try {
+      Object.entries(VARIANT_GROUPS).forEach(([, grp]) => {
+        (grp.variants || []).forEach(v => {
+          const ruComp = buildVariantDisplayName(grp.ru, v.ru);
+          const enComp = buildVariantDisplayName(grp.en, v.en);
+          if (ruComp && enComp) {
+            if (!idx[ruComp]) idx[ruComp] = { ru: ruComp, en: enComp };
+            if (!idx[enComp]) idx[enComp] = { ru: ruComp, en: enComp };
+          }
+          if (v.name && !idx[v.name]) idx[v.name] = { ru: ruComp || v.name, en: enComp || v.name };
+        });
+      });
+    } catch(e) {
+      console.warn('[displayName] VARIANT_GROUPS index build failed:', e);
+    }
+    // Seed from editableSections (Firebase-loaded sections not covered by static SECTION_SEEDS:
+    // cocktails, soft drinks, coffee, wineglass, spirits, kombucha from Firebase, custom
+    // categories, etc.). Lower priority: only fills gaps not already in the index.
+    // This seeding runs lazily — editableSections may be partially populated on first build;
+    // _displayNameIndex is invalidated (set to null) each time any section data arrives from
+    // Firebase so the next displayName() call rebuilds with the latest data.
+    try {
+      Object.entries(editableSections).forEach(([sk, items]) => {
+        Object.values(items || {}).forEach(item => {
+          const ru = (item.nameRu || item.name || '').trim();
+          const en = (item.nameEn || item.nameRu || item.name || '').trim();
+          if (!ru) return;
+          [item.name, ru, en].filter(Boolean).forEach(k => { if (k && !idx[k]) idx[k] = { ru, en }; });
+          const prefRu = EDITABLE_SECTION_ORDER_PREFIX_RU[sk] || '';
+          const prefEn = EDITABLE_SECTION_ORDER_PREFIX_EN[sk] || '';
+          if (!item.isGroup && prefRu && prefEn) {
+            const ruComp = buildVariantDisplayName(prefRu, ru);
+            const enComp = buildVariantDisplayName(prefEn, en);
+            if (!idx[ruComp]) idx[ruComp] = { ru: ruComp, en: enComp };
+            if (!idx[enComp]) idx[enComp] = { ru: ruComp, en: enComp };
+          }
+          if (item.variants) {
+            const vArr = Array.isArray(item.variants) ? item.variants : Object.values(item.variants);
+            vArr.filter(v => v && (v.ru || v.name)).forEach(v => {
+              const vRu = (v.ru || v.name || '').trim();
+              const vEn = (v.en || v.name || '').trim();
+              const ruComp = buildVariantDisplayName(ru, vRu);
+              const enComp = buildVariantDisplayName(en, vEn);
+              if (ruComp && enComp) {
+                if (v.name && !idx[v.name]) idx[v.name] = { ru: ruComp, en: enComp };
+                if (!idx[ruComp]) idx[ruComp] = { ru: ruComp, en: enComp };
+                if (!idx[enComp]) idx[enComp] = { ru: ruComp, en: enComp };
+              }
+            });
+          }
+        });
+      });
+    } catch(e) {
+      console.warn('[displayName] editableSections index build failed:', e);
+    }
     return idx;
   }
 
@@ -2592,6 +2650,7 @@
     EDITABLE_SECTION_KEYS.forEach(sectionKey => {
       db.ref('menuSections/' + sectionKey + '/items').on('value', snapshot => {
         editableSections[sectionKey] = snapshot.val() || {};
+        _displayNameIndex = null;
         renderEditableSection(sectionKey);
         renderOrder();
         const adminOverlay = document.getElementById('menuItemAdminOverlay');
@@ -2614,6 +2673,7 @@
           _customCatItemListeners.add(key);
           db.ref('menuSections/' + key + '/items').on('value', snap => {
             editableSections[key] = snap.val() || {};
+            _displayNameIndex = null;
             const listEl = document.getElementById(key + 'List');
             if (listEl) renderCustomCategoryItems(key);
             renderOrder();
