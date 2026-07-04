@@ -1855,6 +1855,12 @@
     if (currentTable === '🛑') {
       writeAudit('stoplist_clear', { beforeStoplist: _beforeClearOrder });
     } else {
+      let _coTotal = 0, _coCount = 0;
+      Object.values(_beforeClearOrder).forEach(item => {
+        _coTotal += (item.price || 0) * (item.qty || 0);
+        _coCount += (item.qty || 0);
+      });
+      writeAudit('table_checkout', { table: currentTable, total: parseFloat(_coTotal.toFixed(2)), itemCount: _coCount });
       writeAudit('order_clear', { table: currentTable, beforeOrder: _beforeClearOrder, beforeNotes: _beforeClearNotes, beforeSentQty: _beforeClearSentQty });
     }
     clearMenuVisual();
