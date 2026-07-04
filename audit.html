@@ -91,6 +91,7 @@ body { background: #0e1a17; color: #e8f4f2; font-family: 'DM Mono', monospace, '
 .action-order_add         { background: rgba(61,191,175,0.15); color: #3dbfaf; border: 1px solid rgba(61,191,175,0.3); }
 .action-order_qty_change  { background: rgba(61,191,175,0.08); color: #7ab3ac; border: 1px solid rgba(61,191,175,0.2); }
 .action-order_clear       { background: rgba(231,111,81,0.12); color: #e76f51; border: 1px solid rgba(231,111,81,0.3); }
+.action-table_checkout    { background: rgba(233,196,106,0.20); color: #e9c46a; border: 1px solid rgba(233,196,106,0.45); }
 .action-send_to_keeper    { background: rgba(233,196,106,0.15); color: #e9c46a; border: 1px solid rgba(233,196,106,0.3); }
 .action-app_open          { background: rgba(42,157,143,0.12); color: #2a9d8f; border: 1px solid rgba(42,157,143,0.25); }
 .action-device_created    { background: rgba(138,43,226,0.12); color: #c084fc; border: 1px solid rgba(138,43,226,0.25); }
@@ -160,6 +161,7 @@ const ACTION_LABELS = {
   order_add:                 { ru: 'Добавлено',                   en: 'Item added' },
   order_qty_change:          { ru: 'Изм. количество',             en: 'Qty changed' },
   order_clear:               { ru: 'Расчёт / очистка',           en: 'Order cleared' },
+  table_checkout:            { ru: 'РАСЧЁТ',                      en: 'CHECKOUT' },
   send_to_keeper:            { ru: 'Отправлено в KEEPER',         en: 'Sent to KEEPER' },
   menu_item_create:          { ru: 'Пункт меню создан',           en: 'Menu item created' },
   menu_item_update:          { ru: 'Пункт меню обновлён',         en: 'Menu item updated' },
@@ -200,6 +202,8 @@ function getPayloadSummary(action, payload) {
           ' (' + payload.beforeQty + '→' + payload.afterQty + ')';
       case 'order_clear':
         return 'Table ' + payload.table;
+      case 'table_checkout':
+        return 'T' + payload.table + ' · ' + payload.itemCount + ' item(s) · €' + Number(payload.total).toFixed(2);
       case 'send_to_keeper':
         return 'T' + payload.table + ' · ' +
           (payload.linesSummary ? payload.linesSummary.length + ' item(s)' : '') +
