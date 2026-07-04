@@ -273,30 +273,40 @@
 
   function _buildDisplayNameIndex() {
     const idx = {};
-    // Seed from ITEM_EN (backward compat, lower priority)
+    // Seed from ITEM_EN forward: RU_internal → { ru, en }
     Object.keys(ITEM_EN).forEach(k => { idx[k] = { ru: k, en: ITEM_EN[k] }; });
+    // Reverse ITEM_EN: EN_value → { ru, en } — safety net for items whose displayName
+    // was stored while the app was in EN mode (e.g. "Chicken Kyiv" stored instead of "Котлета Киев").
+    Object.keys(ITEM_EN).forEach(k => {
+      const enVal = ITEM_EN[k];
+      if (enVal && !idx[enVal]) idx[enVal] = { ru: k, en: enVal };
+    });
     // Seed from SECTION_SEEDS (higher priority — overwrites ITEM_EN where conflicts exist)
     // SECTION_SEEDS and EDITABLE_SECTION_ORDER_PREFIX_RU/EN are defined later in this
     // DOMContentLoaded callback; safe here because _buildDisplayNameIndex is called lazily.
-    Object.entries(SECTION_SEEDS).forEach(([sk, section]) => {
-      Object.values(section).forEach(item => {
-        const ru = (item.nameRu || item.name || '').trim();
-        const en = (item.nameEn || item.name || '').trim();
-        if (!ru || !en) return;
-        // Index by every known name form (internal, nameRu, nameEn)
-        [item.name, ru, en].filter(Boolean).forEach(k => { if (k) idx[k] = { ru, en }; });
-        // For sections with an order-panel prefix (burgers), pre-compute both composite
-        // forms so cross-language lookup works (e.g. "Бургер Классический" ↔ "Burger Classic").
-        const prefRu = EDITABLE_SECTION_ORDER_PREFIX_RU[sk] || '';
-        const prefEn = EDITABLE_SECTION_ORDER_PREFIX_EN[sk] || '';
-        if (!item.isGroup && prefRu && prefEn) {
-          const ruComp = buildVariantDisplayName(prefRu, ru);
-          const enComp = buildVariantDisplayName(prefEn, en);
-          idx[ruComp] = { ru: ruComp, en: enComp };
-          idx[enComp] = { ru: ruComp, en: enComp };
-        }
+    try {
+      Object.entries(SECTION_SEEDS).forEach(([sk, section]) => {
+        Object.values(section).forEach(item => {
+          const ru = (item.nameRu || item.name || '').trim();
+          const en = (item.nameEn || item.name || '').trim();
+          if (!ru || !en) return;
+          // Index by every known name form (internal, nameRu, nameEn)
+          [item.name, ru, en].filter(Boolean).forEach(k => { if (k) idx[k] = { ru, en }; });
+          // For sections with an order-panel prefix (burgers), pre-compute both composite
+          // forms so cross-language lookup works (e.g. "Бургер Классический" ↔ "Burger Classic").
+          const prefRu = EDITABLE_SECTION_ORDER_PREFIX_RU[sk] || '';
+          const prefEn = EDITABLE_SECTION_ORDER_PREFIX_EN[sk] || '';
+          if (!item.isGroup && prefRu && prefEn) {
+            const ruComp = buildVariantDisplayName(prefRu, ru);
+            const enComp = buildVariantDisplayName(prefEn, en);
+            idx[ruComp] = { ru: ruComp, en: enComp };
+            idx[enComp] = { ru: ruComp, en: enComp };
+          }
+        });
       });
-    });
+    } catch(e) {
+      console.warn('[displayName] SECTION_SEEDS index build failed:', e);
+    }
     return idx;
   }
 
