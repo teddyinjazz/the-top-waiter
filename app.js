@@ -1442,7 +1442,7 @@
     saveOrderToFirebase(currentTable);
   }
 
-  function addItemByName(name, price) {
+  function addItemByName(name, price, dispName) {
     if (!requireDeviceIdentity('order_add')) return;
     if (!orders[currentTable]) orders[currentTable] = {};
 
@@ -1506,7 +1506,7 @@
       qty: 1,
       itemName: name,
       pairId,
-      displayName: name
+      displayName: dispName || name
     };
     pendingSide = { mainName: name, pairId, mainKey };
     try {
@@ -1680,7 +1680,11 @@
     const item = tableOrder[name];
 
     if (delta > 0) {
-      const baseName = item.displayName || item.itemName || name;
+      // Стоп-лист/дериватив-сток всегда ключуется по каноническому itemName, а не
+      // по локализованному displayName (они расходятся, когда у позиции задано
+      // отдельное nameRu/nameEn через админку меню) — иначе decrement "мимо" записи.
+      const baseName = item.itemName || name;
+      const dispLabel = item.displayName || baseName;
 
       if (currentTable !== '🛑' && !item.isSide && isEffectivelyStopped(baseName)) {
         alert(lang === 'ru' ? 'Позиция в стоп-листе' : 'Item is in the stop list');
@@ -1702,7 +1706,7 @@
       }
 
       if (!item.isSide && MAIN_COURSE_ITEMS.includes(baseName)) {
-        addItemByName(baseName, item.price);
+        addItemByName(baseName, item.price, dispLabel);
         return;
       }
 
